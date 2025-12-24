@@ -10,8 +10,6 @@ export default function Footer() {
     <footer className="bg-black text-white py-12 md:py-20 px-6 md:px-20 font-sans">
       <div className="max-w-7xl mx-auto">
         <div className="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-5 gap-10 md:gap-12 mb-16 items-start">
-
-          {/* Cột 1 & 2: Thương hiệu - Chiếm toàn bộ hàng trên mobile, 2 cột trên desktop */}
           <div className="sm:col-span-3 md:col-span-2">
             <div className='flex items-center mb-6'> 
               <img src={logo} alt="Logo STEMotion" className="h-10 mr-3" />
@@ -24,7 +22,6 @@ export default function Footer() {
             </p>
           </div>
 
-          {/* Cột 3: Về ứng dụng */}
           <div className="md:pt-2">
             <h3 className="text-gray-500 text-xs md:text-sm font-semibold mb-5 uppercase tracking-wider">Về ứng dụng</h3>
             <ul className="space-y-3 md:space-y-4 text-gray-200 font-light">
@@ -34,7 +31,6 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Cột 4: Về công ty */}
           <div className="md:pt-2">
             <h3 className="text-gray-500 text-xs md:text-sm font-semibold mb-5 uppercase tracking-wider">Về công ty</h3>
             <ul className="space-y-3 md:space-y-4 text-gray-200 font-light">
@@ -43,9 +39,8 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Cột 5: Social Icons - Căn trái trên mobile, căn phải trên desktop */}
           <div className="flex space-x-6 text-2xl text-gray-400 md:pt-1 md:justify-end">
-            <a href="#" className="hover:text-white transition-transform hover:scale-110"><FaFacebook /></a>
+            <a href="https://www.facebook.com/profile.php?id=61584193513025" className="hover:text-white transition-transform hover:scale-110"><FaFacebook /></a>
             <a href="#" className="hover:text-white transition-transform hover:scale-110"><FaInstagram /></a>
             <a href="#" className="hover:text-white transition-transform hover:scale-110"><FaXTwitter /></a>
             <a href="#" className="hover:text-white transition-transform hover:scale-110"><FaLinkedin /></a>
@@ -53,7 +48,6 @@ export default function Footer() {
 
         </div>
 
-         {/* Phần thông tin bản quyền phía dưới */}
         <div className="flex flex-col md:flex-row justify-center items-center space-y-4 md:space-y-0 md:space-x-8 text-xs text-gray-500 border-t border-gray-800 pt-8">
           <a href="#" className="hover:text-gray-300">Điều khoản dịch vụ</a>
           <a href="#" className="hover:text-gray-300">Chính sách bảo mật</a>
