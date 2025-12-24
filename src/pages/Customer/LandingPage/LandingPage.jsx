@@ -6,6 +6,8 @@ import { HiOutlineSparkles, HiOutlineLightningBolt } from "react-icons/hi";
 import Backround_01 from '../../../assets/bg-01.png'
 import Backround_02 from '../../../assets/bg-02.png'
 import LoginModal from "../LoginPage/LoginPage";
+import { FaCheck } from "react-icons/fa";
+import { HiOutlineBolt, HiBolt } from "react-icons/hi2";
 
 const LandingPage = () => {
   const features = [
@@ -134,7 +136,139 @@ const LandingPage = () => {
             </h2>
             <p className="text-gray-500">Phương pháp học hiện đại và hiệu quả</p>
           </div>
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="flex flex-row bg-white">
+            <div className="flex-1 p-10">
+              <img src="src/assets/math.png" alt="math" />
+            </div>
+            <div className="flex-1 p-10 flex flex-col justify-center items-start space-y-6">
+              <h2 className="font-semibold text-4xl md:text-6xl">
+                Học tương tác
+              </h2>
+              <div>
+                <p className="text-lg">Khám phá khoa học qua hình ảnh và hoạt động thực hành</p>
+              </div>
+            </div>
+          </div>
+          <div className="flex flex-row bg-gradient-to-br from-white to-blue-100">
+            <div className="flex-1 p-10 flex flex-col justify-center items-start space-y-6">
+              <h2 className="font-semibold text-4xl md:text-6xl">
+                Tiến bộ từng bước
+              </h2>
+              <div>
+                <p className="text-lg">Nắm vững từng khái niệm trước khi chuyển sang bài tiếp theo</p>
+              </div>
+            </div>
+            <div className="flex-1 p-10">
+
+              <div className="w-[200px] h-[110px] bg-[#879EFF] rounded-[50%] pb-5 flex justify-center">
+                <div className="w-[200px] h-[110px]
+                                border-l-[50px] border-l-transparent
+                                border-r-[50px] border-r-transparent
+                                border-b-[90px] border-b-[#A0B2FF]
+                                rounded-[100%] absolute flex justify-center">
+                  <div className="w-[160px] h-[85px] bg-[#94AEFF] rounded-[50%] pb-3 pt-2 flex justify-center absolute">
+                    <div className="w-[130px] h-[60px] bg-[#DDE4FF] rounded-[50%] flex justify-center">
+                      <div className="w-[13px] h-[60px] bg-[#94AEFF] flex justify-center relative py-2">
+                        <div className="w-[110px] h-[43px] bg-[#94AEFF] rounded-[50%] flex justify-center absolute">
+                          <div className="flex justify-center items-center h-full">
+                            <FaCheck className="text-[#DDE4FF] size-6" />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="w-[240px] h-[145px] bg-[#A0B2FF] rounded-[50%] flex justify-center pt-2 pb-4 mt-10 ml-60">
+                <div className="w-[220px] h-[125px] bg-[#fff] rounded-[50%] flex justify-center pt-1">
+                  <div className="w-[200px] h-[110px] bg-[#879EFF] rounded-[50%] pb-5 flex justify-center ">
+                    <div className="w-[200px] h-[110px]
+                                border-l-[50px] border-l-transparent
+                                border-r-[50px] border-r-transparent
+                                border-b-[90px] border-b-[#A0B2FF]
+                                rounded-[100%] absolute flex justify-center">
+                      <div className="w-[160px] h-[85px] bg-[#94AEFF] rounded-[50%] pb-3 pt-2 flex justify-center absolute">
+                        <div className="w-[130px] h-[60px] bg-[#FFF] rounded-[50%] flex justify-center">
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="w-[200px] h-[110px] bg-[#999999] rounded-[50%] pb-5 flex justify-center mt-10 relative">
+                <div className="w-[200px] h-[110px]
+                                border-l-[50px] border-l-transparent
+                                border-r-[50px] border-r-transparent
+                                border-b-[90px] border-b-[#ADADAD]
+                                rounded-[100%] absolute flex justify-center">
+                  <div className="w-[160px] h-[85px] bg-[#E5E5E5] rounded-[50%] pb-3 pt-2 flex justify-center absolute">
+                    <div className="w-[130px] h-[60px] bg-[#CCCCCC] rounded-[50%] flex justify-center">
+                      <div className="w-[13px] h-[60px] bg-[#E5E5E5] flex justify-center relative py-2">
+                        <div className="w-[110px] h-[43px] bg-[#E5E5E5] rounded-[50%] flex justify-center absolute">
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+
+            </div>
+
+          </div>
+
+          <div className="flex flex-row bg-gray-100">
+            <div className="flex-1 px-10 py-40">
+              <div className="flex gap-6">
+                <div className="flex-col justify-center items-center translate-y-20">
+                  <div className="w-[150px] h-[150px] bg-gradient-to-r from-[#7E82E4] via-[#FE99BF] via-[#FBA889] to-[#F8BB44] rounded-[100%] flex justify-center items-center ">
+                    <div className="w-[140px] h-[140px] bg-white rounded-[100%] flex justify-center items-center">
+                      <HiOutlineBolt className="w-[70px] h-[70px] text-[#7E82E4]" />
+                    </div>
+                  </div>
+                  <p className="text-[#7E82E4] font-bold text-center mt-2">
+                    T2
+                  </p>
+                </div>
+                <div className="flex-col justify-center items-center translate-y-0">
+                  <div className="w-[150px] h-[150px] bg-gradient-to-r from-[#7E82E4] via-[#FE99BF] via-[#FBA889] to-[#F8BB44] rounded-[100%] flex justify-center items-center ">
+                    <div className="w-[140px] h-[140px] bg-white rounded-[100%] flex justify-center items-center">
+                      <HiOutlineBolt className="w-[70px] h-[70px] text-[#7E82E4]" />
+                    </div>
+                  </div>
+                  <p className="text-[#7E82E4] font-bold text-center mt-2">
+                    T3
+                  </p>
+                </div>
+                <div className="flex-col justify-center items-center -translate-y-20">
+                  <div className="w-[150px] h-[150px] bg-[#C2C2C2] rounded-[100%] flex justify-center items-center ">
+                    <div className="w-[140px] h-[140px] bg-white rounded-[100%] flex justify-center items-center">
+                      <HiBolt className="w-[70px] h-[70px] text-[#E5E5E5]" />
+                    </div>
+                  </div>
+                  <p className="text-[#C2C2C2] font-bold text-center mt-2">
+                    T4
+                  </p>
+                </div>
+              </div>
+
+            </div>
+            <div className="flex-1 p-10 flex flex-col justify-center items-start space-y-6">
+              <h2 className="font-semibold text-4xl md:text-6xl">
+                Giữ vững động lực
+              </h2>
+              <div>
+                <p className="text-lg">Kết thúc mỗi ngày thông minh hơn với những bài học thú vị, tính năng thi đua hấp dẫn và lời khích lệ mỗi ngày</p>
+              </div>
+            </div>
+          </div>
+
+
+
+
+          <div className="grid md:grid-cols-3 gap-8 mt-5">
             {features.map((feature, index) => (
               <Card
                 key={index}
