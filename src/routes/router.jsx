@@ -6,6 +6,9 @@ import Login from "../pages/Customer/LoginPage/LoginPage";
 import NotFound from "../pages/NotFound";
 import { ProtectedAdminRoute } from "./ProtectedAdminRoute";
 import AdminPage from "../pages/Admin/AdminPage";
+import CoursesPage from "../pages/Customer/CoursesPage/CoursesPage";
+import About from "../pages/Customer/AboutUsPage/About";
+import Contact from "../pages/Customer/ContactPage/Contact";
 
 
 export const router = createBrowserRouter([
@@ -19,8 +22,20 @@ export const router = createBrowserRouter([
         element: <LandingPage />,
       },
       {
+        path: "courses",
+        element: <CoursesPage />,
+      },
+      {
         path: "login",
         element: <Login />,
+      },
+      {
+        path: "about-us",
+        element: <About/>
+      },
+       {
+        path: "contact",
+        element: <Contact/>
       },
       {
         path: "*",

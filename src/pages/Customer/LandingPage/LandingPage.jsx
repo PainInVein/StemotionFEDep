@@ -60,11 +60,11 @@ const LandingPage = () => {
 
               <div className="space-y-4 pt-4">
                 <p className="text-sm font-medium text-muted-foreground">Chọn lộ trình của bạn:</p>
-                <div className="flex flex-col sm:flex-row gap-4">
+                <div className="flex flex-col sm:flex-row md:flex-row gap-4 sm:justify-center">
                   {/* <Link to="/student-login" className="flex-1"> */}
                   <div onClick={() => openLogin('student')}>
                     {/* Ant Design Card: Dùng bodyStyle hoặc class Tailwind trực tiếp */}
-                    <Card className="border-2 border-indigo-100 hover:border-indigo-500 hover:bg-indigo-50 hover:shadow-lg transition-all cursor-pointer group rounded-xl">
+                    <Card className="border-2 border-indigo-100 hover:border-indigo-500 hover:shadow-lg transition-all cursor-pointer group rounded-xl">
                       <div className="p-2 text-center h-auto md:h-[150px]">
                         <div className="bg-indigo-100 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-3">
                           <FaRegUserCircle className="text-2xl text-indigo-600" />
@@ -77,7 +77,7 @@ const LandingPage = () => {
                   {/* </Link> */}
                   {/* <Link to="/parent-login" className="flex-1"> */}
                   <div onClick={() => openLogin('parent')}>
-                    <Card className="border-2 border-pink-100 hover:border-pink-500 hover:bg-pink-50 hover:shadow-lg transition-all cursor-pointer group rounded-xl">
+                    <Card className="border-2 border-pink-100 hover:border-pink-500  hover:shadow-lg transition-all cursor-pointer group rounded-xl">
                       <div className="p-2 text-center h-auto md:h-[150px]">
                         <div className="bg-pink-100 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-3">
                           <FaRegHeart className="text-2xl text-pink-600" />
@@ -137,92 +137,91 @@ const LandingPage = () => {
       {/* Features Section */}
       <section className="py-20 px-6">
         <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-12 p-10" style={{ backgroundImage: `url(${Backround_01})` }}>
+          <div className="text-center mb-12 p-10 rounded-xl" style={{ backgroundImage: `url(${Backround_01})` }}>
             <h2 className="text-3xl md:text-4xl font-semibold mb-3 text-white" >
               Tại sao chọn STEMotion?
             </h2>
             <p className="text-gray-500">Phương pháp học hiện đại và hiệu quả</p>
           </div>
-          <div className="flex flex-row bg-white">
-            <div className="flex-1 p-10">
-              <img src="src/assets/math.png" alt="math" />
+          <div className="flex flex-col md:flex-row bg-white">
+            <div className="flex-1 p-6 md:p-10 flex justify-center">
+              <img src="src/assets/math.png" alt="math" className="w-full max-w-xs md:max-w-full" />
             </div>
-            <div className="flex-1 p-10 flex flex-col justify-center items-start space-y-6">
-              <h2 className="font-semibold text-4xl md:text-6xl">
+
+            <div className="flex-1 p-6 md:p-10 flex flex-col justify-center items-center space-y-4 md:space-y-6 text-center md:text-left">
+              <h2 className="font-semibold text-3xl sm:text-4xl md:text-6xl">
                 Học tương tác
               </h2>
-              <div>
-                <p className="text-lg">Khám phá khoa học qua hình ảnh và hoạt động thực hành</p>
-              </div>
+              <p className="text-base sm:text-lg">
+                Khám phá khoa học qua hình ảnh và hoạt động thực hành
+              </p>
             </div>
           </div>
-          <div className="flex flex-row bg-gradient-to-br from-white to-blue-100">
-            <div className="flex-1 p-10 flex flex-col justify-center items-start space-y-6">
-              <h2 className="font-semibold text-4xl md:text-6xl">
+
+          <div className="flex flex-col md:flex-row bg-gradient-to-br from-white to-blue-100">
+            <div className="flex-1 p-6 md:p-10 flex flex-col justify-center items-center space-y-4 md:space-y-6 text-center md:text-left">
+              <h2 className="font-semibold text-3xl sm:text-4xl md:text-6xl">
                 Tiến bộ từng bước
               </h2>
-              <div>
-                <p className="text-lg">Nắm vững từng khái niệm trước khi chuyển sang bài tiếp theo</p>
-              </div>
+              <p className="text-base sm:text-lg">
+                Nắm vững từng khái niệm trước khi chuyển sang bài tiếp theo
+              </p>
             </div>
-            <div className="flex-1 p-10">
-              <div className="">
+
+            <div className="flex-1 p-6 md:p-10 flex flex-col items-center md:items-start space-y-6">
+              <div>
                 <Lesson status={progress.lesson1} to="#" />
               </div>
-              <div className="ml-60">
+              <div className="md:ml-60">
                 <Lesson status={progress.lesson2} to="#" />
               </div>
-              <div className="">
+              <div>
                 <Lesson status={progress.lesson3} to="#" />
               </div>
             </div>
           </div>
 
-          <div className="flex flex-row bg-gray-100">
-            <div className="flex-1 px-10 py-40">
-              <div className="flex gap-6">
-                <div className="flex-col justify-center items-center translate-y-20">
-                  <div className="w-[150px] h-[150px] bg-gradient-to-r from-[#7E82E4] via-[#FE99BF] via-[#FBA889] to-[#F8BB44] rounded-[100%] flex justify-center items-center ">
-                    <div className="w-[140px] h-[140px] bg-white rounded-[100%] flex justify-center items-center">
-                      <HiOutlineBolt className="w-[70px] h-[70px] text-[#7E82E4]" />
-                    </div>
-                  </div>
-                  <p className="text-[#7E82E4] font-bold text-center mt-2">
-                    T2
-                  </p>
-                </div>
-                <div className="flex-col justify-center items-center translate-y-0">
-                  <div className="w-[150px] h-[150px] bg-gradient-to-r from-[#7E82E4] via-[#FE99BF] via-[#FBA889] to-[#F8BB44] rounded-[100%] flex justify-center items-center ">
-                    <div className="w-[140px] h-[140px] bg-white rounded-[100%] flex justify-center items-center">
-                      <HiOutlineBolt className="w-[70px] h-[70px] text-[#7E82E4]" />
-                    </div>
-                  </div>
-                  <p className="text-[#7E82E4] font-bold text-center mt-2">
-                    T3
-                  </p>
-                </div>
-                <div className="flex-col justify-center items-center -translate-y-20">
-                  <div className="w-[150px] h-[150px] bg-[#C2C2C2] rounded-[100%] flex justify-center items-center ">
-                    <div className="w-[140px] h-[140px] bg-white rounded-[100%] flex justify-center items-center">
-                      <HiBolt className="w-[70px] h-[70px] text-[#E5E5E5]" />
-                    </div>
-                  </div>
-                  <p className="text-[#C2C2C2] font-bold text-center mt-2">
-                    T4
-                  </p>
-                </div>
-              </div>
 
-            </div>
-            <div className="flex-1 p-10 flex flex-col justify-center items-start space-y-6">
-              <h2 className="font-semibold text-4xl md:text-6xl">
-                Giữ vững động lực
-              </h2>
-              <div>
-                <p className="text-lg">Kết thúc mỗi ngày thông minh hơn với những bài học thú vị, tính năng thi đua hấp dẫn và lời khích lệ mỗi ngày</p>
+          <div className="flex flex-col md:flex-row bg-gray-100">
+            <div className="flex-1 px-6 py-16 md:px-10 md:py-40 flex justify-center md:justify-start">
+              <div className="flex gap-4 sm:gap-6">
+                <div className="flex-col justify-center items-center translate-y-10 md:translate-y-20">
+                  <div className="w-[120px] h-[120px] sm:w-[150px] sm:h-[150px] bg-gradient-to-r from-[#7E82E4] via-[#FE99BF] via-[#FBA889] to-[#F8BB44] rounded-full flex justify-center items-center">
+                    <div className="w-[110px] h-[110px] sm:w-[140px] sm:h-[140px] bg-white rounded-full flex justify-center items-center">
+                      <HiOutlineBolt className="w-[50px] h-[50px] sm:w-[70px] sm:h-[70px] text-[#7E82E4]" />
+                    </div>
+                  </div>
+                  <p className="text-[#7E82E4] font-bold text-center mt-2">T2</p>
+                </div>
+
+                <div className="flex-col justify-center items-center translate-y-0">
+                  <div className="w-[120px] h-[120px] sm:w-[150px] sm:h-[150px] bg-gradient-to-r from-[#7E82E4] via-[#FE99BF] via-[#FBA889] to-[#F8BB44] rounded-full flex justify-center items-center">
+                    <div className="w-[110px] h-[110px] sm:w-[140px] sm:h-[140px] bg-white rounded-full flex justify-center items-center">
+                      <HiOutlineBolt className="w-[50px] h-[50px] sm:w-[70px] sm:h-[70px] text-[#7E82E4]" />
+                    </div>
+                  </div>
+                  <p className="text-[#7E82E4] font-bold text-center mt-2">T3</p>
+                </div>
+
+                <div className="flex-col justify-center items-center -translate-y-10 md:-translate-y-20">
+                  <div className="w-[120px] h-[120px] sm:w-[150px] sm:h-[150px] bg-[#C2C2C2] rounded-full flex justify-center items-center">
+                    <div className="w-[110px] h-[110px] sm:w-[140px] sm:h-[140px] bg-white rounded-full flex justify-center items-center">
+                      <HiBolt className="w-[50px] h-[50px] sm:w-[70px] sm:h-[70px] text-[#E5E5E5]" />
+                    </div>
+                  </div>
+                  <p className="text-[#C2C2C2] font-bold text-center mt-2">T4</p>
+                </div>
               </div>
+            </div>
+
+            <div className="flex-1 p-6 md:p-10 flex flex-col justify-center items-center space-y-4 md:space-y-6 text-center md:text-left">
+              <h2 className="font-semibold text-3xl sm:text-4xl md:text-6xl">Giữ vững động lực</h2>
+              <p className="text-base sm:text-lg">
+                Kết thúc mỗi ngày thông minh hơn với những bài học thú vị, tính năng thi đua hấp dẫn và lời khích lệ mỗi ngày
+              </p>
             </div>
           </div>
+
 
 
 
@@ -231,9 +230,9 @@ const LandingPage = () => {
             {features.map((feature, index) => (
               <Card
                 key={index}
-                bordered={false}
+                variant={false}
                 className="overflow-hidden group hover:shadow-2xl transition-all p-0"
-                bodyStyle={{ padding: 0 }} // Xóa padding mặc định của Ant Card để gradient tràn viền
+                styles={{ body: { padding: 0 } }} // Xóa padding mặc định của Ant Card để gradient tràn viền
               >
                 <div className={`bg-gradient-to-br ${feature.gradient} p-12 flex items-center justify-center`}>
                   <feature.icon className="text-7xl text-white group-hover:scale-110 transition-transform" />
@@ -249,7 +248,7 @@ const LandingPage = () => {
       </section >
 
       {/* CTA Section */}
-      <section section className="py-20 px-6 bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-500 text-white" >
+      <section className="py-20 px-6 bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-500 text-white" >
         <div className="max-w-4xl mx-auto text-center space-y-6">
           <h2 className="text-3xl md:text-5xl font-bold">
             Bắt đầu hành trình STEM của bạn ngay hôm nay
