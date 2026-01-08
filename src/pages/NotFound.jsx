@@ -38,7 +38,7 @@ export default function NotFound() {
       <div className="absolute top-20 right-[15%] w-20 h-20 bg-gradient-to-tr from-orange-500 to-yellow-200 rounded-full shadow-[inset_-10px_-10px_20px_rgba(0,0,0,0.5)] animate-spin-slow"></div>
       
       {/* CSS Inline để xử lý hiệu ứng sao rơi */}
-      <style jsx>{`
+      <style>{`
         @keyframes spin-slow {
           from { transform: rotate(0deg); }
           to { transform: rotate(360deg); }
