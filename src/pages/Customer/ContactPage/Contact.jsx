@@ -109,7 +109,7 @@ const Contact = () => {
             <form onSubmit={handleSubmit} className="space-y-6 flex-1 flex flex-col">
               <div className="grid md:grid-cols-2 gap-6">
                 <div>
-                  <label htmlFor="name" className="block text-md font-medium mb-2">
+                  <label htmlFor="name" className="block text-md font-semibold mb-2">
                     Họ và tên
                   </label>
                   <input
@@ -124,7 +124,7 @@ const Contact = () => {
                 </div>
 
                 <div>
-                  <label htmlFor="email" className="block text-md font-medium mb-2">
+                  <label htmlFor="email" className="block text-md font-semibold mb-2">
                     Email
                   </label>
                   <input
@@ -141,7 +141,7 @@ const Contact = () => {
               </div>
 
               <div>
-                <label htmlFor="subject" className="block text-md font-medium mb-2">
+                <label htmlFor="subject" className="block text-md font-semibold mb-2">
                   Chủ đề
                 </label>
                 <input
@@ -156,7 +156,7 @@ const Contact = () => {
               </div>
 
               <div className="flex-1 flex flex-col">
-                <label htmlFor="message" className="block text-md font-medium mb-2">
+                <label htmlFor="message" className="block text-md font-semibold mb-2">
                   Tin nhắn
                 </label>
                 <textarea

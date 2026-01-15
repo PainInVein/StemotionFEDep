@@ -1,7 +1,7 @@
 import React from 'react';
 import { FaFacebook, FaInstagram, FaLinkedin } from 'react-icons/fa';
 import { FaXTwitter } from 'react-icons/fa6';
-import logo from '../../assets/Logo_STEMotion-removebg-preview.png';
+import logo from '../../assets/logo-02.webp';
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
@@ -12,7 +12,7 @@ export default function Footer() {
         <div className="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-5 gap-10 md:gap-12 mb-16 items-start">
           <div className="sm:col-span-3 md:col-span-2">
             <div className='flex items-center mb-6'> 
-              <img src={logo} alt="Logo STEMotion" className="h-10 mr-3" />
+              <img src={logo} alt="Logo STEMotion" className="h-10 mr-3" width={40} height={40} loading="lazy" decoding="async" />
               <h2 className="text-3xl md:text-4xl font-normal tracking-tight">STEMotion</h2>
             </div>
             <p className="text-gray-400 text-base md:text-lg leading-relaxed max-w-sm">

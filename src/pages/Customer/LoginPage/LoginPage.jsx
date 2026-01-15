@@ -21,7 +21,7 @@
 //   const [showPassword, setShowPassword] = useState(false);
 //   const loginVersionContext = useContext(LoginVersionContext);
 //   const { login: authLogin } = useAuth();
-  
+
 //   // Safely destructure setLoginVersion with fallback
 //   const setLoginVersion = loginVersionContext?.setLoginVersion || (() => {});
 
@@ -67,7 +67,7 @@
 //       e.preventDefault();
 //       e.stopPropagation();
 //     }
-    
+
 //     // Validate input
 //     if (!loginData.phoneNumber || !loginData.password) {
 //       setError("Vui lòng nhập đầy đủ thông tin");
@@ -79,7 +79,7 @@
 
 //     try {
 //       const response = await authService.login(loginData);
-      
+
 //       // Kiểm tra response thành công
 //       if (response.data && response.data.success === true) {
 //         // Login thành công
@@ -87,20 +87,20 @@
 //           position: "top-right",
 //           autoClose: 3000,
 //         });
-        
+
 //         // Cập nhật auth context
 //         if (authLogin) {
 //           authLogin(response.data.data || response.data);
 //         }
-        
+
 //         if (onLoginSuccess) {
 //           onLoginSuccess(response.data);
 //         }
-        
+
 //         // Đóng modal - không navigate về trang chủ nữa
 //         // Vì onLoginSuccess sẽ xử lý navigation
 //         onClose();
-        
+
 //       } else {
 //         // Login thất bại - Hiển thị lỗi từ API, GIỮ modal mở
 //         const errorMessage = response.data?.message || "Số điện thoại hoặc mật khẩu không đúng. Vui lòng thử lại.";
@@ -110,7 +110,7 @@
 //     } catch (error) {
 //       // Xử lý các loại lỗi từ server
 //       let errorMessage = "Có lỗi xảy ra khi đăng nhập. Vui lòng thử lại.";
-      
+
 //       if (error.code === 'ECONNABORTED') {
 //         errorMessage = "Kết nối timeout. Vui lòng kiểm tra kết nối mạng và thử lại.";
 //       } else if (error.response?.data?.message) {
@@ -122,7 +122,7 @@
 //       } else if (error.message) {
 //         errorMessage = error.message;
 //       }
-      
+
 //       setError(errorMessage);
 //       return false;
 //     } finally {
@@ -317,7 +317,7 @@
 //         onClick={handleClose}
 //         aria-hidden="true"
 //       />
-      
+
 //       {/* Modal Container */}
 //       <div className="flex min-h-screen items-center justify-center p-4">
 //         <div className="relative bg-white w-full max-w-md rounded-3xl shadow-xl overflow-hidden p-5
@@ -333,7 +333,7 @@
 //           >
 //             <span className="text-2xl leading-none">&times;</span>
 //           </button>
-          
+
 //           {/* Form Content */}
 //           {renderForm()}
 //         </div>
@@ -348,6 +348,7 @@ import React, { useState } from 'react';
 import { FaFacebook, FaApple, FaGoogle, FaRegEye, FaRegEyeSlash } from 'react-icons/fa';
 import { HiOutlineUserCircle, HiX } from 'react-icons/hi';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Link } from 'react-router-dom';
 
 export default function LoginModal({ isOpen, onClose, role = 'student' }) {
   const [showPassword, setShowPassword] = useState(false);
@@ -356,13 +357,14 @@ export default function LoginModal({ isOpen, onClose, role = 'student' }) {
   const isStudent = role === 'student';
   const config = {
     title: isStudent ? "Đăng nhập Học sinh" : "Đăng nhập Phụ huynh",
-    description: isStudent 
-      ? "Khám phá lộ trình học tập và thử thách của bạn!" 
+    description: isStudent
+      ? "Khám phá lộ trình học tập và thử thách của bạn!"
       : "Theo dõi quá trình học và tiến bộ của con bạn!",
-    borderClass: isStudent 
+    borderClass: isStudent
       ? "from-[#FF9FB2] via-[#B2A5FF] to-[#FFD09B]" // Viền đa sắc cho học sinh
       : "from-gray-400 via-gray-500 to-gray-600",   // Viền tối giản hơn cho phụ huynh
     iconColor: isStudent ? "text-[#F8BB44]" : "text-gray-700",
+    link: isStudent ? "/register/student" : "/register/parent",
   };
 
   return (
@@ -387,7 +389,7 @@ export default function LoginModal({ isOpen, onClose, role = 'student' }) {
               className="pointer-events-auto relative max-w-md w-full"
             >
               {/* Nút Close bên ngoài modal */}
-              <button 
+              <button
                 onClick={onClose}
                 className="absolute -top-12 right-0 text-white text-3xl hover:rotate-90 transition-transform"
               >
@@ -396,15 +398,15 @@ export default function LoginModal({ isOpen, onClose, role = 'student' }) {
 
               {/* Viền Gradient bao quanh Modal */}
               <div className={`p-[2px] rounded-[40px] bg-gradient-to-br ${config.borderClass} shadow-2xl`}>
-                
+
                 <div className="bg-white rounded-[38px] px-8 py-10 flex flex-col items-center">
-                  
+
                   {/* Icon Profile */}
                   <div className="mb-4">
                     <div className={`p-[3px] rounded-full bg-gradient-to-tr ${isStudent ? 'from-[#F8BB44] via-[#FE99BF] to-[#7E82E4]' : 'from-gray-200 to-gray-400'}`}>
-                        <div className="bg-white rounded-full p-1">
-                          <HiOutlineUserCircle className={`text-6xl ${config.iconColor}`} />
-                        </div>
+                      <div className="bg-white rounded-full p-1">
+                        <HiOutlineUserCircle className={`text-6xl ${config.iconColor}`} />
+                      </div>
                     </div>
                   </div>
 
@@ -412,15 +414,17 @@ export default function LoginModal({ isOpen, onClose, role = 'student' }) {
                   <p className="text-gray-500 text-center text-sm md:text-base mb-1">
                     {config.description}
                   </p>
-                  <button className="text-gray-800 font-bold underline mb-8 hover:text-indigo-600 transition-colors">
+
+                  <Link to={config.link}><button className="text-gray-800 font-bold underline mb-8 hover:text-indigo-600 transition-colors">
                     Đăng ký miễn phí ngay
                   </button>
+                  </Link>
 
                   <form className="w-full space-y-5" onSubmit={(e) => e.preventDefault()}>
                     <div className="flex flex-col">
                       <label className="text-gray-600 font-medium mb-1.5 ml-1 text-sm">Địa chỉ email</label>
-                      <input 
-                        type="email" 
+                      <input
+                        type="email"
                         placeholder="example@gmail.com"
                         className="w-full px-4 py-3 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-100 transition-all"
                       />
@@ -429,11 +433,11 @@ export default function LoginModal({ isOpen, onClose, role = 'student' }) {
                     <div className="flex flex-col relative">
                       <label className="text-gray-600 font-medium mb-1.5 ml-1 text-sm">Mật khẩu</label>
                       <div className="relative">
-                        <input 
-                          type={showPassword ? "text" : "password"} 
+                        <input
+                          type={showPassword ? "text" : "password"}
                           className="w-full px-4 py-3 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-100 transition-all"
                         />
-                        <button 
+                        <button
                           type="button"
                           onClick={() => setShowPassword(!showPassword)}
                           className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 flex items-center gap-2 hover:text-gray-600"

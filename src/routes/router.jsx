@@ -9,6 +9,8 @@ import AdminPage from "../pages/Admin/AdminPage";
 import CoursesPage from "../pages/Customer/CoursesPage/CoursesPage";
 import About from "../pages/Customer/AboutUsPage/About";
 import Contact from "../pages/Customer/ContactPage/Contact";
+import Register from "../pages/Customer/LoginPage/RegisterForm";
+import HomePage from "../pages/Customer/HomePage/HomePage";
 
 
 export const router = createBrowserRouter([
@@ -22,12 +24,24 @@ export const router = createBrowserRouter([
         element: <LandingPage />,
       },
       {
+        path: "home",
+        element: <HomePage />,
+      },
+      {
         path: "courses",
         element: <CoursesPage />,
       },
       {
         path: "login",
         element: <Login />,
+      },
+      {
+        path: "register/student",
+        element: <Register defaultRole="student"  />,
+      },
+       {
+        path: "register/parent",
+        element: <Register defaultRole="parent" />,
       },
       {
         path: "about-us",

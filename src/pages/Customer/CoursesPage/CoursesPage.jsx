@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import CourseCard from "../../../components/CourseCard/CourseCard";
-import math from "../../../assets/math.png";
+import math from "../../../assets/math.webp";
 
 export default function CoursesPage() {
   const allCourses = [
