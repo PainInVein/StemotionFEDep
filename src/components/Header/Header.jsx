@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { HiOutlineHome, HiOutlineMenu, HiX } from "react-icons/hi"; // Thêm icon đóng HiX
 import { AiOutlineInfoCircle, AiOutlinePhone } from "react-icons/ai";
 import { PiBookOpenTextLight } from "react-icons/pi";
-import logo from '../../assets/Logo_STEMotion-removebg-preview.png';
+import logo from '../../assets/logo-02.webp';
 import { Link } from 'react-router-dom';
 
 export default function Header() {
@@ -13,15 +13,15 @@ export default function Header() {
       <div className="max-w-7xl mx-auto flex items-center justify-between">
 
         {/* Bên trái: Logo */}
-        <div className="flex items-center flex-shrink-0">
-          <img src={logo} alt="Logo" className="h-7 md:h-8 mr-2" />
+        <Link to="/"><div className="flex items-center flex-shrink-0">
+          <img src={logo} alt="Logo" className="h-7 md:h-8 mr-2" width={40} height={40} decoding="async" />
           <span className="text-lg md:text-xl font-bold tracking-tight text-indigo-500">
             STEM
             <span className="bg-gradient-to-r from-[#7E82E4] via-[#FE99BF] via-[#FBA889] to-[#F8BB44] bg-clip-text text-transparent">
               otion
             </span>
           </span>
-        </div>
+        </div></Link>
 
         {/* Ở giữa: Navigation (Dành cho Desktop) */}
         <nav className="hidden md:flex items-center space-x-8">
