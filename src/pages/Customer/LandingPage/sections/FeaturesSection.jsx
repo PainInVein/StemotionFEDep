@@ -74,13 +74,13 @@ export default function FeaturesSection() {
 
                     <div className="flex-1 p-6 md:p-10 flex flex-col items-center md:items-start space-y-6">
                         <Suspense fallback={<div className="text-gray-500">Đang tải lộ trình...</div>}>
-                            <div>
+                            <div className="mr-48">
                                 <Lesson status={progress.lesson1} to="#" />
                             </div>
-                            <div className="md:ml-60">
+                            <div className="ml-48 md:ml-60">
                                 <Lesson status={progress.lesson2} to="#" />
                             </div>
-                            <div>
+                            <div className="mr-48">
                                 <Lesson status={progress.lesson3} to="#" />
                             </div>
                         </Suspense>
@@ -92,8 +92,8 @@ export default function FeaturesSection() {
                     <div className="flex-1 px-6 py-16 md:px-10 md:py-40 flex justify-center md:justify-start">
                         <div className="flex gap-4 sm:gap-6">
                             <div className="flex-col justify-center items-center translate-y-10 md:translate-y-20">
-                                <div className="w-[120px] h-[120px] sm:w-[150px] sm:h-[150px] bg-gradient-to-r from-[#7E82E4] via-[#FE99BF] via-[#FBA889] to-[#F8BB44] rounded-full flex justify-center items-center">
-                                    <div className="w-[110px] h-[110px] sm:w-[140px] sm:h-[140px] bg-white rounded-full flex justify-center items-center">
+                                <div className="w-[100px] h-[100px] sm:w-[150px] sm:h-[150px] bg-gradient-to-r from-[#7E82E4] via-[#FE99BF] via-[#FBA889] to-[#F8BB44] rounded-full flex justify-center items-center">
+                                    <div className="w-[90px] h-[90px] sm:w-[140px] sm:h-[140px] bg-white rounded-full flex justify-center items-center">
                                         <HiOutlineBolt className="w-[50px] h-[50px] sm:w-[70px] sm:h-[70px] text-[#7E82E4]" />
                                     </div>
                                 </div>
@@ -101,8 +101,8 @@ export default function FeaturesSection() {
                             </div>
 
                             <div className="flex-col justify-center items-center translate-y-0">
-                                <div className="w-[120px] h-[120px] sm:w-[150px] sm:h-[150px] bg-gradient-to-r from-[#7E82E4] via-[#FE99BF] via-[#FBA889] to-[#F8BB44] rounded-full flex justify-center items-center">
-                                    <div className="w-[110px] h-[110px] sm:w-[140px] sm:h-[140px] bg-white rounded-full flex justify-center items-center">
+                                <div className="w-[100px] h-[100px] sm:w-[150px] sm:h-[150px] bg-gradient-to-r from-[#7E82E4] via-[#FE99BF] via-[#FBA889] to-[#F8BB44] rounded-full flex justify-center items-center">
+                                    <div className="w-[90px] h-[90px] sm:w-[140px] sm:h-[140px] bg-white rounded-full flex justify-center items-center">
                                         <HiOutlineBolt className="w-[50px] h-[50px] sm:w-[70px] sm:h-[70px] text-[#7E82E4]" />
                                     </div>
                                 </div>
@@ -110,8 +110,8 @@ export default function FeaturesSection() {
                             </div>
 
                             <div className="flex-col justify-center items-center -translate-y-10 md:-translate-y-20">
-                                <div className="w-[120px] h-[120px] sm:w-[150px] sm:h-[150px] bg-[#C2C2C2] rounded-full flex justify-center items-center">
-                                    <div className="w-[110px] h-[110px] sm:w-[140px] sm:h-[140px] bg-white rounded-full flex justify-center items-center">
+                                <div className="w-[100px] h-[100px] sm:w-[150px] sm:h-[150px] bg-[#C2C2C2] rounded-full flex justify-center items-center">
+                                    <div className="w-[90px] h-[90px] sm:w-[140px] sm:h-[140px] bg-white rounded-full flex justify-center items-center">
                                         <HiBolt className="w-[50px] h-[50px] sm:w-[70px] sm:h-[70px] text-[#E5E5E5]" />
                                     </div>
                                 </div>
