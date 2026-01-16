@@ -9,12 +9,12 @@ export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   return (
-    <header className="w-full  border-b  px-4 md:px-10 py-3 sticky top-0 z-50 shadow-sm border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className="w-full  border-b  px-4 md:px-10 py-3 sticky top-0 z-50 shadow-sm border-border bg-white backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="max-w-7xl mx-auto flex items-center justify-between">
 
         {/* Bên trái: Logo */}
         <Link to="/"><div className="flex items-center flex-shrink-0">
-          <img src={logo} alt="Logo" className="h-7 md:h-8 mr-2" width={40} height={40} decoding="async" />
+          <img src={logo} alt="Logo" className="h-7 md:h-8 mr-2" decoding="async" />
           <span className="text-lg md:text-xl font-bold tracking-tight text-indigo-500">
             STEM
             <span className="bg-gradient-to-r from-[#7E82E4] via-[#FE99BF] via-[#FBA889] to-[#F8BB44] bg-clip-text text-transparent">

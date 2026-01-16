@@ -11,6 +11,8 @@ import About from "../pages/Customer/AboutUsPage/About";
 import Contact from "../pages/Customer/ContactPage/Contact";
 import Register from "../pages/Customer/LoginPage/RegisterForm";
 import HomePage from "../pages/Customer/HomePage/HomePage";
+import CourseDetail from "../pages/Customer/CourseDetailPage/CourseDetail";
+import LessonDetail from "../pages/Customer/LessonDetailPage/LessonDetail";
 
 
 export const router = createBrowserRouter([
@@ -32,24 +34,33 @@ export const router = createBrowserRouter([
         element: <CoursesPage />,
       },
       {
+        path: "/courses/:slug",
+        element: <CourseDetail />
+      },
+
+      {
+        path: "/courses/:slug/lesson/:lessonId",
+        element: <LessonDetail />
+      },
+      {
         path: "login",
         element: <Login />,
       },
       {
         path: "register/student",
-        element: <Register defaultRole="student"  />,
+        element: <Register defaultRole="student" />,
       },
-       {
+      {
         path: "register/parent",
         element: <Register defaultRole="parent" />,
       },
       {
         path: "about-us",
-        element: <About/>
+        element: <About />
       },
-       {
+      {
         path: "contact",
-        element: <Contact/>
+        element: <Contact />
       },
       {
         path: "*",
