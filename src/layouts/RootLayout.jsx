@@ -21,6 +21,16 @@ function RootLayout() {
         }
     }, [location.pathname]);
 
+    // Hide header/footer for lesson pages
+    const isLessonPage = location.pathname.includes("/lesson/");
+
+    if (isLessonPage) {
+        return (
+        <main>
+            <Outlet />
+        </main>);
+    }
+
     return (
         <AuthProvider>
             <LoginVersionContext.Provider value={{ loginVersion, setLoginVersion }}>
