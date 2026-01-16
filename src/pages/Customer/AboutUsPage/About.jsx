@@ -5,6 +5,7 @@ import {
   FaHeart,
   FaAward,
 } from "react-icons/fa";
+import ChaosNumber from "../../../components/common/ChaosNumber";
 
 const About = () => {
   const values = [
@@ -36,24 +37,34 @@ const About = () => {
 
   const team = [
     {
-      name: "TS. Sarah Chen",
-      role: "Nhà sáng lập & CEO",
-      background: "Cựu giảng viên Robotics tại MIT",
+      name: "Ms. Nguyễn Thị Thủy Linh",
+      role: "CEO & BA",
+      background: "",
     },
     {
-      name: "Michael Rodriguez",
-      role: "Trưởng bộ phận Giáo dục",
-      background: "20 năm kinh nghiệm giảng dạy",
+      name: "Mr. Lê Sĩ Bình",
+      role: "Trưởng nhóm Phát triển Backend",
+      background: "",
     },
     {
-      name: "Emily Thompson",
-      role: "Trưởng nhóm Phát triển",
-      background: "Cựu quản lý kỹ thuật tại Google",
+      name: "Ms. Trần Mỹ Anh",
+      role: "Nhà thiết kế UX/UI",
+      background: "",
     },
     {
-      name: "David Park",
-      role: "Trưởng nhóm Nghiên cứu AI",
-      background: "Tiến sĩ Machine Learning",
+      name: "Mr. Đặng Huỳnh Thiên",
+      role: "BA",
+      background: "",
+    },
+    {
+      name: "Mr. Nguyễn Ngọc Minh",
+      role: "Trưởng nhóm phát triển Frontend",
+      background: "",
+    },
+    {
+      name: "Mr. Đoàn Trung Thành",
+      role: "Nhà phát triển Frontend & Backend",
+      background: "",
     },
   ];
 
@@ -79,7 +90,7 @@ const About = () => {
               key={index}
               className="bg-white rounded-xl p-8 shadow hover:shadow-lg transition"
             >
-              <div className="w-16 h-16 flex items-center justify-center rounded-full bg-indigo-500 mb-6">
+              <div className="w-16 h-16 flex items-center justify-center rounded-full  bg-[linear-gradient(135deg,_#7E82E4_0%,_#FE99BF_30%,_#FBA889_62%,_#F8BB44_81%)] mb-6">
                 <Icon className="text-white text-2xl" />
               </div>
               <h3 className="text-2xl font-bold mb-4">{item.title}</h3>
@@ -90,7 +101,7 @@ const About = () => {
       </section>
 
       {/* Câu chuyện */}
-      <section className="bg-gray-100 py-20">
+      <section className="bg-gradient-to-br from-white to-indigo-100 py-20">
         <div className="max-w-3xl mx-auto px-4">
           <h2 className="text-4xl font-bold mb-8 text-center">
             Câu chuyện của chúng tôi
@@ -113,11 +124,11 @@ const About = () => {
       </section>
 
       {/* Đội ngũ */}
-      <section className="max-w-6xl mx-auto px-4 py-20">
+      <section className="w-full mx-auto px-4 py-20">
         <h2 className="text-4xl font-bold mb-12 text-center">
           Đội ngũ STEMotion
         </h2>
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div className="grid md:grid-cols-2 lg:grid-cols-6 gap-8">
           {team.map((member, index) => (
             <div
               key={index}
@@ -134,25 +145,38 @@ const About = () => {
 
       {/* Thống kê */}
       <section className="bg-gradient-to-r from-[#7E82E4] via-[#FE99BF] via-[#FBA889] to-[#F8BB44] text-white py-20">
+
         <div className="max-w-6xl mx-auto px-4 grid md:grid-cols-4 gap-8 text-center">
           <div>
-            <div className="text-5xl font-bold">10.000+</div>
+            <div className="text-5xl font-bold">
+              <ChaosNumber target={10000} />+
+            </div>
             <div>Học sinh</div>
           </div>
+
           <div>
-            <div className="text-5xl font-bold">500+</div>
+            <div className="text-5xl font-bold">
+              <ChaosNumber target={500} />+
+            </div>
             <div>Trường học</div>
           </div>
+
           <div>
-            <div className="text-5xl font-bold">50+</div>
+            <div className="text-5xl font-bold">
+              <ChaosNumber target={50} />+
+            </div>
             <div>Khóa học</div>
           </div>
+
           <div>
-            <div className="text-5xl font-bold">4.9★</div>
+            <div className="text-5xl font-bold">
+              <ChaosNumber target={4.9} />★
+            </div>
             <div>Đánh giá</div>
           </div>
         </div>
       </section>
+
     </div>
   );
 };

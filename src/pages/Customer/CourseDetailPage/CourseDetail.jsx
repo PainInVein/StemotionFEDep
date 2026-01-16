@@ -5,6 +5,7 @@ import LessonView from "../../../components/common/LessonView"; // sửa path n�
 
 import { FaPlayCircle, FaStar, FaTrophy, FaLock } from "react-icons/fa";
 import { FiCheckCircle, FiClock } from "react-icons/fi";
+import Button from "../../../components/common/Button";
 
 /* --- sample library (ReactJS) --- */
 const COURSE_LIBRARY = [
@@ -155,11 +156,10 @@ export default function CourseDetail() {
                       return (
                         <div
                           key={lesson.id}
-                          className={`p-3 rounded flex items-center justify-between transition ${
-                            locked
+                          className={`p-3 rounded flex items-center justify-between transition ${locked
                               ? "opacity-60 cursor-not-allowed"
                               : "cursor-pointer hover:bg-slate-50"
-                          }`}
+                            }`}
                           onClick={() => openLesson(lesson)}
                           role="button"
                           tabIndex={0}
@@ -214,7 +214,7 @@ export default function CourseDetail() {
           <aside className="lg:col-span-1">
             <div
               ref={timelineRef}
-              className="sticky top-24 bg-transparent p-4 rounded-xl"
+              className="sticky top-24 bg-transparent rounded-xl"
             >
               <div className="bg-white border border-slate-200 rounded-xl p-4 mb-4">
                 <div className="font-semibold mb-2">Theo dõi tiến độ</div>
@@ -232,22 +232,20 @@ export default function CourseDetail() {
                         <div
                           id={`tl-${lesson.id}`}
                           key={lesson.id}
-                          className={`flex items-start gap-3 py-3 px-2 rounded transition ${
-                            locked
+                          className={`flex items-start gap-3 py-3 px-2 rounded transition ${locked
                               ? "opacity-60 cursor-not-allowed"
                               : "cursor-pointer hover:bg-slate-50"
-                          }`}
+                            }`}
                           onClick={() => openLesson(lesson)}
                         >
                           <div className="flex flex-col items-center">
                             <div
-                              className={`h-3 w-3 rounded-full ${
-                                status === "completed"
+                              className={`h-3 w-3 rounded-full ${status === "completed"
                                   ? "bg-green-500"
                                   : status === "current"
-                                  ? "bg-sky-500"
-                                  : "bg-gray-300"
-                              }`}
+                                    ? "bg-sky-500"
+                                    : "bg-gray-300"
+                                }`}
                             />
                             <div className="h-full w-[2px] bg-gray-200 mt-2" />
                           </div>
@@ -273,13 +271,16 @@ export default function CourseDetail() {
                   Thời gian ước tính: {course.estimatedTime}
                 </div>
 
-                <div className="mt-3">
+                {/* <div className="mt-3">
                   <Link
                     to="/student-signup"
                     className="inline-flex w-full items-center justify-center text-center bg-sky-600 text-white px-3 py-2 rounded-md hover:bg-sky-700 transition"
                   >
                     Bắt đầu khóa học
                   </Link>
+                </div> */}
+                <div className="mt-3">
+                  <Button size="sm" onClick={() => openLesson(course.sections[0].lessons[0])}>Bắt đầu khóa học</Button>
                 </div>
 
                 {/* optional: little badge */}
