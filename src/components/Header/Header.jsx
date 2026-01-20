@@ -1,14 +1,15 @@
 import React, { useState } from "react";
 import logo from "../../assets/logo-02.webp";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
-// ✅ import đúng component modal
 import LoginModal from "../../pages/Customer/LoginPage/LoginPage";
+import useAuth from "../../contexts/AuthContext";
 
 export default function Header() {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const navigate = useNavigate();
+  const { isAuthenticated, logout } = useAuth();
 
-  // ✅ state cho modal đăng nhập (không còn role)
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isLoginOpen, setIsLoginOpen] = useState(false);
 
   const navItemClass =
@@ -20,9 +21,20 @@ export default function Header() {
   const openLogin = () => setIsLoginOpen(true);
   const closeLogin = () => setIsLoginOpen(false);
 
+  const handleLogout = () => {
+    logout();
+    setIsMenuOpen(false);
+    navigate("/", { replace: true });
+  };
+
+  const handleCloseLogin = () => {
+    closeLogin();
+    // không cần dispatch storage nữa vì dùng context rồi
+  };
+
   return (
     <>
-      <header className="w-full border-b px-4 md:px-10 py-3 sticky top-0 z-50 shadow-sm border-border bg-white backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <header className="w-full border-b px-4 md:px-10 py-3 sticky top-0 z-50 shadow-sm border-border bg-white backdrop-blur">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           {/* Left: Logo */}
           <Link to="/">
@@ -80,7 +92,7 @@ export default function Header() {
             {/* Mobile menu toggle */}
             <button
               onClick={() => setIsMenuOpen((v) => !v)}
-              className="md:hidden p-2 text-gray-500 hover:bg-gray-100 rounded-lg transition"
+              className="md:hidden w-10 h-10 flex items-center justify-center text-gray-500 hover:bg-gray-100 rounded-full transition"
               aria-label={isMenuOpen ? "Đóng menu" : "Mở menu"}
             >
               {isMenuOpen ? (
@@ -90,21 +102,31 @@ export default function Header() {
               )}
             </button>
 
-            {/* ✅ Login button (desktop) -> mở modal */}
+            {/* Login/Logout (desktop) */}
             <div className="hidden md:flex items-center gap-2">
-              <button
-                type="button"
-                onClick={openLogin}
-                className="flex items-center gap-2 px-3 py-2 text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-full transition"
-                aria-label="Đăng nhập"
-                title="Đăng nhập"
-              >
-                <i
-                  className="fa-regular fa-circle-user text-[28px]"
-                  aria-hidden="true"
-                />
-                <span className="text-sm font-medium">Đăng nhập</span>
-              </button>
+              {isAuthenticated ? (
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  className="flex items-center gap-2 px-3 py-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-full transition"
+                  aria-label="Đăng xuất"
+                  title="Đăng xuất"
+                >
+                  <i className="fa-solid fa-right-from-bracket text-[20px]" aria-hidden="true" />
+                  <span className="text-sm font-medium">Đăng xuất</span>
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={openLogin}
+                  className="flex items-center gap-2 px-3 py-2 text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-full transition"
+                  aria-label="Đăng nhập"
+                  title="Đăng nhập"
+                >
+                  <i className="fa-regular fa-circle-user text-[28px]" aria-hidden="true" />
+                  <span className="text-sm font-medium">Đăng nhập</span>
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -113,77 +135,49 @@ export default function Header() {
         <div
           className={`
             md:hidden absolute left-0 right-0 top-full bg-white border-b border-gray-100 shadow-xl overflow-hidden transition-all duration-300 ease-in-out
-            ${
-              isMenuOpen
-                ? "max-h-[460px] opacity-100"
-                : "max-h-0 opacity-0 pointer-events-none"
-            }
+            ${isMenuOpen ? "max-h-[460px] opacity-100" : "max-h-0 opacity-0 pointer-events-none"}
           `}
         >
           <nav className="flex flex-col p-6 bg-white">
-            <Link
-              to="/"
-              onClick={() => setIsMenuOpen(false)}
-              className={mobileItemClass}
-            >
-              <i
-                className="fa-regular fa-house text-2xl text-indigo-500"
-                aria-hidden="true"
-              />
+            <Link to="/" onClick={() => setIsMenuOpen(false)} className={mobileItemClass}>
+              <i className="fa-solid fa-house text-2xl text-indigo-500" aria-hidden="true" />
               <span>Trang chủ</span>
             </Link>
 
-            <Link
-              to="/courses"
-              onClick={() => setIsMenuOpen(false)}
-              className={mobileItemClass}
-            >
-              <i
-                className="fa-regular fa-book-open text-2xl text-indigo-500"
-                aria-hidden="true"
-              />
+            <Link to="/courses" onClick={() => setIsMenuOpen(false)} className={mobileItemClass}>
+              <i className="fa-solid fa-book-open text-2xl text-indigo-500" aria-hidden="true" />
               <span>Khóa học</span>
             </Link>
 
-            <Link
-              to="/about-us"
-              onClick={() => setIsMenuOpen(false)}
-              className={mobileItemClass}
-            >
-              <i
-                className="fa-regular fa-circle-info text-2xl text-indigo-500"
-                aria-hidden="true"
-              />
+            <Link to="/about-us" onClick={() => setIsMenuOpen(false)} className={mobileItemClass}>
+              <i className="fa-solid fa-circle-info text-2xl text-indigo-500" aria-hidden="true" />
               <span>Giới thiệu</span>
             </Link>
 
-            <Link
-              to="/contact"
-              onClick={() => setIsMenuOpen(false)}
-              className={mobileItemClass}
-            >
-              <i
-                className="fa-regular fa-phone text-2xl text-indigo-500"
-                aria-hidden="true"
-              />
+            <Link to="/contact" onClick={() => setIsMenuOpen(false)} className={mobileItemClass}>
+              <i className="fa-solid fa-phone text-2xl text-indigo-500" aria-hidden="true" />
               <span>Liên hệ</span>
             </Link>
 
-            {/* ✅ Login (mobile) -> mở modal */}
-            <button
-              type="button"
-              onClick={() => {
-                setIsMenuOpen(false);
-                openLogin();
-              }}
-              className={mobileItemClass}
-            >
-              <i
-                className="fa-regular fa-right-to-bracket text-2xl text-indigo-500"
-                aria-hidden="true"
-              />
-              <span>Đăng nhập</span>
-            </button>
+            {/* Login/Logout (mobile) */}
+            {isAuthenticated ? (
+              <button type="button" onClick={handleLogout} className={mobileItemClass}>
+                <i className="fa-solid fa-right-from-bracket text-2xl text-red-500" aria-hidden="true" />
+                <span>Đăng xuất</span>
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => {
+                  setIsMenuOpen(false);
+                  openLogin();
+                }}
+                className={mobileItemClass}
+              >
+                <i className="fa-solid fa-right-to-bracket text-2xl text-indigo-500" aria-hidden="true" />
+                <span>Đăng nhập</span>
+              </button>
+            )}
 
             <div className="pt-4 text-gray-400 text-sm">
               © {new Date().getFullYear()} STEMotion App
@@ -192,8 +186,7 @@ export default function Header() {
         </div>
       </header>
 
-      {/* ✅ Render modal ở đây (không truyền role nữa) */}
-      <LoginModal isOpen={isLoginOpen} onClose={closeLogin} />
+      <LoginModal isOpen={isLoginOpen} onClose={handleCloseLogin} />
     </>
   );
 }
