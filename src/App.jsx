@@ -3,6 +3,7 @@ import { RouterProvider } from 'react-router-dom'
 import { router } from './routes/router'
 import "react-toastify/dist/ReactToastify.css";
 import { ToastContainer, toast } from "react-toastify";
+import { AuthProvider } from "./contexts/AuthContext";
 // import ChatBubble from "./pages/Customer/ChatBox/ChatBubble";
 
 // Memoize toast styles to avoid recreation on every render
@@ -96,7 +97,7 @@ function App() {
   const isAdminPage = useMemo(() => currentPath.startsWith("/admin"), [currentPath]);
 
   return (
-    <>
+    <AuthProvider>
       <RouterProvider router={router} />
       
       {/* Chat Bubble - Available on all pages except admin and chat */}
@@ -159,7 +160,7 @@ function App() {
           return className;
         }}
       />
-    </>
+    </AuthProvider>
   );
 }
 
