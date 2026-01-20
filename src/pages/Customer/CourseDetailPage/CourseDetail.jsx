@@ -2,9 +2,6 @@
 import { useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import LessonView from "../../../components/common/LessonView"; // sửa path nếu khác
-
-import { FaPlayCircle, FaStar, FaTrophy, FaLock } from "react-icons/fa";
-import { FiCheckCircle, FiClock } from "react-icons/fi";
 import Button from "../../../components/common/Button";
 
 /* --- sample library (ReactJS) --- */
@@ -70,7 +67,6 @@ export default function CourseDetail() {
   const { slug = "" } = useParams();
   const navigate = useNavigate();
 
-  // giữ lại state nếu bạn muốn đánh dấu completed client-side
   const [completedMap, setCompletedMap] = useState({});
   const timelineRef = useRef(null);
 
@@ -113,21 +109,24 @@ export default function CourseDetail() {
               />
               <div className="p-6">
                 <h1 className="text-3xl font-extrabold mb-1">{course.title}</h1>
-                <p className="text-sm text-slate-500 mb-3">
-                  {course.description}
-                </p>
+                <p className="text-sm text-slate-500 mb-3">{course.description}</p>
 
                 <div className="flex flex-wrap gap-4 text-sm text-slate-500">
                   <div className="flex items-center gap-2">
-                    <FaPlayCircle className="h-4 w-4" />
+                    {/* FaPlayCircle */}
+                    <i className="fa-regular fa-circle-play text-[16px]" aria-hidden="true" />
                     {course.totalLessons} bài học
                   </div>
+
                   <div className="flex items-center gap-2">
-                    <FaStar className="h-4 w-4" />
+                    {/* FaStar */}
+                    <i className="fa-solid fa-star text-[16px]" aria-hidden="true" />
                     {course.totalExercises} bài tập
                   </div>
+
                   <div className="flex items-center gap-2">
-                    <FiClock className="h-4 w-4" />
+                    {/* FiClock */}
+                    <i className="fa-regular fa-clock text-[16px]" aria-hidden="true" />
                     {course.estimatedTime}
                   </div>
                 </div>
@@ -137,15 +136,16 @@ export default function CourseDetail() {
             {/* sections + lessons list */}
             <div className="space-y-6">
               {course.sections.map((sec) => (
-                <div key={sec.id} className="bg-white border border-slate-200 rounded-xl p-4">
+                <div
+                  key={sec.id}
+                  className="bg-white border border-slate-200 rounded-xl p-4"
+                >
                   <div className="flex items-center justify-between mb-3">
                     <div>
                       <h2 className="font-semibold text-lg">{sec.title}</h2>
                       <p className="text-sm text-slate-500">{sec.summary}</p>
                     </div>
-                    <div className="text-sm text-slate-500">
-                      {sec.lessons.length} bài
-                    </div>
+                    <div className="text-sm text-slate-500">{sec.lessons.length} bài</div>
                   </div>
 
                   <div className="space-y-2">
@@ -156,10 +156,11 @@ export default function CourseDetail() {
                       return (
                         <div
                           key={lesson.id}
-                          className={`p-3 rounded flex items-center justify-between transition ${locked
+                          className={`p-3 rounded flex items-center justify-between transition ${
+                            locked
                               ? "opacity-60 cursor-not-allowed"
                               : "cursor-pointer hover:bg-slate-50"
-                            }`}
+                          }`}
                           onClick={() => openLesson(lesson)}
                           role="button"
                           tabIndex={0}
@@ -170,24 +171,32 @@ export default function CourseDetail() {
                           <div className="flex items-center gap-3 min-w-0">
                             <div className="w-10 flex items-center justify-center">
                               {status === "completed" ? (
-                                <FiCheckCircle className="text-green-600 text-xl" />
+                                // FiCheckCircle
+                                <i
+                                  className="fa-regular fa-circle-check text-green-600 text-xl"
+                                  aria-hidden="true"
+                                />
                               ) : status === "current" ? (
                                 <div className="h-3 w-3 rounded-full bg-sky-500 animate-pulse" />
                               ) : locked ? (
-                                <FaLock className="text-slate-400" />
+                                // FaLock
+                                <i
+                                  className="fa-solid fa-lock text-slate-400"
+                                  aria-hidden="true"
+                                />
                               ) : (
-                                <FaPlayCircle className="text-slate-400 text-xl" />
+                                // FaPlayCircle
+                                <i
+                                  className="fa-regular fa-circle-play text-slate-400 text-xl"
+                                  aria-hidden="true"
+                                />
                               )}
                             </div>
 
                             <div className="min-w-0">
                               <div className="flex items-center gap-2">
-                                <div className="font-medium truncate">
-                                  {lesson.title}
-                                </div>
-                                <div className="text-xs text-slate-500">
-                                  • {lesson.duration}
-                                </div>
+                                <div className="font-medium truncate">{lesson.title}</div>
+                                <div className="text-xs text-slate-500">• {lesson.duration}</div>
                               </div>
                               <div className="text-xs text-slate-500 truncate">
                                 {lesson.summary}
@@ -212,10 +221,7 @@ export default function CourseDetail() {
 
           {/* right timeline (sticky) */}
           <aside className="lg:col-span-1">
-            <div
-              ref={timelineRef}
-              className="sticky top-24 bg-transparent rounded-xl"
-            >
+            <div ref={timelineRef} className="sticky top-24 bg-transparent rounded-xl">
               <div className="bg-white border border-slate-200 rounded-xl p-4 mb-4">
                 <div className="font-semibold mb-2">Theo dõi tiến độ</div>
                 <div className="text-sm text-slate-500 mb-2">
@@ -232,28 +238,28 @@ export default function CourseDetail() {
                         <div
                           id={`tl-${lesson.id}`}
                           key={lesson.id}
-                          className={`flex items-start gap-3 py-3 px-2 rounded transition ${locked
+                          className={`flex items-start gap-3 py-3 px-2 rounded transition ${
+                            locked
                               ? "opacity-60 cursor-not-allowed"
                               : "cursor-pointer hover:bg-slate-50"
-                            }`}
+                          }`}
                           onClick={() => openLesson(lesson)}
                         >
                           <div className="flex flex-col items-center">
                             <div
-                              className={`h-3 w-3 rounded-full ${status === "completed"
+                              className={`h-3 w-3 rounded-full ${
+                                status === "completed"
                                   ? "bg-green-500"
                                   : status === "current"
-                                    ? "bg-sky-500"
-                                    : "bg-gray-300"
-                                }`}
+                                  ? "bg-sky-500"
+                                  : "bg-gray-300"
+                              }`}
                             />
                             <div className="h-full w-[2px] bg-gray-200 mt-2" />
                           </div>
 
                           <div className="min-w-0">
-                            <div className="text-sm font-medium truncate">
-                              {lesson.title}
-                            </div>
+                            <div className="text-sm font-medium truncate">{lesson.title}</div>
                             <div className="text-xs text-slate-500">
                               {lesson.duration} • {lesson.type}
                             </div>
@@ -271,29 +277,24 @@ export default function CourseDetail() {
                   Thời gian ước tính: {course.estimatedTime}
                 </div>
 
-                {/* <div className="mt-3">
-                  <Link
-                    to="/student-signup"
-                    className="inline-flex w-full items-center justify-center text-center bg-sky-600 text-white px-3 py-2 rounded-md hover:bg-sky-700 transition"
+                <div className="mt-3">
+                  <Button
+                    size="sm"
+                    onClick={() => openLesson(course.sections[0].lessons[0])}
                   >
                     Bắt đầu khóa học
-                  </Link>
-                </div> */}
-                <div className="mt-3">
-                  <Button size="sm" onClick={() => openLesson(course.sections[0].lessons[0])}>Bắt đầu khóa học</Button>
+                  </Button>
                 </div>
 
-                {/* optional: little badge */}
                 <div className="mt-4 flex items-center gap-2 text-xs text-slate-500">
-                  <FaTrophy /> Hoàn thành để nhận huy hiệu
+                  {/* FaTrophy */}
+                  <i className="fa-solid fa-trophy" aria-hidden="true" /> Hoàn thành để nhận huy hiệu
                 </div>
               </div>
             </div>
           </aside>
         </div>
       </section>
-
-      {/* Modal removed: lessons navigate to full page */}
     </div>
   );
 }

@@ -1,6 +1,6 @@
-import React, { useState, useRef, useEffect } from "react";
-import CourseCard from "../../../components/CourseCard/CourseCard";
+import { useEffect, useRef, useState } from "react";
 import math from "../../../assets/math.webp";
+import CourseCard from "../../../components/CourseCard/CourseCard";
 
 export default function CoursesPage() {
   const allCourses = [

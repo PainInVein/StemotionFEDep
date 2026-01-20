@@ -1,7 +1,6 @@
 // src/pages/LessonDetail.jsx
 import { useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { FiX, FiZap } from "react-icons/fi";
 
 const FALLBACK_LESSON = {
   id: "unknown",
@@ -21,7 +20,6 @@ export default function LessonDetail() {
   const [completed, setCompleted] = useState(false);
   const [showQuiz, setShowQuiz] = useState(false);
 
-  // In a real app, fetch by slug + lessonId
   const lesson = useMemo(() => {
     switch (lessonId) {
       case "area-perimeter":
@@ -85,7 +83,8 @@ export default function LessonDetail() {
           className="p-2 hover:bg-gray-100 rounded-full transition-colors"
           aria-label="Back"
         >
-          <FiX className="h-5 w-5" />
+          {/* FiX -> Font Awesome X */}
+          <i className="fa-solid fa-xmark h-5 w-5" aria-hidden="true" />
         </button>
 
         {/* Progress Bar */}
@@ -101,7 +100,11 @@ export default function LessonDetail() {
         {/* Score/Energy indicator */}
         <div className="flex items-center gap-2">
           <span className="text-sm font-medium">1</span>
-          <FiZap className="h-4 w-4 text-green-500" />
+          {/* FiZap -> Font Awesome bolt */}
+          <i
+            className="fa-solid fa-bolt text-green-500 h-4 w-4"
+            aria-hidden="true"
+          />
         </div>
       </div>
 
@@ -117,9 +120,7 @@ export default function LessonDetail() {
             }`}
           >
             <div className="text-center space-y-8">
-              <h1 className="text-4xl font-bold text-gray-900">
-                {lesson.title}
-              </h1>
+              <h1 className="text-4xl font-bold text-gray-900">{lesson.title}</h1>
 
               <div className="space-y-6 text-left max-w-3xl mx-auto">
                 <p className="text-lg text-gray-700 leading-relaxed">
@@ -129,20 +130,20 @@ export default function LessonDetail() {
                       không?
                       <br />
                       <br />
-                      Chu vi và diện tích là hai khái niệm cơ bản trong hình
-                      học. Chu vi là tổng độ dài các cạnh bao quanh một hình,
-                      còn diện tích là phần bề mặt bên trong hình đó. Hiểu rõ
-                      hai khái niệm này giúp chúng ta tính toán chính xác trong
-                      nhiều tình huống thực tế.
+                      Chu vi và diện tích là hai khái niệm cơ bản trong hình học.
+                      Chu vi là tổng độ dài các cạnh bao quanh một hình, còn diện
+                      tích là phần bề mặt bên trong hình đó. Hiểu rõ hai khái
+                      niệm này giúp chúng ta tính toán chính xác trong nhiều tình
+                      huống thực tế.
                     </>
                   ) : (
                     <>
                       Chào mừng bạn đến với thế giới lập trình!
                       <br />
                       <br />
-                      Lập trình không chỉ là viết code, mà còn là cách tư duy
-                      logic để giải quyết vấn đề. Hãy bắt đầu với những khái
-                      niệm cơ bản nhất để xây dựng nền tảng vững chắc.
+                      Lập trình không chỉ là viết code, mà còn là cách tư duy logic
+                      để giải quyết vấn đề. Hãy bắt đầu với những khái niệm cơ bản
+                      nhất để xây dựng nền tảng vững chắc.
                     </>
                   )}
                 </p>
@@ -202,15 +203,12 @@ export default function LessonDetail() {
                         }
                       }}
                     >
-                      <span className="mr-3 font-bold text-lg">
-                        {opt.key}.
-                      </span>
+                      <span className="mr-3 font-bold text-lg">{opt.key}.</span>
                       <span className="text-base">{opt.label}</span>
                     </button>
                   ))}
                 </div>
 
-                {/* optional: completed state */}
                 {completed && (
                   <div className="text-sm">
                     <span className="inline-block rounded-md bg-green-50 px-3 py-2 text-green-700">
@@ -223,7 +221,6 @@ export default function LessonDetail() {
           </div>
         </div>
 
-        {/* debug / info (optional) */}
         <div className="mt-10 text-xs text-slate-400">
           slug: {slug || "(none)"} • lessonId: {lessonId || "(none)"}
         </div>

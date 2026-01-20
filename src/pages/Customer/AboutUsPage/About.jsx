@@ -1,34 +1,27 @@
-import React from "react";
-import {
-  FaBullseye,
-  FaEye,
-  FaHeart,
-  FaAward,
-} from "react-icons/fa";
 import ChaosNumber from "../../../components/common/ChaosNumber";
 
 const About = () => {
   const values = [
     {
-      icon: FaBullseye,
+      iconClass: "fa-solid fa-bullseye",
       title: "Sứ mệnh",
       description:
         "Mang giáo dục STEM đến gần hơn với mọi học sinh thông qua mô phỏng robot tương tác và học tập theo hướng trò chơi hóa.",
     },
     {
-      icon: FaEye,
+      iconClass: "fa-solid fa-eye",
       title: "Tầm nhìn",
       description:
         "Trao quyền cho thế hệ kỹ sư, nhà khoa học và nhà đổi mới tương lai bằng cách thay đổi cách học và tiếp cận STEM.",
     },
     {
-      icon: FaHeart,
+      iconClass: "fa-solid fa-heart",
       title: "Giá trị cốt lõi",
       description:
         "Đổi mới, khả năng tiếp cận, sự hứng thú và chất lượng là nền tảng cho mọi hoạt động.",
     },
     {
-      icon: FaAward,
+      iconClass: "fa-solid fa-award",
       title: "Tác động",
       description:
         "Hơn 10.000 học sinh tại 500+ trường học trên toàn thế giới đang học STEMotion.",
@@ -36,36 +29,12 @@ const About = () => {
   ];
 
   const team = [
-    {
-      name: "Ms. Nguyễn Thị Thủy Linh",
-      role: "CEO & BA",
-      background: "",
-    },
-    {
-      name: "Mr. Lê Sĩ Bình",
-      role: "Trưởng nhóm Phát triển Backend",
-      background: "",
-    },
-    {
-      name: "Ms. Trần Mỹ Anh",
-      role: "Nhà thiết kế UX/UI",
-      background: "",
-    },
-    {
-      name: "Mr. Đặng Huỳnh Thiên",
-      role: "BA",
-      background: "",
-    },
-    {
-      name: "Mr. Nguyễn Ngọc Minh",
-      role: "Trưởng nhóm phát triển Frontend",
-      background: "",
-    },
-    {
-      name: "Mr. Đoàn Trung Thành",
-      role: "Nhà phát triển Frontend & Backend",
-      background: "",
-    },
+    { name: "Ms. Nguyễn Thị Thủy Linh", role: "CEO & BA", background: "" },
+    { name: "Mr. Lê Sĩ Bình", role: "Trưởng nhóm Phát triển Backend", background: "" },
+    { name: "Ms. Trần Mỹ Anh", role: "Nhà thiết kế UX/UI", background: "" },
+    { name: "Mr. Đặng Huỳnh Thiên", role: "BA", background: "" },
+    { name: "Mr. Nguyễn Ngọc Minh", role: "Trưởng nhóm phát triển Frontend", background: "" },
+    { name: "Mr. Đoàn Trung Thành", role: "Nhà phát triển Frontend & Backend", background: "" },
   ];
 
   return (
@@ -73,7 +42,11 @@ const About = () => {
       {/* Hero */}
       <section className="max-w-6xl mx-auto px-4 py-20 text-center">
         <h1 className="text-5xl font-bold mb-6">
-          Giới thiệu <span className="text-indigo-500">STEM</span><span className="bg-gradient-to-r from-[#7E82E4] via-[#FE99BF] via-[#FBA889] to-[#F8BB44] bg-clip-text text-transparent">otion</span>
+          Giới thiệu{" "}
+          <span className="text-indigo-500">STEM</span>
+          <span className="bg-gradient-to-r from-[#7E82E4] via-[#FE99BF] via-[#FBA889] to-[#F8BB44] bg-clip-text text-transparent">
+            otion
+          </span>
         </h1>
         <p className="text-xl text-gray-600 max-w-3xl mx-auto">
           Trải nghiệm học STEM thông qua mô phỏng robot, lập trình trực quan và
@@ -83,21 +56,21 @@ const About = () => {
 
       {/* Sứ mệnh - Tầm nhìn */}
       <section className="max-w-6xl mx-auto px-4 pb-20 grid md:grid-cols-2 gap-8">
-        {values.map((item, index) => {
-          const Icon = item.icon;
-          return (
-            <div
-              key={index}
-              className="bg-white rounded-xl p-8 shadow hover:shadow-lg transition"
-            >
-              <div className="w-16 h-16 flex items-center justify-center rounded-full  bg-[linear-gradient(135deg,_#7E82E4_0%,_#FE99BF_30%,_#FBA889_62%,_#F8BB44_81%)] mb-6">
-                <Icon className="text-white text-2xl" />
-              </div>
-              <h3 className="text-2xl font-bold mb-4">{item.title}</h3>
-              <p className="text-gray-600">{item.description}</p>
+        {values.map((item, index) => (
+          <div
+            key={index}
+            className="bg-white rounded-xl p-8 shadow hover:shadow-lg transition"
+          >
+            <div className="w-16 h-16 flex items-center justify-center rounded-full bg-[linear-gradient(135deg,_#7E82E4_0%,_#FE99BF_30%,_#FBA889_62%,_#F8BB44_81%)] mb-6">
+              <i
+                className={`${item.iconClass} text-white text-2xl`}
+                aria-hidden="true"
+              />
             </div>
-          );
-        })}
+            <h3 className="text-2xl font-bold mb-4">{item.title}</h3>
+            <p className="text-gray-600">{item.description}</p>
+          </div>
+        ))}
       </section>
 
       {/* Câu chuyện */}
@@ -125,9 +98,7 @@ const About = () => {
 
       {/* Đội ngũ */}
       <section className="w-full mx-auto px-4 py-20">
-        <h2 className="text-4xl font-bold mb-12 text-center">
-          Đội ngũ STEMotion
-        </h2>
+        <h2 className="text-4xl font-bold mb-12 text-center">Đội ngũ STEMotion</h2>
         <div className="grid md:grid-cols-2 lg:grid-cols-6 gap-8">
           {team.map((member, index) => (
             <div
@@ -145,7 +116,6 @@ const About = () => {
 
       {/* Thống kê */}
       <section className="bg-gradient-to-r from-[#7E82E4] via-[#FE99BF] via-[#FBA889] to-[#F8BB44] text-white py-20">
-
         <div className="max-w-6xl mx-auto px-4 grid md:grid-cols-4 gap-8 text-center">
           <div>
             <div className="text-5xl font-bold">
@@ -176,7 +146,6 @@ const About = () => {
           </div>
         </div>
       </section>
-
     </div>
   );
 };

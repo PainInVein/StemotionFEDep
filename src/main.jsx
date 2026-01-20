@@ -5,12 +5,12 @@ import App from "./App";
 import store from "./redux/store";
 import "./index.css";
 
-createRoot(document.getElementById("root")).render(
+const rootEl = document.getElementById("root");
+
+createRoot(rootEl, { identifierPrefix: "stem" }).render(
   <React.StrictMode>
     <Provider store={store}>
-
       <App />
-
     </Provider>
   </React.StrictMode>
 );
