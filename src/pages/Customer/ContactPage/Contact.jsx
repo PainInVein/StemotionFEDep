@@ -1,7 +1,4 @@
-import React, { useState } from "react";
-import { FiMessageSquare, FiPhone } from "react-icons/fi";
-import { MdMailOutline } from "react-icons/md";
-import { IoLocationOutline } from "react-icons/io5";
+import { useState } from "react";
 
 const Contact = () => {
   const [formData, setFormData] = useState({
@@ -34,8 +31,7 @@ const Contact = () => {
     },
     {
       question: "Có thể dùng thử STEMotion trước khi mua không?",
-      answer:
-        "Có. Bản dùng thử miễn phí cung cấp các nội dung nhập môn.",
+      answer: "Có. Bản dùng thử miễn phí cung cấp các nội dung nhập môn.",
     },
     {
       question: "Có ưu đãi cho trường học hoặc nhóm không?",
@@ -54,6 +50,10 @@ const Contact = () => {
     },
   ];
 
+  // dùng cho icon trong vòng tròn màu indigo
+  const circleIcon =
+    "fa-solid text-white text-[18px] leading-none";
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -62,7 +62,8 @@ const Contact = () => {
           Liên hệ <span className="text-indigo-500">với chúng tôi</span>
         </h1>
         <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-          Có câu hỏi? Hãy gửi tin nhắn cho chúng tôi và chúng tôi sẽ phản hồi sớm nhất.
+          Có câu hỏi? Hãy gửi tin nhắn cho chúng tôi và chúng tôi sẽ phản hồi sớm
+          nhất.
         </p>
       </section>
 
@@ -72,7 +73,8 @@ const Contact = () => {
         <div className="space-y-6 h-full flex flex-col">
           <div className="bg-white p-6 rounded-xl shadow flex-1">
             <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-indigo-500 mb-4">
-              <MdMailOutline className="h-6 w-6 text-white" />
+              {/* Email icon */}
+              <i className={`fa-regular fa-envelope ${circleIcon}`} aria-hidden="true" />
             </div>
             <h3 className="font-bold">Email</h3>
             <p className="text-gray-600">hello@stemotion.com</p>
@@ -80,7 +82,8 @@ const Contact = () => {
 
           <div className="bg-white p-6 rounded-xl shadow flex-1">
             <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-indigo-500 mb-4">
-              <FiPhone className="h-6 w-6 text-white" />
+              {/* Phone icon */}
+              <i className={`fa-solid fa-phone ${circleIcon}`} aria-hidden="true" />
             </div>
             <h3 className="font-bold">Điện thoại</h3>
             <p className="text-gray-600">(555) 123-4567</p>
@@ -88,11 +91,13 @@ const Contact = () => {
 
           <div className="bg-white p-6 rounded-xl shadow flex-1">
             <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-indigo-500 mb-4">
-              <IoLocationOutline className="h-6 w-6 text-white" />
+              {/* Location icon */}
+              <i className={`fa-solid fa-location-dot ${circleIcon}`} aria-hidden="true" />
             </div>
             <h3 className="font-bold">Địa chỉ</h3>
             <p className="text-gray-600">
-              123 Education Street<br />
+              123 Education Street
+              <br />
               Tech City
             </p>
           </div>
@@ -102,14 +107,24 @@ const Contact = () => {
         <div className="md:col-span-2 bg-white rounded-xl shadow hover:shadow-lg transition-shadow h-full flex">
           <div className="p-8 w-full flex flex-col">
             <div className="flex items-center gap-2 mb-6">
-              <FiMessageSquare className="h-6 w-6 text-indigo-500" />
+              {/* Message icon */}
+              <i
+                className="fa-regular fa-message h-6 w-6 text-indigo-500"
+                aria-hidden="true"
+              />
               <h2 className="text-2xl font-bold">Gửi tin nhắn cho chúng tôi</h2>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-6 flex-1 flex flex-col">
+            <form
+              onSubmit={handleSubmit}
+              className="space-y-6 flex-1 flex flex-col"
+            >
               <div className="grid md:grid-cols-2 gap-6">
                 <div>
-                  <label htmlFor="name" className="block text-md font-semibold mb-2">
+                  <label
+                    htmlFor="name"
+                    className="block text-md font-semibold mb-2"
+                  >
                     Họ và tên
                   </label>
                   <input
@@ -124,7 +139,10 @@ const Contact = () => {
                 </div>
 
                 <div>
-                  <label htmlFor="email" className="block text-md font-semibold mb-2">
+                  <label
+                    htmlFor="email"
+                    className="block text-md font-semibold mb-2"
+                  >
                     Email
                   </label>
                   <input
@@ -141,7 +159,10 @@ const Contact = () => {
               </div>
 
               <div>
-                <label htmlFor="subject" className="block text-md font-semibold mb-2">
+                <label
+                  htmlFor="subject"
+                  className="block text-md font-semibold mb-2"
+                >
                   Chủ đề
                 </label>
                 <input
@@ -156,7 +177,10 @@ const Contact = () => {
               </div>
 
               <div className="flex-1 flex flex-col">
-                <label htmlFor="message" className="block text-md font-semibold mb-2">
+                <label
+                  htmlFor="message"
+                  className="block text-md font-semibold mb-2"
+                >
                   Tin nhắn
                 </label>
                 <textarea
@@ -180,7 +204,6 @@ const Contact = () => {
           </div>
         </div>
       </section>
-
 
       {/* FAQ */}
       <section className="bg-gray-100 py-20">
