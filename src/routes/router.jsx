@@ -9,7 +9,7 @@ import CoursesPage from "../pages/Customer/CoursesPage/CoursesPage";
 import CourseDetail from "../pages/Customer/CourseDetailPage/CourseDetail";
 import LessonDetail from "../pages/Customer/LessonDetailPage/LessonDetail";
 
-import Login from "../pages/Customer/LoginPage/LoginPage";
+import Login from "../pages/Customer/LoginPage/LoginForm";
 import Register from "../pages/Customer/LoginPage/RegisterForm";
 
 import About from "../pages/Customer/AboutUsPage/About";
