@@ -100,9 +100,6 @@ function App() {
     <AuthProvider>
       <RouterProvider router={router} />
       
-      {/* Chat Bubble - Available on all pages except admin and chat */}
-      {/* {!isAdminPage && !isChatPage && <ChatBubble />} */}
-      
       <ToastContainer 
         position="top-right"
         autoClose={4000}

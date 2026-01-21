@@ -9,7 +9,7 @@ const HeroSection = lazy(() => import("./sections/HeroSection"));
 const FeaturesSection = lazy(() => import("./sections/FeaturesSection"));
 const CTASection = lazy(() => import("./sections/CTASection"));
 
-const LoginModal = lazy(() => import("../LoginPage/LoginPage"));
+const LoginModal = lazy(() => import("../LoginPage/LoginForm"));
 
 const LazySection = memo(function LazySection({
   children,

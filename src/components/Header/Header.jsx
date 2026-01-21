@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import logo from "../../assets/logo-02.webp";
 import { Link, useNavigate } from "react-router-dom";
 
-import LoginModal from "../../pages/Customer/LoginPage/LoginPage";
+import LoginModal from "../../pages/Customer/LoginPage/LoginForm";
 import useAuth from "../../contexts/AuthContext";
 
 export default function Header() {
