@@ -1,10 +1,12 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { RouterProvider } from 'react-router-dom'
 import { router } from './routes/router'
 import "react-toastify/dist/ReactToastify.css";
 import { ToastContainer, toast } from "react-toastify";
+import { AuthProvider } from "./contexts/AuthContext";
 // import ChatBubble from "./pages/Customer/ChatBox/ChatBubble";
 
+// Memoize toast styles to avoid recreation on every render
 const toastStyle = {
   borderRadius: '12px',
   boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12)',
@@ -28,17 +30,14 @@ const toastContainerStyle = {
 };
 
 function App() {
-  // const [showChatAI, setShowChatAI] = useState(false);
-  // const [showChatStaff, setShowChatStaff] = useState(false);
-  // const [showOptions, setShowOptions] = useState(false);
   const [currentPath, setCurrentPath] = useState(window.location.pathname);
-
   const [position, setPosition] = useState({ x: 24, y: 24 });
   const dragRef = useRef(null);
   const dragging = useRef(false);
   const offset = useRef({ x: 0, y: 0 });
+  const pathCheckTimeoutRef = useRef(null);
 
-  // Listen for route changes
+  // Optimize route change detection with debouncing
   useEffect(() => {
     const handleRouteChange = () => {
       const newPath = window.location.pathname;
@@ -47,19 +46,31 @@ function App() {
       }
     };
 
-    // Listen for popstate events
     window.addEventListener('popstate', handleRouteChange);
     
-    // Check for route changes periodically
-    const interval = setInterval(handleRouteChange, 100);
-
-    return () => {
-      window.removeEventListener('popstate', handleRouteChange);
-      clearInterval(interval);
-    };
+    // Defer route check using requestIdleCallback for non-blocking
+    if ('requestIdleCallback' in window) {
+      const idleId = requestIdleCallback(() => {
+        handleRouteChange();
+      });
+      return () => {
+        window.removeEventListener('popstate', handleRouteChange);
+        cancelIdleCallback(idleId);
+      };
+    } else {
+      // Fallback for browsers without requestIdleCallback
+      pathCheckTimeoutRef.current = setTimeout(handleRouteChange, 500);
+      return () => {
+        window.removeEventListener('popstate', handleRouteChange);
+        if (pathCheckTimeoutRef.current) {
+          clearTimeout(pathCheckTimeoutRef.current);
+        }
+      };
+    }
   }, [currentPath]);
 
-  const handleMouseDown = (e) => {
+  // Memoize mouse event handlers to prevent recreation
+  const handleMouseDown = useCallback((e) => {
     dragging.current = true;
     offset.current = {
       x: e.clientX - position.x,
@@ -67,31 +78,27 @@ function App() {
     };
     document.addEventListener("mousemove", handleMouseMove);
     document.addEventListener("mouseup", handleMouseUp);
-  };
+  }, [position]);
 
-  const handleMouseMove = (e) => {
+  const handleMouseMove = useCallback((e) => {
     if (!dragging.current) return;
     setPosition({
       x: Math.max(0, window.innerWidth - e.clientX - 80),
       y: Math.max(0, window.innerHeight - e.clientY - 80),
     });
-  };
+  }, []);
 
-  const handleMouseUp = () => {
+  const handleMouseUp = useCallback(() => {
     dragging.current = false;
     document.removeEventListener("mousemove", handleMouseMove);
     document.removeEventListener("mouseup", handleMouseUp);
-  };
+  }, [handleMouseMove]);
 
-  const isAdminPage = currentPath.startsWith("/admin");
-  // const isChatPage = currentPath === "/chat";
+  const isAdminPage = useMemo(() => currentPath.startsWith("/admin"), [currentPath]);
 
   return (
-    <>
+    <AuthProvider>
       <RouterProvider router={router} />
-      
-      {/* Chat Bubble - Available on all pages except admin and chat */}
-      {/* {!isAdminPage && !isChatPage && <ChatBubble />} */}
       
       <ToastContainer 
         position="top-right"
@@ -150,7 +157,7 @@ function App() {
           return className;
         }}
       />
-    </>
+    </AuthProvider>
   );
 }
 
