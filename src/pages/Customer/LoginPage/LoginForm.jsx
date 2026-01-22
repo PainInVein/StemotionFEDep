@@ -181,6 +181,7 @@ export default function LoginModal({ isOpen = false, onClose = () => {} }) {
                     <input
                       type={showPassword ? "text" : "password"}
                       autoComplete="current-password"
+                      placeholder="Nhập mật khẩu"
                       className="w-full px-4 py-3 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-100 transition-all"
                       {...register("password")}
                     />

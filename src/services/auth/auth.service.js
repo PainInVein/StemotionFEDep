@@ -1,4 +1,4 @@
-import { loginApi } from "../api/auth.api";
+import { loginApi, registerApi } from "../api/auth.api";
 
 export const loginService = async (email, password) => {
   const res = await loginApi({ email, password });
@@ -15,4 +15,9 @@ export const loginService = async (email, password) => {
 export const logoutService = () => {
   localStorage.removeItem("access_token");
 //   localStorage.removeItem("user");
+};
+
+export const registerService = async (payload) => {
+  const res = await registerApi(payload);
+  return res.data;
 };
