@@ -7,6 +7,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 
 import { toast } from "react-toastify";
+import { registerService } from "../../../services/auth/auth.service";
 
 /* =======================
    Schemas + helpers
@@ -119,6 +120,21 @@ function applyZodErrorsToForm(zodError, setError) {
     if (!field) continue;
     setError(field, { type: "manual", message: issue.message });
   }
+}
+
+function splitFullName(fullName) {
+  const parts = String(fullName || "").trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return { firstName: "", lastName: "" };
+  if (parts.length === 1) return { firstName: parts[0], lastName: "" };
+  return {
+    firstName: parts.slice(0, -1).join(" "),
+    lastName: parts[parts.length - 1],
+  };
+}
+
+function parseGradeLevel(value) {
+  const match = String(value || "").match(/\d+/);
+  return match ? Number(match[0]) : 0;
 }
 
 /* =======================
@@ -458,14 +474,33 @@ export default function Register() {
       return;
     }
 
+    const { firstName, lastName } = splitFullName(values.fullName);
+    const gradeSource = role === "student" ? values.studentGrade : values.childGrade;
+
+    const payload = {
+      email: values.email,
+      password: values.password,
+      phone: values.phone || "",
+      firstName,
+      lastName,
+      roleName: role,
+      gradeLevel: parseGradeLevel(gradeSource),
+      avatarUrl: "",
+      status: "Active",
+      createdAt: new Date().toISOString(),
+    };
+
     setLoading(true);
-    await new Promise((r) => setTimeout(r, 800));
-
-    console.log("REGISTER", { role, ...values });
-    toast.success("Tạo tài khoản thành công!");
-    setLoading(false);
-
-    navigate(role === "student" ? "/student/dashboard" : "/parent/dashboard");
+    try {
+      await registerService(payload);
+      toast.success("Tạo tài khoản thành công!");
+      navigate("/login");
+    } catch (err) {
+      const message = err?.response?.data?.message || "Dang ky that bai. Vui long thu lai.";
+      toast.error(message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const StepTitle =
@@ -659,3 +694,4 @@ export default function Register() {
     </FormProvider>
   );
 }
+
