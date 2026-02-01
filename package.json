@@ -16,6 +16,7 @@
     "@tailwindcss/vite": "^4.1.18",
     "@vitejs/plugin-react": "^4.3.4",
     "antd": "^5.29.3",
+    "aos": "^2.3.4",
     "axios": "^1.8.4",
     "framer-motion": "^12.23.26",
     "postcss": "^8.5.3",

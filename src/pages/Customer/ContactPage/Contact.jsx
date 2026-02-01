@@ -96,9 +96,9 @@ const Contact = () => {
             </div>
             <h3 className="font-bold">Địa chỉ</h3>
             <p className="text-gray-600">
-              123 Education Street
+              7 Đ. D1, Long Thạnh Mỹ, Thủ Đức
               <br />
-              Tech City
+              Thành phố Hồ Chí Minh, Việt Nam
             </p>
           </div>
         </div>

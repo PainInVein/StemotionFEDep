@@ -64,12 +64,12 @@ const FeaturesSection = memo(function FeaturesSection() {
           {/* Block 1 */}
           <div className="flex flex-col md:flex-row bg-white rounded-xl overflow-hidden bg-gradient-to-br from-white to-blue-100">
             <div className="flex-1 p-6 md:p-10 flex justify-center md:justify-start">
-              <div className="w-full md:w-[500px]">
+              <div data-aos="fade-right" className="w-full md:w-[500px]" >
                 <MiniDragGame height={240} className="w-full" />
               </div>
             </div>
 
-            <div className="flex-1 p-6 md:p-10 flex flex-col justify-center items-center space-y-4 md:space-y-6 text-center md:text-left ">
+            <div data-aos="fade-left" className="flex-1 p-6 md:p-10 flex flex-col justify-center items-center space-y-4 md:space-y-6 text-center md:text-left ">
               <h2 className="font-semibold text-3xl sm:text-4xl md:text-6xl">Học tương tác</h2>
               <p className="text-base sm:text-lg">
                 Khám phá khoa học qua hình ảnh và hoạt động thực hành
@@ -83,14 +83,14 @@ const FeaturesSection = memo(function FeaturesSection() {
       <section className="relative overflow-hidden bg-gradient-hero ">
         <div className="max-w-6xl mx-auto w-full bg-gradient-to-br from-white to-blue-100">
           <div className="flex flex-col md:flex-row rounded-xl overflow-hidden">
-            <div className="flex-1 p-6 md:p-10 flex flex-col justify-center items-center space-y-4 md:space-y-6 text-center md:text-left">
+            <div data-aos="fade-right" className="flex-1 p-6 md:p-10 flex flex-col justify-center items-center space-y-4 md:space-y-6 text-center md:text-left">
               <h2 className="font-semibold text-3xl sm:text-4xl md:text-6xl">Tiến bộ từng bước</h2>
               <p className="text-base sm:text-lg">
                 Nắm vững từng khái niệm trước khi chuyển sang bài tiếp theo
               </p>
             </div>
 
-            <div className="flex-1 p-6 md:p-10 flex flex-col items-center md:items-start space-y-6">
+            <div data-aos="fade-left"className="flex-1 p-6 md:p-10 flex flex-col items-center md:items-start space-y-6">
               <Suspense fallback={<div className="text-gray-500">Đang tải lộ trình...</div>}>
                 <div className="mr-48">
                   <Lesson status={progress.lesson1} to="#" />
@@ -111,7 +111,7 @@ const FeaturesSection = memo(function FeaturesSection() {
       <section className="relative overflow-hidden bg-gradient-hero">
         <div className="max-w-6xl mx-auto w-full bg-gradient-to-br from-white to-blue-100">
           <div className="flex flex-col md:flex-row rounded-xl overflow-hidden py-0 md:py-10">
-            <div className="flex-1 px-6 py-16 md:px-10 md:py-40 flex justify-center md:justify-start">
+            <div data-aos="fade-right" className="flex-1 px-6 py-16 md:px-10 md:py-40 flex justify-center md:justify-start">
               <div className="flex gap-4 sm:gap-6">
                 <ProgressLesson status="done" offset="translate-y-10 md:translate-y-20" />
                 <ProgressLesson status="doing" offset="translate-y-0" />
@@ -119,7 +119,7 @@ const FeaturesSection = memo(function FeaturesSection() {
               </div>
             </div>
 
-            <div className="flex-1 p-6 md:p-10 flex flex-col justify-center items-center space-y-4 md:space-y-6 text-center md:text-left">
+            <div data-aos="fade-left" className="flex-1 p-6 md:p-10 flex flex-col justify-center items-center space-y-4 md:space-y-6 text-center md:text-left">
               <h2 className="font-semibold text-3xl sm:text-4xl md:text-6xl">Giữ vững động lực</h2>
               <p className="text-base sm:text-lg">
                 Kết thúc mỗi ngày thông minh hơn với những bài học thú vị, tính năng thi đua hấp dẫn và lời khích lệ mỗi ngày

@@ -9,6 +9,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 
 import { toast } from "react-toastify";
 
+import { useAuthModalStore } from "../../../stores/authModalStore";
+
+
 const CONFIG = {
   title: "Đăng nhập",
   description: "Khám phá lộ trình học tập và thử thách của bạn!",
@@ -25,7 +28,7 @@ const loginSchema = z.object({
   password: z.string().min(6, "Mật khẩu tối thiểu 6 ký tự"),
 });
 
-export default function LoginModal({ isOpen = false, onClose = () => {} }) {
+export default function LoginModal({ isOpen = false, onClose = () => { } }) {
   const navigate = useNavigate();
   const titleId = useId();
   const { login, loading } = useAuth();
@@ -44,6 +47,9 @@ export default function LoginModal({ isOpen = false, onClose = () => {} }) {
     resolver: zodResolver(loginSchema),
     mode: "onSubmit",
   });
+
+  const redirectTo = useAuthModalStore((s) => s.redirectTo);
+  const clearRedirect = useAuthModalStore((s) => s.clearRedirect);
 
   // UX: lock scroll + ESC đóng
   useEffect(() => {
@@ -78,7 +84,9 @@ export default function LoginModal({ isOpen = false, onClose = () => {} }) {
       await login(values.email, values.password);
       toast.success("Đăng nhập thành công!");
       onClose();
-      navigate("/home", { replace: true });
+      const target = redirectTo || "/";
+      clearRedirect();
+      navigate(target, { replace: true });
     } catch (err) {
       console.error("Login error:", err);
       const message =
@@ -193,9 +201,8 @@ export default function LoginModal({ isOpen = false, onClose = () => {} }) {
                       aria-label={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
                     >
                       <i
-                        className={`fa-regular ${
-                          showPassword ? "fa-eye-slash" : "fa-eye"
-                        }`}
+                        className={`fa-regular ${showPassword ? "fa-eye-slash" : "fa-eye"
+                          }`}
                         aria-hidden="true"
                       />
                       <span className="text-xs font-medium">

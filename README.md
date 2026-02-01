@@ -1,3 +1,3 @@
-# 2hand_Battery_Trading_Platform
+# STEMotion
 
-2hand_Battery_Trading_Platform
+STEMotion

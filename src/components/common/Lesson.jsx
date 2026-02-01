@@ -4,7 +4,6 @@
  *    - status = "done" | "doing" | "not_started"
  *    - to: string
  * ========================= */
-import React from "react";
 import { Link } from "react-router-dom";
 
 export default function Lesson({ status, to }) {
