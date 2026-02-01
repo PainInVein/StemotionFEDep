@@ -4,7 +4,9 @@ import { router } from './routes/router'
 import "react-toastify/dist/ReactToastify.css";
 import { ToastContainer, toast } from "react-toastify";
 import { AuthProvider } from "./contexts/AuthContext";
-// import ChatBubble from "./pages/Customer/ChatBox/ChatBubble";
+
+import AOS from "aos";
+import "aos/dist/aos.css";
 
 // Memoize toast styles to avoid recreation on every render
 const toastStyle = {
@@ -95,6 +97,15 @@ function App() {
   }, [handleMouseMove]);
 
   const isAdminPage = useMemo(() => currentPath.startsWith("/admin"), [currentPath]);
+
+  useEffect(() => {
+    AOS.init({
+      duration: 800,
+      once: true, // chỉ animate 1 lần
+      offset: 80,
+      easing: "ease-out",
+    });
+  }, []);
 
   return (
     <AuthProvider>

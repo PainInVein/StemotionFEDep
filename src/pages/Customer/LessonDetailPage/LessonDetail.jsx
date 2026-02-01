@@ -1,230 +1,272 @@
-// src/pages/LessonDetail.jsx
-import { useMemo, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import React from "react";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
+import { getLessonContentsByLessonIdService } from "../../../services/education/education.service";
 
-const FALLBACK_LESSON = {
-  id: "unknown",
-  title: "Bài học",
-  summary: "Nội dung sẽ sớm được cập nhật.",
-  duration: "10 phút",
-  type: "lesson",
+const extractUuidFromSlug = (slug = "") => {
+  const maybe = slug.slice(-36);
+  return /^[0-9a-fA-F-]{36}$/.test(maybe) ? maybe : "";
 };
 
-const HERO_IMAGE =
-  "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&w=1600&q=80";
+function useScrollProgress(containerRef) {
+  const [progress, setProgress] = React.useState(0);
+
+  React.useEffect(() => {
+    const el = containerRef?.current;
+    if (!el) return;
+
+    let rafId = null;
+
+    const calc = () => {
+      const scrollTop = el.scrollTop;
+      const max = el.scrollHeight - el.clientHeight;
+      const p = max <= 0 ? 0 : scrollTop / max;
+      setProgress(Math.max(0, Math.min(1, p)));
+    };
+
+    const onScroll = () => {
+      if (rafId) return;
+      rafId = requestAnimationFrame(() => {
+        rafId = null;
+        calc();
+      });
+    };
+
+    calc();
+
+    el.addEventListener("scroll", onScroll, { passive: true });
+
+    const ro = new ResizeObserver(() => calc());
+    ro.observe(el);
+
+    return () => {
+      el.removeEventListener("scroll", onScroll);
+      ro.disconnect();
+      if (rafId) cancelAnimationFrame(rafId);
+    };
+  }, [containerRef]);
+
+  return progress;
+}
 
 export default function LessonDetail() {
-  const { slug = "", lessonId = "" } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
+  const { lessonSlug = "" } = useParams();
 
-  const [completed, setCompleted] = useState(false);
-  const [showQuiz, setShowQuiz] = useState(false);
+  const state = location.state || {};
+  const lessonId = state.lessonId || extractUuidFromSlug(lessonSlug);
 
-  const lesson = useMemo(() => {
-    switch (lessonId) {
-      case "area-perimeter":
-        return {
-          id: lessonId,
-          title: "Chu vi và diện tích",
-          summary:
-            "Chu vi là tổng độ dài các cạnh, diện tích là phần bề mặt bên trong hình.",
-          duration: "14 phút",
-          type: "lesson",
-        };
-      case "welcome":
-        return {
-          id: lessonId,
-          title: "Chào mừng đến với lập trình",
-          summary: "Các khái niệm khởi đầu về tư duy lập trình.",
-          duration: "5 phút",
-          type: "lesson",
-        };
-      default:
-        return FALLBACK_LESSON;
-    }
+  const [showQuiz, setShowQuiz] = React.useState(false);
+  const [loading, setLoading] = React.useState(true);
+  const [error, setError] = React.useState("");
+  const [contents, setContents] = React.useState([]);
+
+  // ✅ scroll container ref
+  const scrollRef = React.useRef(null);
+
+  // ✅ progress theo scroll (0..1)
+  const progress = useScrollProgress(scrollRef);
+
+  React.useEffect(() => {
+    let alive = true;
+
+    const run = async () => {
+      try {
+        setLoading(true);
+        setError("");
+
+        if (!lessonId) throw new Error("Không tìm thấy lessonId trong URL");
+
+        const data = await getLessonContentsByLessonIdService(lessonId);
+        if (!alive) return;
+
+        setContents(data);
+      } catch (e) {
+        if (!alive) return;
+        setError(e?.message || "Load failed");
+      } finally {
+        if (!alive) return;
+        setLoading(false);
+      }
+    };
+
+    run();
+    return () => {
+      alive = false;
+    };
   }, [lessonId]);
 
-  const quiz = useMemo(() => {
-    if (lesson.id === "area-perimeter") {
-      return {
-        question: "Hình chữ nhật có L=6 và W=3. Chu vi bằng bao nhiêu?",
-        options: [
-          { key: "A", label: "9" },
-          { key: "B", label: "12" },
-          { key: "C", label: "18" },
-          { key: "D", label: "24" },
-        ],
-        correct: "C",
-      };
-    }
-    return {
-      question: "Chọn đáp án đúng nhất cho nội dung vừa học?",
-      options: [
-        { key: "A", label: "A" },
-        { key: "B", label: "B" },
-        { key: "C", label: "C" },
-        { key: "D", label: "D" },
-      ],
-      correct: "A",
-    };
-  }, [lesson.id]);
-
-  const primaryBtn =
-    "inline-flex items-center justify-center rounded-lg bg-blue-600 px-8 py-3 text-lg font-medium text-white transition-all duration-300 hover:bg-blue-700 hover:scale-105 active:scale-100";
-  const outlineBtn =
-    "inline-flex h-16 w-full items-center justify-start rounded-lg border-2 border-slate-200 bg-white p-4 text-left transition-all duration-300 hover:border-blue-500 hover:bg-blue-50 hover:scale-105 active:scale-100";
-
   return (
-    <div className="min-h-screen bg-white">
-      {/* Top Bar */}
-      <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200">
+    // ✅ toàn bộ trang scroll trong container này
+    <div ref={scrollRef} style={styles.shell}>
+      {/* ✅ Top Bar sticky */}
+      <div style={styles.topbar} className="border-b border-slate-200">
         <button
           onClick={() => navigate(-1)}
           className="p-2 hover:bg-gray-100 rounded-full transition-colors"
           aria-label="Back"
         >
-          {/* FiX -> Font Awesome X */}
           <i className="fa-solid fa-xmark h-5 w-5" aria-hidden="true" />
         </button>
 
-        {/* Progress Bar */}
+        {/* ✅ Progress Bar theo scroll */}
         <div className="flex-1 mx-8">
           <div className="h-1 bg-gray-200 rounded-full">
             <div
-              className="h-1 bg-blue-500 rounded-full transition-all duration-300"
-              style={{ width: showQuiz ? "100%" : "30%" }}
+              className="h-1 bg-blue-500 rounded-full transition-all duration-150"
+              style={{ width: `${Math.round(progress * 100)}%` }}
             />
           </div>
         </div>
 
-        {/* Score/Energy indicator */}
         <div className="flex items-center gap-2">
-          <span className="text-sm font-medium">1</span>
-          {/* FiZap -> Font Awesome bolt */}
-          <i
-            className="fa-solid fa-bolt text-green-500 h-4 w-4"
-            aria-hidden="true"
-          />
+          <span className="text-sm font-medium">{Math.round(progress * 100)}%</span>
+          <i className="fa-solid fa-bolt text-green-500 h-4 w-4" aria-hidden="true" />
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="max-w-4xl mx-auto px-6 py-8">
-        <div className="relative overflow-hidden">
-          {/* Theory Section */}
-          <div
-            className={`transition-all duration-700 ease-in-out ${
-              showQuiz
-                ? "opacity-0 transform translate-x-[-100%] absolute inset-0"
-                : "opacity-100 transform translate-x-0"
-            }`}
-          >
-            <div className="text-center space-y-8">
-              <h1 className="text-4xl font-bold text-gray-900">{lesson.title}</h1>
+      {/* Nội dung */}
+      <div style={styles.page}>
+        <Hero title={state.lessonName || "Lesson"} desc={lessonId} />
 
-              <div className="space-y-6 text-left max-w-3xl mx-auto">
-                <p className="text-lg text-gray-700 leading-relaxed">
-                  {lesson.id === "area-perimeter" ? (
-                    <>
-                      Bạn có biết tại sao các tòa nhà cần có hệ thống thoát nước
-                      không?
-                      <br />
-                      <br />
-                      Chu vi và diện tích là hai khái niệm cơ bản trong hình học.
-                      Chu vi là tổng độ dài các cạnh bao quanh một hình, còn diện
-                      tích là phần bề mặt bên trong hình đó. Hiểu rõ hai khái
-                      niệm này giúp chúng ta tính toán chính xác trong nhiều tình
-                      huống thực tế.
-                    </>
-                  ) : (
-                    <>
-                      Chào mừng bạn đến với thế giới lập trình!
-                      <br />
-                      <br />
-                      Lập trình không chỉ là viết code, mà còn là cách tư duy logic
-                      để giải quyết vấn đề. Hãy bắt đầu với những khái niệm cơ bản
-                      nhất để xây dựng nền tảng vững chắc.
-                    </>
-                  )}
-                </p>
-              </div>
+        {loading && <div style={styles.section}>Đang tải nội dung...</div>}
+        {!loading && error && <div style={{ ...styles.section, color: "crimson" }}>{error}</div>}
 
-              {/* Illustration */}
-              <div className="max-w-2xl mx-auto">
-                <img
-                  src={HERO_IMAGE}
-                  alt={lesson.title}
-                  className="w-full h-64 object-cover rounded-lg shadow-lg"
-                  loading="lazy"
+        {!loading && !error && (
+          <>
+            {contents.map((item) => {
+              const type = (item?.contentType || "").toLowerCase();
+              const title = `#${item?.orderIndex ?? ""} ${item?.contentType ?? ""}`.trim();
+
+              if (type === "text") {
+                return (
+                  <SectionText
+                    key={item.lessonContentId}
+                    title={title}
+                    content={item?.textContent || ""}
+                  />
+                );
+              }
+
+              if (type === "image") {
+                return (
+                  <SectionImage
+                    key={item.lessonContentId}
+                    title={title}
+                    img={item?.mediaUrl || ""}
+                    caption=""
+                  />
+                );
+              }
+
+              return (
+                <SectionText
+                  key={item.lessonContentId}
+                  title={title}
+                  content={item?.textContent || item?.formulaLatex || "Chưa hỗ trợ UI cho loại này."}
                 />
-              </div>
+              );
+            })}
 
-              {/* Continue */}
-              <div className="pt-8">
+            {!showQuiz ? (
+              <div style={{ ...styles.section, paddingTop: 0 }}>
                 <button
-                  type="button"
                   onClick={() => setShowQuiz(true)}
-                  className={primaryBtn}
+                  className="px-4 py-2 rounded-lg bg-blue-500 text-white hover:bg-blue-600 transition-colors"
                 >
-                  Continue
+                  Bắt đầu mini game
                 </button>
               </div>
-            </div>
-          </div>
-
-          {/* Quiz Section */}
-          <div
-            className={`transition-all duration-700 ease-in-out ${
-              showQuiz
-                ? "opacity-100 transform translate-x-0"
-                : "opacity-0 transform translate-x-[100%] absolute inset-0"
-            }`}
-          >
-            <div className="text-center space-y-8">
-              <h2 className="text-3xl font-bold text-gray-900">
-                Kiểm tra hiểu biết
-              </h2>
-
-              <div className="max-w-2xl mx-auto space-y-6">
-                <p className="text-lg text-gray-700">{quiz.question}</p>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {quiz.options.map((opt) => (
-                    <button
-                      key={opt.key}
-                      type="button"
-                      className={outlineBtn}
-                      onClick={() => {
-                        if (opt.key === quiz.correct) {
-                          setCompleted(true);
-                          setTimeout(() => navigate(-1), 1000);
-                        } else {
-                          window.alert("Chưa đúng, thử lại nhé!");
-                        }
-                      }}
-                    >
-                      <span className="mr-3 font-bold text-lg">{opt.key}.</span>
-                      <span className="text-base">{opt.label}</span>
-                    </button>
-                  ))}
-                </div>
-
-                {completed && (
-                  <div className="text-sm">
-                    <span className="inline-block rounded-md bg-green-50 px-3 py-2 text-green-700">
-                      Chính xác! Đang quay lại bài học...
-                    </span>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="mt-10 text-xs text-slate-400">
-          slug: {slug || "(none)"} • lessonId: {lessonId || "(none)"}
-        </div>
+            ) : (
+              <MiniGame />
+            )}
+          </>
+        )}
       </div>
     </div>
   );
 }
+
+/* ---------- Components ---------- */
+function Hero({ title, desc }) {
+  return (
+    <div style={styles.hero}>
+      <h1 style={styles.heroTitle}>{title}</h1>
+      <p style={styles.heroDesc}>{desc}</p>
+    </div>
+  );
+}
+
+function SectionText({ title, content }) {
+  return (
+    <div style={styles.section}>
+      <h2>{title}</h2>
+      <p>{content}</p>
+    </div>
+  );
+}
+
+function SectionImage({ title, img, caption }) {
+  return (
+    <div style={styles.section}>
+      <h2>{title}</h2>
+      {img ? <img src={img} alt="" style={styles.image} /> : <p>(Không có ảnh)</p>}
+      {caption ? <small>{caption}</small> : null}
+    </div>
+  );
+}
+
+function MiniGame() {
+  const [answer, setAnswer] = React.useState(null);
+
+  return (
+    <div style={{ ...styles.section, ...styles.game }}>
+      <h2>Mini Game</h2>
+      <p>Thuật toán nào luôn chia bài toán thành các phần nhỏ?</p>
+
+      <div style={styles.options}>
+        <button onClick={() => setAnswer("wrong")}>Linear Search</button>
+        <button onClick={() => setAnswer("correct")}>Divide and Conquer</button>
+        <button onClick={() => setAnswer("wrong")}>Brute Force</button>
+      </div>
+
+      {answer === "correct" && <p style={styles.correct}>Đúng</p>}
+      {answer === "wrong" && <p style={styles.wrong}>Sai</p>}
+    </div>
+  );
+}
+
+/* ---------- Styles ---------- */
+const styles = {
+  // ✅ full-height scroll container
+  shell: {
+    height: "100vh",
+    overflowY: "auto",
+    background: "white",
+  },
+  topbar: {
+    position: "sticky",
+    top: 0,
+    zIndex: 50,
+    background: "white",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    padding: "16px 24px",
+  },
+  page: {
+    maxWidth: 900,
+    margin: "0 auto",
+    paddingBottom: 80,
+    fontFamily: "system-ui, sans-serif",
+  },
+  hero: { padding: "80px 20px", textAlign: "center", background: "#f5f7fb" },
+  heroTitle: { fontSize: 42, marginBottom: 16 },
+  heroDesc: { fontSize: 16, color: "#555", wordBreak: "break-word" },
+  section: { padding: "60px 20px", lineHeight: 1.6 },
+  image: { width: "100%", borderRadius: 12, marginTop: 20, marginBottom: 8 },
+  game: { background: "#fafafa", borderRadius: 16 },
+  options: { display: "flex", gap: 12, marginTop: 16, flexWrap: "wrap" },
+  correct: { color: "green", marginTop: 12 },
+  wrong: { color: "red", marginTop: 12 },
+};
