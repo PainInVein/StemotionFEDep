@@ -15,25 +15,9 @@ function Badge({ children, variant = "cool" }) {
     );
 }
 
-function GradientButton({ children, className = "" }) {
-    return (
-        <button
-            className={[
-                "relative inline-flex items-center justify-center rounded-full px-5 py-3",
-                "text-sm font-semibold text-white shadow-soft",
-                "bg-gradient-to-r from-indigo-500 via-fuchsia-500 to-amber-400",
-                "hover:brightness-105 active:brightness-95 transition",
-                className,
-            ].join(" ")}
-        >
-            {children}
-        </button>
-    );
-}
-
 export default function SubscriptionTrialPage() {
     return (
-        <div className="min-h-screen max-w-[1216px] mx-auto px-4">
+        <div className="min-h-screen max-w-6xl mx-auto px-4">
             <div className="container-pad pt-16 pb-20 md:pt-20 md:pb-28">
                 {/* Title */}
                 <div className="text-center">
@@ -68,7 +52,7 @@ export default function SubscriptionTrialPage() {
                             {/* <GradientButton className="h-10 px-6 py-0">
                                 Bắt đầu đăng ký
                             </GradientButton> */}
-                            <Button size="sm" className="h-10 px-10 py-0 bg-gradient-to-r from-indigo-500 via-fuchsia-500 to-amber-400">
+                            <Button size="sm" className="h-10 px-10 py-0 bg-gradient-to-r from-indigo-400 via-fuchsia-400 to-amber-300">
                                 Bắt đầu đăng ký
                             </Button>
                         </div>
@@ -108,7 +92,7 @@ export default function SubscriptionTrialPage() {
                     {/* Middle CTA */}
                     <div className="mt-12 flex flex-col items-center gap-3">
                         <div className="w-auto mx-auto">
-                            <Button size="sm" className="h-10 px-10 py-0 bg-gradient-to-r from-indigo-500 via-fuchsia-500 to-amber-400">
+                            <Button size="sm" className="h-10 px-10 py-0 bg-gradient-to-r from-indigo-400 via-fuchsia-400 to-amber-300">
                                 Bắt đầu 1 bài học dùng thử miễn phí
                             </Button>
                         </div>
