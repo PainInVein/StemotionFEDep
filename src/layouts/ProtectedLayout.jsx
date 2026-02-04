@@ -4,7 +4,9 @@ import Footer from "../components/Footer/Footer";
 import useAuth from "../contexts/AuthContext";
 
 export default function ProtectedLayout() {
-const { isAuthenticated } = useAuth();
+  const { isAuthenticated, loading } = useAuth();
+
+  if (loading) return null; // Hoặc hiển thị loading spinner
 
   if (!isAuthenticated) {
     return <Navigate to="/" replace />;

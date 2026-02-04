@@ -6,7 +6,7 @@ const GRADIENT = "from-[#7E82E4] via-[#FE99BF] via-[#FBA889] to-[#F8BB44]";
 export default function CTASection() {
   return (
     <section className="flex items-center px-6">
-      <div className="max-w-4xl mx-auto text-center space-y-6 py-16">
+      <div  className="max-w-4xl mx-auto text-center space-y-6 py-16">
         <h2 className="py-2 text-3xl md:text-5xl font-bold bg-gradient-to-r from-[#7E82E4] via-[#FE99BF] via-[#FBA889] to-[#F8BB44] bg-clip-text text-transparent">
           Bắt đầu hành trình STEM của bạn ngay hôm nay
         </h2>

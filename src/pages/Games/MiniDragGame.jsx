@@ -209,7 +209,7 @@ export default function MiniDragGame({ height = 260, className = "", onComplete 
           onClick={reset}
           className="text-sm px-3 py-1.5 rounded-lg border border-gray-200 hover:bg-gray-50 active:scale-[0.99]"
         >
-          Reset
+          Làm lại
         </button>
       </div>
 
@@ -276,7 +276,7 @@ export default function MiniDragGame({ height = 260, className = "", onComplete 
       </div>
 
       <div className="mt-2 text-xs text-gray-500">
-        Tip: Kéo <b>KHỐI 1</b> vào <b>ĐÍCH A</b>, <b>KHỐI 2</b> vào <b>ĐÍCH B</b>, <b>KHỐI 3</b> vào <b>ĐÍCH C</b>.
+        <span className="text-red-500 font-semibold text-lg">💡Gợi ý:</span> Kéo <b>KHỐI 1</b> vào <b>ĐÍCH A</b>, <b>KHỐI 2</b> vào <b>ĐÍCH B</b>, <b>KHỐI 3</b> vào <b>ĐÍCH C</b>.
       </div>
     </div>
   );

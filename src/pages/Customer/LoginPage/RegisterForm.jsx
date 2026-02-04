@@ -7,7 +7,8 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 
 import { toast } from "react-toastify";
-import { registerService } from "../../../services/auth/auth.service";
+import { sendRegisterOtpService } from "../../../services/auth/auth.service";
+
 
 /* =======================
    Schemas + helpers
@@ -173,20 +174,32 @@ function TextInput({ name, label, placeholder, type = "text", iconClass, leftPad
 
 function SelectInput({ name, label, children, className = "", ...rest }) {
   const { register } = useFormContext();
+
   return (
     <div>
       <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
-      <select
-        {...register(name)}
-        className={`w-full px-2 py-1.5 md:px-4 md:py-3.5 border-2 border-gray-300 rounded-lg focus:border-pink-500 outline-none transition ${className}`}
-        {...rest}
-      >
-        {children}
-      </select>
+
+      <div className="relative">
+        <select
+          {...register(name)}
+          className={`w-full appearance-none px-2 py-3 md:px-4 md:py-3 pr-12 border-2 border-gray-300 rounded-lg focus:border-pink-500 outline-none transition ${className}`}
+          {...rest}
+        >
+          {children}
+        </select>
+
+        {/* icon mũi tên - chỉnh right để qua trái/qua phải */}
+        <i
+          className="fa-solid fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
+          aria-hidden="true"
+        />
+      </div>
+
       <FieldError name={name} />
     </div>
   );
 }
+
 
 /* =======================
    Step components
@@ -312,25 +325,60 @@ function Step2Student() {
 
 function Step3() {
   const { register } = useFormContext();
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
 
-  return (
+    return (
     <>
-      <TextInput
-        name="password"
-        label="Mật khẩu"
-        placeholder="Ít nhất 6 ký tự"
-        type="password"
-        iconClass="fa-solid fa-lock"
-      />
+      {/* Password */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">Mật khẩu</label>
+        <div className="relative">
+          <i
+            className="fa-solid fa-lock absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+            aria-hidden="true"
+          />
+          <input
+            type={showPassword ? "text" : "password"}
+            {...register("password")}
+            className="w-full pl-10 pr-12 py-3 border-2 border-gray-300 rounded-lg focus:border-pink-500 outline-none transition"
+            placeholder="Ít nhất 6 ký tự"
+            autoComplete="new-password"
+          />
 
+          <button
+            type="button"
+            onClick={() => setShowPassword((v) => !v)}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-pink-600"
+            aria-label={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
+          >
+            <i className={`fa-regular ${showPassword ? "fa-eye-slash" : "fa-eye"}`} aria-hidden="true" />
+          </button>
+        </div>
+        <FieldError name="password" />
+      </div>
+
+      {/* Confirm password */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">Xác nhận mật khẩu</label>
-        <input
-          type="password"
-          {...register("confirmPassword")}
-          className="w-full px-2 py-1 md:px-4 md:py-3 border-2 border-gray-300 rounded-lg focus:border-pink-500 outline-none transition"
-          placeholder="Nhập lại mật khẩu"
-        />
+        <div className="relative">
+          <input
+            type={showConfirm ? "text" : "password"}
+            {...register("confirmPassword")}
+            className="w-full px-4 pr-12 py-3 border-2 border-gray-300 rounded-lg focus:border-pink-500 outline-none transition"
+            placeholder="Nhập lại mật khẩu"
+            autoComplete="new-password"
+          />
+
+          <button
+            type="button"
+            onClick={() => setShowConfirm((v) => !v)}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-pink-600"
+            aria-label={showConfirm ? "Ẩn mật khẩu xác nhận" : "Hiện mật khẩu xác nhận"}
+          >
+            <i className={`fa-regular ${showConfirm ? "fa-eye-slash" : "fa-eye"}`} aria-hidden="true" />
+          </button>
+        </div>
         <FieldError name="confirmPassword" />
       </div>
 
@@ -456,52 +504,105 @@ export default function Register() {
     if (currentStep < 3) setCurrentStep((p) => p + 1);
   };
 
+  // const onSubmitFinal = async () => {
+  //   if (!validateCurrentStep()) return;
+
+  //   // đảm bảo step 1 & 2 cũng ok
+  //   const values = getValues();
+  //   const s1 = stepValidators.step1(values, role);
+  //   const s2 = stepValidators.step2(values, role);
+  //   if (!s1.success) {
+  //     applyZodErrorsToForm(s1.error, setError);
+  //     setCurrentStep(1);
+  //     return;
+  //   }
+  //   if (!s2.success) {
+  //     applyZodErrorsToForm(s2.error, setError);
+  //     setCurrentStep(2);
+  //     return;
+  //   }
+
+  //   const { firstName, lastName } = splitFullName(values.fullName);
+  //   const gradeSource = role === "student" ? values.studentGrade : values.childGrade;
+
+  //   const payload = {
+  //     email: values.email,
+  //     password: values.password,
+  //     phone: values.phone || "",
+  //     firstName,
+  //     lastName,
+  //     roleName: role,
+  //     gradeLevel: parseGradeLevel(gradeSource),
+  //     avatarUrl: "",
+  //     status: "Active",
+  //     createdAt: new Date().toISOString(),
+  //   };
+
+  //   setLoading(true);
+  //   try {
+  //     await registerService(payload);
+  //     toast.success("Tạo tài khoản thành công!");
+  //     navigate("/login");
+  //   } catch (err) {
+  //     const message = err?.response?.data?.message || "Dang ky that bai. Vui long thu lai.";
+  //     toast.error(message);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
   const onSubmitFinal = async () => {
-    if (!validateCurrentStep()) return;
+  if (!validateCurrentStep()) return;
 
-    // đảm bảo step 1 & 2 cũng ok
-    const values = getValues();
-    const s1 = stepValidators.step1(values, role);
-    const s2 = stepValidators.step2(values, role);
-    if (!s1.success) {
-      applyZodErrorsToForm(s1.error, setError);
-      setCurrentStep(1);
-      return;
-    }
-    if (!s2.success) {
-      applyZodErrorsToForm(s2.error, setError);
-      setCurrentStep(2);
-      return;
-    }
+  const values = getValues();
+  const s1 = stepValidators.step1(values, role);
+  const s2 = stepValidators.step2(values, role);
+  if (!s1.success) {
+    applyZodErrorsToForm(s1.error, setError);
+    setCurrentStep(1);
+    return;
+  }
+  if (!s2.success) {
+    applyZodErrorsToForm(s2.error, setError);
+    setCurrentStep(2);
+    return;
+  }
 
-    const { firstName, lastName } = splitFullName(values.fullName);
-    const gradeSource = role === "student" ? values.studentGrade : values.childGrade;
+  const { firstName, lastName } = splitFullName(values.fullName);
+  const gradeSource = role === "student" ? values.studentGrade : values.childGrade;
 
-    const payload = {
-      email: values.email,
-      password: values.password,
-      phone: values.phone || "",
-      firstName,
-      lastName,
-      roleName: role,
-      gradeLevel: parseGradeLevel(gradeSource),
-      avatarUrl: "",
-      status: "Active",
-      createdAt: new Date().toISOString(),
-    };
-
-    setLoading(true);
-    try {
-      await registerService(payload);
-      toast.success("Tạo tài khoản thành công!");
-      navigate("/login");
-    } catch (err) {
-      const message = err?.response?.data?.message || "Dang ky that bai. Vui long thu lai.";
-      toast.error(message);
-    } finally {
-      setLoading(false);
-    }
+  const payload = {
+    email: values.email,
+    password: values.password,
+    phone: values.phone || "",
+    firstName,
+    lastName,
+    roleName: role, // "student" | "parent"
+    gradeLevel: parseGradeLevel(gradeSource),
+    avatarUrl: "",
+    createdAt: new Date().toISOString(),
   };
+
+  setLoading(true);
+  try {
+    // ✅ gọi BE gửi OTP
+    await sendRegisterOtpService(payload);
+    console.log("OTP sent for registration:", payload);
+
+    // ✅ lưu tạm data để trang OTP verify dùng tiếp
+    sessionStorage.setItem("pending_register", JSON.stringify(payload));
+
+    toast.success("Đã gửi OTP về email. Vui lòng kiểm tra hộp thư!");
+    navigate("/register/verify-otp"); // bạn tạo route này
+  } catch (err) {
+    const message =
+      err?.response?.data?.message || "Gửi OTP thất bại. Vui lòng thử lại.";
+    toast.error(message);
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   const StepTitle =
     currentStep === 1
