@@ -18,9 +18,11 @@ import axios from "axios";
 
 const axiosClient = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL,
-  headers: { "Content-Type": "application/json" },
-  withCredentials: true, // ✅ cookie sẽ tự gửi kèm request
+  headers: {
+    "Content-Type": "application/json",
+    "ngrok-skip-browser-warning": "true",
+  },
+  withCredentials: true,
 });
 
-// ✅ bỏ interceptor set Authorization luôn
 export default axiosClient;
