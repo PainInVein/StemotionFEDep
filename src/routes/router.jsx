@@ -15,6 +15,8 @@ import IndexPage from "../pages/Customer/IndexPage";
 import SubscriptionTrialPage from "../pages/Customer/SubscriptionPage/SubscriptionTrialPage";
 import CheckOut from "../pages/Customer/PaymentPage/CheckOut";
 import SubscriptionPage from "../pages/Customer/SubscriptionPage/SubscriptionPage";
+import PaymentSuccess from "../pages/Customer/PaymentPage/PaymentSuccess";
+import PaymentCancel from "../pages/Customer/PaymentPage/PaymentCancel";
 
 export const router = createBrowserRouter([
   {
@@ -28,7 +30,9 @@ export const router = createBrowserRouter([
       { path: "contact", element: <Contact /> },
       { path: "subscription-trial", element: <SubscriptionTrialPage /> },
       { path: "subscription", element: <SubscriptionPage /> },
-      { path: "checkout", element: <CheckOut /> },
+      { path: "payment", element: <CheckOut /> },
+      { path: "payment/success", element: <PaymentSuccess /> },
+      { path: "payment/cancel", element: <PaymentCancel /> },
 
       // ✅ Public: chỉ xem subject
       { path: "courses", element: <Courses /> },

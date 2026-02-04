@@ -1,3 +1,5 @@
+import PaymentButton from "./PaymentButton";
+
 export default function CheckOut() {
     return (
         <div className="min-h-screen md:max-h-screen bg-white">
@@ -76,8 +78,9 @@ export default function CheckOut() {
 
                                 <button className="w-full px-2 md:px-5 py-2 md:py-5 border-2 border-black bg-white rounded-[54px] shadow-lg hover:shadow-xl transition-shadow">
                                     <span className="font-brilliant text-lg md:text-xl text-gray-custom font-medium">
-                                        <i className="fa-solid fa-qrcode"></i> Thanh toán bằng mã QR
+                                        <i className="fa-solid fa-qrcode"></i> Thanh toán bằng payOS
                                     </span>
+                                    <span><PaymentButton/></span>
                                 </button>
                             </div>
 
