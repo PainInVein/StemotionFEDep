@@ -1,979 +1,868 @@
-import React from "react";
-import gsap from "gsap";
+import React, { useRef, useState, useEffect, useCallback } from 'react';
+import gsap from 'gsap';
 
-/**
- * Math Racing - Pixel Map (React + GSAP)
- * - UI kiểu pixel top-down như hình
- * - A/D (hoặc ←/→) để đổi lane trái/phải
- * - Va chạm CPU => trừ máu + knockback + iFrame
- * - Trả lời toán => ảnh hưởng trực tiếp tốc độ (boost / brake)
- * - CPU auto-answer (70–85% accuracy + delay)
- * - HẾT CÂU HỎI => tất cả "dash" tới đích (winner theo progress thực tại thời điểm dash)
- */
+// Math Racing Game - JSX Version
+// Professional arcade racing game with math questions
 
-function cn(...xs) {
-  return xs.filter(Boolean).join(" ");
-}
-function clamp(v, min, max) {
-  return Math.max(min, Math.min(max, v));
-}
-function lerp(a, b, t) {
-  return a + (b - a) * t;
-}
-function Card({ className, children }) {
-  return (
-    <div
-      className={cn(
-        "rounded-2xl border border-slate-200/70 bg-white shadow-[0_1px_0_rgba(15,23,42,0.04)]",
-        className
-      )}
-    >
-      {children}
-    </div>
-  );
-}
-function Chip({ children, className }) {
-  return (
-    <span
-      className={cn(
-        "inline-flex items-center rounded-full border border-slate-200 bg-white/75 px-3 py-1 text-xs font-semibold text-slate-700 shadow-sm",
-        className
-      )}
-    >
-      {children}
-    </span>
-  );
-}
+const MathRacingGame = ({ game, config, onExit, onFinish }) => {
+  const canvasRef = useRef(null);
+  const animFrameRef = useRef(0);
+  const startTimeRef = useRef(Date.now());
+  const questionTimerRef = useRef(0);
+  const aiTimersRef = useRef([]);
 
-function opSymbol(op) {
-  return op === "subtract" ? "−" : "+";
-}
+  const raceLength = (config.raceLength || 1000) * 50; // Scale up small values
+  const questionTimeLimit = 10; // seconds
 
-/** Pixel car sprite (DOM) */
-function PixelCar({ color = "red", label, carRef, isPlayer }) {
-  const body =
-    color === "blue"
-      ? "bg-blue-500"
-      : color === "gray"
-      ? "bg-slate-400"
-      : color === "yellow"
-      ? "bg-amber-400"
-      : color === "green"
-      ? "bg-emerald-500"
-      : "bg-rose-500";
+  // Game State
+  const [gameState, setGameState] = useState({
+    cars: [],
+    currentQuestionIndex: 0,
+    isRacing: false,
+    isGameOver: false,
+    winner: null,
+    playerScore: 0,
+    timeLeft: questionTimeLimit,
+  });
 
-  // pixel-ish: hard edges, border, small window
-  return (
-    <div
-      ref={carRef}
-      className={cn(
-        "absolute left-0 top-0 will-change-transform select-none",
-        "z-[5]"
-      )}
-      style={{ imageRendering: "pixelated" }}
-    >
-      <div className="relative">
-        {/* label */}
-        <div
-          className={cn(
-            "absolute -top-5 left-1/2 -translate-x-1/2 rounded-md px-2 py-0.5 text-[10px] font-extrabold",
-            isPlayer ? "bg-white text-slate-900" : "bg-white/90 text-slate-800"
-          )}
-          style={{ border: "2px solid rgba(15,23,42,0.15)" }}
-        >
-          {label}
-        </div>
+  const [showQuestion, setShowQuestion] = useState(false);
+  const [canAnswer, setCanAnswer] = useState(true);
+  const carsRef = useRef([]);
 
-        {/* car */}
-        <div
-          className={cn(
-            "relative h-[52px] w-[28px] rounded-[6px]",
-            body
-          )}
-          style={{
-            border: "3px solid rgba(15,23,42,0.35)",
-            boxShadow: "0 6px 0 rgba(15,23,42,0.10)",
-          }}
-        >
-          {/* windshield */}
-          <div
-            className="absolute left-1/2 top-[8px] h-[14px] w-[16px] -translate-x-1/2 rounded-[4px] bg-sky-100/90"
-            style={{ border: "2px solid rgba(15,23,42,0.18)" }}
-          />
-          {/* hood stripe */}
-          <div className="absolute left-1/2 top-[28px] h-[10px] w-[6px] -translate-x-1/2 rounded bg-white/60" />
-          {/* wheels */}
-          <div
-            className="absolute -left-[6px] top-[10px] h-[10px] w-[6px] rounded bg-slate-900"
-            style={{ border: "2px solid rgba(255,255,255,0.15)" }}
-          />
-          <div
-            className="absolute -right-[6px] top-[10px] h-[10px] w-[6px] rounded bg-slate-900"
-            style={{ border: "2px solid rgba(255,255,255,0.15)" }}
-          />
-          <div
-            className="absolute -left-[6px] top-[34px] h-[10px] w-[6px] rounded bg-slate-900"
-            style={{ border: "2px solid rgba(255,255,255,0.15)" }}
-          />
-          <div
-            className="absolute -right-[6px] top-[34px] h-[10px] w-[6px] rounded bg-slate-900"
-            style={{ border: "2px solid rgba(255,255,255,0.15)" }}
-          />
-        </div>
-      </div>
-    </div>
-  );
-}
+  // Initialize cars
+  useEffect(() => {
+    const playerCar = {
+      id: 'player',
+      name: 'Bạn',
+      position: 0,
+      speed: 2,
+      lane: 2,
+      color: '#3b82f6',
+      isPlayer: true,
+      baseSpeed: 2,
+      boosting: false,
+    };
 
-export default function MathRacingPixelGame({
-  game,
-  config,
-  onExit,
-  onFinish,
-  submitting,
-  submitMsg,
-}) {
-  // ===== CONFIG =====
-  const raceLength = Number(config?.raceLength ?? 100); // units
-  const opponentsCount = clamp(Number(config?.opponents ?? 3), 1, 6);
-  const questions = Array.isArray(config?.questions) ? config.questions : [];
-  const totalQuestions = questions.length;
-  const timePerQuestion = clamp(Number(config?.timePerQuestion ?? 12), 6, 60);
+    // Generate opponents based on config
+    let opponentCars = [];
 
-  const lanesCount = 4; // kiểu pixel racer thường 3-4 lane
-  const maxHp = clamp(Number(config?.lives ?? 3), 1, 9);
+    if (Array.isArray(config.opponents)) {
+      // Backend sent array of opponent objects
+      opponentCars = config.opponents.map((opp, idx) => ({
+        id: `ai-${idx}`,
+        name: opp.name,
+        position: 0,
+        speed: 2,
+        lane: idx === 0 ? 1 : idx === 1 ? 3 : 2,
+        color: opp.color || '#ef4444',
+        isPlayer: false,
+        baseSpeed: 2,
+        boosting: false,
+        difficulty: opp.difficulty,
+      }));
+    } else if (typeof config.opponents === 'number' && config.opponents > 0) {
+      // Backend sent number - auto-generate opponents
+      const opponentNames = ['Xe Đỏ', 'Xe Xanh', 'Xe Vàng', 'Xe Cam', 'Xe Tím'];
+      const opponentColors = ['#ef4444', '#3b82f6', '#eab308', '#f97316', '#a855f7'];
+      const difficulties = ['easy', 'medium', 'hard'];
 
-  // end-of-questions dash
-  const dashDuration = 1.15; // seconds
-
-  // ===== UI STATE =====
-  const [idx, setIdx] = React.useState(0);
-  const [picked, setPicked] = React.useState(null);
-  const [correct, setCorrect] = React.useState(0);
-  const [done, setDone] = React.useState(false);
-  const [winner, setWinner] = React.useState(""); // "player" | "cpu"
-  const [timeLeft, setTimeLeft] = React.useState(timePerQuestion);
-  const [hp, setHp] = React.useState(maxHp);
-
-  // ===== REFS =====
-  const arenaRef = React.useRef(null);
-  const roadRef = React.useRef(null);
-  const roadScrollRef = React.useRef(null);
-  const grassScrollRef = React.useRef(null);
-
-  const playerElRef = React.useRef(null);
-  const cpuElRefs = React.useRef([]);
-
-  const tickRef = React.useRef(null);
-  const startAtRef = React.useRef(Date.now());
-  const finishOnceRef = React.useRef(false);
-
-  const questionLockRef = React.useRef(false);
-  const aiTimersRef = React.useRef({}); // qIndex -> {cpuId: tid}
-
-  // lane control
-  const heldRef = React.useRef({ left: false, right: false });
-  const playerLaneRef = React.useRef(1);
-  const laneCentersRef = React.useRef([]); // px centers
-  const xToRef = React.useRef(null);
-
-  // iFrame collision
-  const invulnRef = React.useRef(false);
-  const invulnUntilRef = React.useRef(0);
-
-  // game state (no rerender each frame)
-  const carsRef = React.useRef([]); // [{id, kind, lane, progress, speed, targetSpeed, accel, drag, skill, accuracy, lastBoostAt}]
-
-  const currentQ = questions[idx] || null;
-  const promptText = React.useMemo(() => {
-    if (!currentQ) return "";
-    return `${currentQ.num1} ${opSymbol(currentQ.operation)} ${currentQ.num2} = ?`;
-  }, [currentQ]);
-
-  // ===== helpers =====
-  const buildCars = React.useCallback(() => {
-    const makeCar = (id, kind, lane) => ({
-      id,
-      kind, // "player" | "cpu"
-      lane,
-      progress: 0,
-      speed: kind === "player" ? 14 : 13 + Math.random() * 2,
-      targetSpeed: kind === "player" ? 14 : 13 + Math.random() * 2,
-      accel: kind === "player" ? 26 : 20,
-      drag: 0.988,
-      skill: kind === "player" ? 1 : 0.92 + Math.random() * 0.18,
-      accuracy: kind === "player" ? 1 : 0.7 + Math.random() * 0.15,
-      lastBoostAt: 0,
-      dashTween: null,
-    });
-
-    const arr = [];
-    arr.push(makeCar("player", "player", 1));
-    for (let i = 0; i < opponentsCount; i++) {
-      // random lane start, avoid player lane if possible
-      let lane = Math.floor(Math.random() * lanesCount);
-      if (lane === 1) lane = (lane + 1) % lanesCount;
-      arr.push(makeCar(`cpu_${i}`, "cpu", lane));
-    }
-    carsRef.current = arr;
-  }, [lanesCount, opponentsCount]);
-
-  const layoutLanes = React.useCallback(() => {
-    const arena = arenaRef.current;
-    if (!arena) return;
-    const r = arena.getBoundingClientRect();
-
-    // road width area
-    const roadPad = 22;
-    const roadW = r.width - roadPad * 2;
-    const laneW = roadW / lanesCount;
-
-    const centers = [];
-    for (let i = 0; i < lanesCount; i++) {
-      centers.push(roadPad + laneW * i + laneW / 2);
-    }
-    laneCentersRef.current = centers;
-
-    // init quickTo for player x once
-    if (playerElRef.current && !xToRef.current) {
-      xToRef.current = gsap.quickTo(playerElRef.current, "x", {
-        duration: 0.12,
-        ease: "power3.out",
-      });
-    }
-  }, [lanesCount]);
-
-  const setPlayerLane = React.useCallback(
-    (lane) => {
-      const L = clamp(lane, 0, lanesCount - 1);
-      playerLaneRef.current = L;
-
-      const xCenter = laneCentersRef.current[L] ?? 100;
-      // car width ~ 28 => center align
-      const x = xCenter - 14;
-
-      if (xToRef.current) xToRef.current(x);
-
-      const player = carsRef.current.find((c) => c.kind === "player");
-      if (player) player.lane = L;
-    },
-    [lanesCount]
-  );
-
-  const carYFromProgress = React.useCallback((car) => {
-    // pixel racer: player stays near bottom, others move relative
-    const player = carsRef.current.find((c) => c.kind === "player");
-    const cam = player ? player.progress : 0;
-    const dy = car.progress - cam; // ahead => positive
-    // units->px: tune for pixel feel
-    const ppu = 7.2;
-
-    // player anchor Y
-    const arena = arenaRef.current;
-    const h = arena ? arena.getBoundingClientRect().height : 460;
-    const playerY = h - 88;
-
-    return playerY - dy * ppu;
-  }, []);
-
-  const setCarDomXY = React.useCallback((car, x, y) => {
-    const el =
-      car.kind === "player"
-        ? playerElRef.current
-        : cpuElRefs.current[Number(car.id.split("_")[1])] || null;
-    if (!el) return;
-    gsap.set(el, { x, y });
-  }, []);
-
-  const applyAnswerEffect = React.useCallback((car, isCorrect) => {
-    const now = Date.now();
-    car.lastBoostAt = now;
-
-    const baseCruise = car.kind === "player" ? 14 : 13.2 * car.skill;
-    const boost = car.kind === "player" ? 22 : 20.5 * car.skill;
-    const brake = car.kind === "player" ? 7 : 8 * car.skill;
-
-    if (isCorrect) {
-      car.targetSpeed = boost;
-      gsap.delayedCall(0.55, () => {
-        if (Date.now() - car.lastBoostAt < 520) return;
-        car.targetSpeed = baseCruise;
-      });
-    } else {
-      car.targetSpeed = brake;
-      gsap.delayedCall(0.45, () => {
-        if (Date.now() - car.lastBoostAt < 420) return;
-        car.targetSpeed = baseCruise;
-      });
-    }
-
-    const el =
-      car.kind === "player"
-        ? playerElRef.current
-        : cpuElRefs.current[Number(car.id.split("_")[1])] || null;
-
-    if (el) {
-      gsap.fromTo(
-        el,
-        { y: "+=0" },
-        { y: isCorrect ? "-=6" : "+=4", duration: 0.12, yoyo: true, repeat: 1, ease: "power2.out" }
-      );
-      if (!isCorrect) {
-        gsap.fromTo(el, { rotation: 0 }, { rotation: (Math.random() < 0.5 ? -1 : 1) * 6, duration: 0.09, yoyo: true, repeat: 2 });
+      for (let i = 0; i < Math.min(config.opponents, 5); i++) {
+        opponentCars.push({
+          id: `ai-${i}`,
+          name: opponentNames[i],
+          position: 0,
+          speed: 2,
+          lane: i === 0 ? 1 : i === 1 ? 3 : i === 2 ? 0 : 2,
+          color: opponentColors[i],
+          isPlayer: false,
+          baseSpeed: 2,
+          boosting: false,
+          difficulty: difficulties[i % 3],
+        });
       }
     }
+
+    const allCars = [playerCar, ...opponentCars];
+    carsRef.current = allCars;
+    setGameState(prev => ({ ...prev, cars: allCars, isRacing: true }));
+    setShowQuestion(true);
+    questionTimerRef.current = questionTimeLimit;
+  }, [config.opponents, questionTimeLimit]);
+
+  // Create particle effect
+  const createParticles = useCallback((x, y, color) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const container = canvas.parentElement;
+    if (!container) return;
+
+    for (let i = 0; i < 10; i++) {
+      const particle = document.createElement('div');
+      particle.style.position = 'absolute';
+      particle.style.left = `${x}px`;
+      particle.style.top = `${y}px`;
+      particle.style.width = '8px';
+      particle.style.height = '8px';
+      particle.style.borderRadius = '50%';
+      particle.style.backgroundColor = color;
+      particle.style.pointerEvents = 'none';
+      particle.style.zIndex = '10';
+      container.appendChild(particle);
+
+      const angle = (Math.PI * 2 * i) / 10;
+      const distance = 40 + Math.random() * 30;
+      gsap.to(particle, {
+        x: Math.cos(angle) * distance,
+        y: Math.sin(angle) * distance,
+        opacity: 0,
+        scale: 0,
+        duration: 0.8,
+        ease: 'power2.out',
+        onComplete: () => particle.remove(),
+      });
+    }
   }, []);
 
-  const checkCollision = React.useCallback(() => {
-    const now = Date.now();
-    if (invulnRef.current && now < invulnUntilRef.current) return;
+  // Handle answer selection
+  const handleAnswer = useCallback((answer) => {
+    if (!canAnswer || gameState.isGameOver) return;
 
-    const player = carsRef.current.find((c) => c.kind === "player");
-    if (!player) return;
+    const questions = Array.isArray(config.questions) ? config.questions : [];
+    const currentQuestion = questions[gameState.currentQuestionIndex];
+    if (!currentQuestion) return;
+    const isCorrect = answer === currentQuestion.correctAnswer;
 
-    // collision if same lane and y overlap range
-    const playerY = carYFromProgress(player);
+    setCanAnswer(false);
 
-    for (const cpu of carsRef.current.filter((c) => c.kind === "cpu")) {
-      if (cpu.lane !== player.lane) continue;
+    const playerCar = carsRef.current.find(c => c.isPlayer);
+    if (playerCar) {
+      if (isCorrect) {
+        // Speed boost
+        playerCar.boosting = true;
+        playerCar.speed = playerCar.baseSpeed * 2.8;
 
-      const cpuY = carYFromProgress(cpu);
-      const dy = Math.abs(cpuY - playerY);
+        setGameState(prev => ({ ...prev, playerScore: prev.playerScore + 1 }));
 
-      // car height ~52 => threshold
-      if (dy < 38) {
-        // HIT!
-        invulnRef.current = true;
-        invulnUntilRef.current = now + 900;
-
-        // reduce hp
-        setHp((h) => Math.max(0, h - 1));
-
-        // knockback & slow
-        player.targetSpeed = Math.max(6, player.targetSpeed - 6);
-        player.speed = Math.max(5, player.speed - 4);
-
-        // visual blink
-        if (playerElRef.current) {
-          gsap.fromTo(
-            playerElRef.current,
-            { opacity: 1 },
-            { opacity: 0.25, duration: 0.08, yoyo: true, repeat: 7, ease: "none" }
-          );
+        // Particle effect
+        const canvas = canvasRef.current;
+        if (canvas) {
+          const rect = canvas.getBoundingClientRect();
+          createParticles(200, rect.height * 0.5, '#10b981');
         }
 
-        // small bounce lane shift (stay same lane but shake)
-        if (roadRef.current) {
-          gsap.fromTo(
-            roadRef.current,
+        // Reset boost after 2.5 seconds
+        setTimeout(() => {
+          playerCar.boosting = false;
+          playerCar.speed = playerCar.baseSpeed;
+        }, 2500);
+      } else {
+        // Slow down
+        playerCar.speed = playerCar.baseSpeed * 0.4;
+
+        // Screen shake
+        const container = canvasRef.current?.parentElement;
+        if (container) {
+          gsap.fromTo(container,
             { x: 0 },
-            { x: 10, duration: 0.05, yoyo: true, repeat: 5, ease: "power1.inOut", onComplete: () => gsap.set(roadRef.current, { x: 0 }) }
+            {
+              x: 15,
+              yoyo: true,
+              repeat: 8,
+              duration: 0.045,
+              ease: 'power1.inOut',
+              onComplete: () => { gsap.set(container, { x: 0 }); }
+            }
           );
         }
-        break;
+
+        // Reset speed
+        setTimeout(() => {
+          playerCar.speed = playerCar.baseSpeed;
+        }, 1800);
       }
     }
-  }, [carYFromProgress]);
 
-  const finishGame = React.useCallback(
-    (win) => {
-      if (finishOnceRef.current) return;
-      finishOnceRef.current = true;
+    // Next question
+    setTimeout(() => {
+      setShowQuestion(false);
+      setTimeout(() => {
+        const nextIndex = gameState.currentQuestionIndex + 1;
+        const questions = Array.isArray(config.questions) ? config.questions : [];
+        if (nextIndex < questions.length) {
+          setGameState(prev => ({
+            ...prev,
+            currentQuestionIndex: nextIndex,
+            timeLeft: questionTimeLimit,
+          }));
+          questionTimerRef.current = questionTimeLimit;
+          setShowQuestion(true);
+          setCanAnswer(true);
+        }
+      }, 800);
+    }, 1200);
+  }, [canAnswer, gameState, config.questions, questionTimeLimit, createParticles]);
 
-      setDone(true);
-      setWinner(win);
+  // AI logic
+  useEffect(() => {
+    if (!showQuestion || !gameState.isRacing) return;
 
-      const playDurations = Math.floor((Date.now() - startAtRef.current) / 1000);
-      onFinish?.({
-        correctAnswers: correct,
-        totalQuestions,
-        playDurations,
-      });
-    },
-    [correct, onFinish, totalQuestions]
-  );
+    aiTimersRef.current.forEach(timer => clearTimeout(timer));
+    aiTimersRef.current = [];
 
-  const dashToFinish = React.useCallback(() => {
-    if (finishOnceRef.current) return;
+    carsRef.current.forEach(car => {
+      if (car.isPlayer) return;
 
-    // winner by real progress BEFORE dash
-    const leader = carsRef.current.slice().sort((a, b) => b.progress - a.progress)[0];
-    const win = leader?.kind === "player" ? "player" : "cpu";
+      const baseDelay = car.difficulty === 'easy' ? 3500 :
+        car.difficulty === 'medium' ? 2200 : 1200;
+      const delay = baseDelay + Math.random() * 2000;
 
-    setDone(true);
-    setWinner(win);
-    finishOnceRef.current = true;
+      const accuracy = car.difficulty === 'easy' ? 0.55 :
+        car.difficulty === 'medium' ? 0.75 : 0.88;
 
-    carsRef.current.forEach((car) => {
-      try {
-        car.dashTween?.kill?.();
-      } catch {}
-      const obj = { p: car.progress };
-      car.dashTween = gsap.to(obj, {
-        p: raceLength,
-        duration: dashDuration,
-        ease: "power3.inOut",
-        onUpdate: () => {
-          car.progress = obj.p;
-        },
-      });
-    });
+      const timer = setTimeout(() => {
+        const isCorrect = Math.random() < accuracy;
 
-    gsap.delayedCall(dashDuration + 0.05, () => {
-      const playDurations = Math.floor((Date.now() - startAtRef.current) / 1000);
-      onFinish?.({
-        correctAnswers: correct,
-        totalQuestions,
-        playDurations,
-      });
-    });
-  }, [dashDuration, onFinish, raceLength, totalQuestions]);
-
-  // ===== INIT / RESET =====
-  React.useEffect(() => {
-    // reset
-    finishOnceRef.current = false;
-    questionLockRef.current = false;
-    startAtRef.current = Date.now();
-
-    setIdx(0);
-    setPicked(null);
-    setCorrect(0);
-    setDone(false);
-    setWinner("");
-    setTimeLeft(timePerQuestion);
-    setHp(maxHp);
-
-    invulnRef.current = false;
-    invulnUntilRef.current = 0;
-
-    heldRef.current = { left: false, right: false };
-    playerLaneRef.current = 1;
-
-    // clear AI timers
-    Object.values(aiTimersRef.current).forEach((m) => {
-      if (!m) return;
-      Object.values(m).forEach((tid) => tid && clearTimeout(tid));
-    });
-    aiTimersRef.current = {};
-
-    buildCars();
-
-    requestAnimationFrame(() => {
-      layoutLanes();
-      setPlayerLane(1);
-
-      // place initial cars
-      carsRef.current.forEach((car) => {
-        const xCenter = laneCentersRef.current[car.lane] ?? 100;
-        const x = xCenter - 14;
-
-        // screen Y: put cpu slightly ahead randomly
-        if (car.kind === "cpu") car.progress = 6 + Math.random() * 10;
-
-        const y = carYFromProgress(car);
-        setCarDomXY(car, x, y);
-      });
-
-      // init scroll backgrounds
-      if (roadScrollRef.current) gsap.set(roadScrollRef.current, { y: 0 });
-      if (grassScrollRef.current) gsap.set(grassScrollRef.current, { y: 0 });
-    });
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [game?.gameId]);
-
-  // ===== RESIZE =====
-  React.useEffect(() => {
-    const arena = arenaRef.current;
-    if (!arena) return;
-    layoutLanes();
-    const ro = new ResizeObserver(() => {
-      layoutLanes();
-      setPlayerLane(playerLaneRef.current);
-    });
-    ro.observe(arena);
-    return () => ro.disconnect();
-  }, [layoutLanes, setPlayerLane]);
-
-  // ===== KEYBOARD (A/D, arrows) =====
-  React.useEffect(() => {
-    const onDown = (e) => {
-      if (done) return;
-      const k = e.key.toLowerCase();
-      if (k === "a" || e.key === "ArrowLeft") {
-        heldRef.current.left = true;
-      }
-      if (k === "d" || e.key === "ArrowRight") {
-        heldRef.current.right = true;
-      }
-    };
-    const onUp = (e) => {
-      const k = e.key.toLowerCase();
-      if (k === "a" || e.key === "ArrowLeft") heldRef.current.left = false;
-      if (k === "d" || e.key === "ArrowRight") heldRef.current.right = false;
-    };
-    window.addEventListener("keydown", onDown);
-    window.addEventListener("keyup", onUp);
-    return () => {
-      window.removeEventListener("keydown", onDown);
-      window.removeEventListener("keyup", onUp);
-    };
-  }, [done]);
-
-  // ===== QUESTION TIMER =====
-  React.useEffect(() => {
-    if (done) return;
-    if (!currentQ) return;
-
-    setTimeLeft(timePerQuestion);
-    questionLockRef.current = false;
-
-    const started = Date.now();
-    const t = setInterval(() => {
-      const passed = Math.floor((Date.now() - started) / 1000);
-      const left = timePerQuestion - passed;
-      setTimeLeft(left);
-
-      if (left <= 0) {
-        clearInterval(t);
-        if (!questionLockRef.current) handlePlayerAnswer(null, { isTimeout: true });
-      }
-    }, 200);
-
-    return () => clearInterval(t);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [idx, done]);
-
-  // ===== AI answers per question =====
-  React.useEffect(() => {
-    if (done) return;
-    if (!currentQ) return;
-
-    const qIndex = idx;
-    aiTimersRef.current[qIndex] = aiTimersRef.current[qIndex] || {};
-    const correctAns = Number(currentQ.correctAnswer);
-    const answers = Array.isArray(currentQ.answers) ? currentQ.answers : [];
-
-    carsRef.current.forEach((car) => {
-      if (car.kind !== "cpu") return;
-
-      const delay = clamp(520 + Math.random() * 1100 + (1.15 - car.skill) * 220, 380, 2100);
-      const acc = clamp(car.accuracy + (Math.random() * 0.06 - 0.03), 0.7, 0.85);
-      const willCorrect = Math.random() < acc;
-
-      const tid = setTimeout(() => {
-        if (done) return;
-        if (idx !== qIndex) return;
-
-        const chosen = willCorrect
-          ? correctAns
-          : (() => {
-              const wrongs = answers.filter((a) => Number(a) !== correctAns);
-              return wrongs.length
-                ? Number(wrongs[Math.floor(Math.random() * wrongs.length)])
-                : correctAns + 1;
-            })();
-
-        applyAnswerEffect(car, Number(chosen) === correctAns);
-
-        // AI thỉnh thoảng đổi lane để tạo va chạm
-        if (Math.random() < 0.28) {
-          const dir = Math.random() < 0.5 ? -1 : 1;
-          car.lane = clamp(car.lane + dir, 0, lanesCount - 1);
+        if (isCorrect) {
+          car.boosting = true;
+          car.speed = car.baseSpeed * 2.2;
+          setTimeout(() => {
+            car.boosting = false;
+            car.speed = car.baseSpeed;
+          }, 2000);
+        } else {
+          car.speed = car.baseSpeed * 0.55;
+          setTimeout(() => {
+            car.speed = car.baseSpeed;
+          }, 1500);
         }
       }, delay);
 
-      aiTimersRef.current[qIndex][car.id] = tid;
+      aiTimersRef.current.push(timer);
     });
 
     return () => {
-      const m = aiTimersRef.current[qIndex];
-      if (!m) return;
-      Object.values(m).forEach((tid) => tid && clearTimeout(tid));
+      aiTimersRef.current.forEach(timer => clearTimeout(timer));
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [idx, done]);
+  }, [showQuestion, gameState.currentQuestionIndex, gameState.isRacing]);
 
-  // ===== PLAYER answer =====
-  const handlePlayerAnswer = React.useCallback(
-    (ans, { isTimeout = false } = {}) => {
-      if (done) return;
-      if (!currentQ) return;
-      if (questionLockRef.current) return;
+  // Question timer
+  useEffect(() => {
+    if (!showQuestion || gameState.isGameOver) return;
 
-      questionLockRef.current = true;
-      setPicked(ans);
+    const interval = setInterval(() => {
+      questionTimerRef.current -= 0.1;
+      setGameState(prev => ({
+        ...prev,
+        timeLeft: Math.max(0, questionTimerRef.current)
+      }));
 
-      const correctAns = Number(currentQ.correctAnswer);
-      const ok = !isTimeout && ans != null && Number(ans) === correctAns;
-
-      const player = carsRef.current.find((c) => c.kind === "player");
-      if (player) applyAnswerEffect(player, ok);
-
-      if (ok) setCorrect((c) => c + 1);
-
-      gsap.delayedCall(0.7, () => {
-        if (done) return;
-        const next = idx + 1;
-        if (next >= totalQuestions) {
-          // hết câu => dash cán đích
-          dashToFinish();
-        } else {
-          setIdx(next);
-          setPicked(null);
-        }
-      });
-    },
-    [applyAnswerEffect, currentQ, dashToFinish, done, idx, totalQuestions]
-  );
-
-  // ===== MAIN LOOP =====
-  React.useEffect(() => {
-    if (done) return;
-
-    const tick = () => {
-      const dt = gsap.ticker.deltaRatio() / 60;
-
-      // lane input (đổi lane kiểu step)
-      // (giữ phím -> mỗi 120ms đổi 1 lane cho cảm giác arcade)
-      const hold = heldRef.current;
-      if (!tick._lastLaneMoveAt) tick._lastLaneMoveAt = 0;
-      tick._lastLaneMoveAt += dt;
-
-      if (tick._lastLaneMoveAt > 0.12) {
-        if (hold.left) setPlayerLane(playerLaneRef.current - 1);
-        if (hold.right) setPlayerLane(playerLaneRef.current + 1);
-        if (hold.left || hold.right) tick._lastLaneMoveAt = 0;
+      if (questionTimerRef.current <= 0) {
+        handleAnswer(-1);
       }
+    }, 100);
 
-      // physics + progress
-      carsRef.current.forEach((car) => {
-        car.speed = lerp(car.speed, car.targetSpeed, clamp(car.accel * dt * 0.12, 0, 1));
-        car.speed *= car.drag;
-        car.progress = clamp(car.progress + car.speed * dt, 0, raceLength);
+    return () => clearInterval(interval);
+  }, [showQuestion, gameState.isGameOver, handleAnswer]);
 
-        // nếu ai chạm finish trước khi hết câu => thắng luôn
-        if (!finishOnceRef.current && car.progress >= raceLength) {
-          finishGame(car.kind === "player" ? "player" : "cpu");
+  // Game loop
+  useEffect(() => {
+    if (!gameState.isRacing || gameState.isGameOver) return;
+
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const gameLoop = () => {
+      // Update positions
+      carsRef.current.forEach(car => {
+        car.position += car.speed;
+
+        // Check finish
+        if (car.position >= raceLength && !gameState.isGameOver) {
+          setGameState(prev => ({
+            ...prev,
+            isGameOver: true,
+            isRacing: false,
+            winner: car.name,
+          }));
+
+          const duration = Math.floor((Date.now() - startTimeRef.current) / 1000);
+          onFinish?.({
+            correctAnswers: gameState.playerScore,
+            totalQuestions: Array.isArray(config.questions) ? config.questions.length : 0,
+            playDurations: duration,
+          });
         }
       });
 
-      // scroll road/grass (pixel)
-      const player = carsRef.current.find((c) => c.kind === "player");
-      const pxPerSec = (player ? player.speed : 0) * 20; // tune speed feel
-      const roadV = 120 + pxPerSec * 0.9;
-      const grassV = 90 + pxPerSec * 0.65;
+      // Draw
+      drawRace(ctx, canvas.width, canvas.height);
 
-      if (!tick._roadY) tick._roadY = 0;
-      if (!tick._grassY) tick._grassY = 0;
-      tick._roadY += roadV * dt;
-      tick._grassY += grassV * dt;
-
-      // modulo repeat
-      const mod = (v, m) => ((v % m) + m) % m;
-      const roadY = mod(tick._roadY, 120);
-      const grassY = mod(tick._grassY, 96);
-
-      if (roadScrollRef.current) gsap.set(roadScrollRef.current, { y: roadY });
-      if (grassScrollRef.current) gsap.set(grassScrollRef.current, { y: grassY });
-
-      // update DOM positions
-      carsRef.current.forEach((car) => {
-        const xCenter = laneCentersRef.current[car.lane] ?? 100;
-        const x = xCenter - 14;
-        const y = carYFromProgress(car);
-
-        // clamp y visible a bit
-        const arena = arenaRef.current;
-        const h = arena ? arena.getBoundingClientRect().height : 460;
-        const yy = clamp(y, 24, h - 78);
-
-        setCarDomXY(car, x, yy);
-      });
-
-      // collision check
-      checkCollision();
-
-      // hp 0 => CPU wins immediately
-      if (!finishOnceRef.current && hp <= 0) {
-        finishGame("cpu");
-      }
-
-      // if invuln expired
-      if (invulnRef.current && Date.now() >= invulnUntilRef.current) {
-        invulnRef.current = false;
+      if (gameState.isRacing) {
+        animFrameRef.current = requestAnimationFrame(gameLoop);
       }
     };
 
-    tickRef.current = tick;
-    gsap.ticker.add(tick);
+    animFrameRef.current = requestAnimationFrame(gameLoop);
 
     return () => {
-      if (tickRef.current) {
-        gsap.ticker.remove(tickRef.current);
-        tickRef.current = null;
+      if (animFrameRef.current) {
+        cancelAnimationFrame(animFrameRef.current);
       }
     };
-  }, [carYFromProgress, checkCollision, done, finishGame, hp, lanesCount, raceLength, setPlayerLane, setCarDomXY]);
+  }, [gameState.isRacing, gameState.isGameOver, gameState.playerScore, raceLength, onFinish]);
 
-  // ===== derived HUD =====
-  const player = carsRef.current.find((c) => c.kind === "player");
-  const bestCpu = Math.max(0, ...carsRef.current.filter((c) => c.kind === "cpu").map((c) => c.progress));
-  const bestAll = Math.max(0, ...carsRef.current.map((c) => c.progress));
+  // Draw race
+  const drawRace = (ctx, width, height) => {
+    // Clear
+    ctx.clearRect(0, 0, width, height);
+
+    // Sky gradient
+    const skyGrad = ctx.createLinearGradient(0, 0, 0, height * 0.3);
+    skyGrad.addColorStop(0, '#87ceeb');
+    skyGrad.addColorStop(1, '#b0e0e6');
+    ctx.fillStyle = skyGrad;
+    ctx.fillRect(0, 0, width, height * 0.3);
+
+    // Grass
+    ctx.fillStyle = '#7cb342';
+    ctx.fillRect(0, height * 0.3, width, 20);
+    ctx.fillRect(0, height - 20, width, 20);
+
+    // Road
+    const roadGrad = ctx.createLinearGradient(0, height * 0.3 + 20, 0, height - 20);
+    roadGrad.addColorStop(0, '#444');
+    roadGrad.addColorStop(0.5, '#555');
+    roadGrad.addColorStop(1, '#444');
+    ctx.fillStyle = roadGrad;
+    ctx.fillRect(0, height * 0.3 + 20, width, height * 0.7 - 40);
+
+    // Lane lines
+    const laneHeight = (height * 0.7 - 40) / 4;
+    ctx.strokeStyle = '#ffd700';
+    ctx.lineWidth = 3;
+    ctx.setLineDash([25, 20]);
+    for (let i = 1; i < 4; i++) {
+      ctx.beginPath();
+      ctx.moveTo(0, height * 0.3 + 20 + laneHeight * i);
+      ctx.lineTo(width, height * 0.3 + 20 + laneHeight * i);
+      ctx.stroke();
+    }
+    ctx.setLineDash([]);
+
+    // Finish line
+    const maxPos = Math.max(...carsRef.current.map(c => c.position));
+    if (maxPos > raceLength * 0.75) {
+      const finishX = width * 0.88;
+      ctx.fillStyle = '#fff';
+      ctx.fillRect(finishX - 2, height * 0.3, 4, height * 0.7);
+
+      // Checkered pattern
+      const checkSize = (height * 0.7) / 12;
+      for (let i = 0; i < 12; i++) {
+        for (let j = 0; j < 2; j++) {
+          if ((i + j) % 2 === 0) {
+            ctx.fillStyle = '#000';
+          } else {
+            ctx.fillStyle = '#fff';
+          }
+          ctx.fillRect(finishX + 2 + j * 15, height * 0.3 + i * checkSize, 15, checkSize);
+        }
+      }
+    }
+
+    // Draw cars
+    carsRef.current.forEach(car => {
+      const progress = Math.min(car.position / raceLength, 1);
+      const x = 80 + progress * (width - 200);
+      const y = height * 0.3 + 20 + car.lane * laneHeight - laneHeight / 2 - 15;
+
+      // Exhaust smoke when boosting
+      if (car.boosting) {
+        ctx.fillStyle = 'rgba(120,120,120,0.25)';
+        for (let i = 0; i < 4; i++) {
+          ctx.beginPath();
+          ctx.arc(x - 25 - i * 12, y + 15, 6 + i * 2.5, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        // Speed lines
+        ctx.strokeStyle = 'rgba(255,255,255,0.4)';
+        ctx.lineWidth = 3;
+        for (let i = 0; i < 4; i++) {
+          ctx.beginPath();
+          ctx.moveTo(x - 50 - i * 18, y - 8 + i * 8);
+          ctx.lineTo(x - 25 - i * 18, y - 8 + i * 8);
+          ctx.stroke();
+        }
+      }
+
+      // Car shadow (soft oval)
+      ctx.fillStyle = 'rgba(0,0,0,0.2)';
+      ctx.beginPath();
+      ctx.ellipse(x + 35, y + 40, 32, 7, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Car dimensions
+      const carWidth = 70;
+      const carHeight = 32;
+
+      // Main body shape - aerodynamic racing car
+      const bodyGradient = ctx.createLinearGradient(x, y + 5, x, y + carHeight);
+      bodyGradient.addColorStop(0, lightenColor(car.color, 0.4));
+      bodyGradient.addColorStop(0.5, car.color);
+      bodyGradient.addColorStop(1, darkenColor(car.color, 0.2));
+      ctx.fillStyle = bodyGradient;
+
+      // Aerodynamic body path
+      ctx.beginPath();
+      ctx.moveTo(x + 5, y + 10);
+      ctx.quadraticCurveTo(x, y + 16, x + 2, y + 22);
+      ctx.lineTo(x + 2, y + 24);
+      ctx.quadraticCurveTo(x + 3, y + carHeight, x + 12, y + carHeight);
+      ctx.lineTo(x + carWidth - 12, y + carHeight);
+      ctx.quadraticCurveTo(x + carWidth - 3, y + carHeight, x + carWidth - 2, y + 24);
+      ctx.lineTo(x + carWidth - 2, y + 22);
+      ctx.quadraticCurveTo(x + carWidth, y + 16, x + carWidth - 5, y + 10);
+      ctx.quadraticCurveTo(x + carWidth - 10, y, x + carWidth - 15, y);
+      ctx.lineTo(x + 15, y);
+      ctx.quadraticCurveTo(x + 10, y, x + 5, y + 10);
+      ctx.closePath();
+      ctx.fill();
+
+      // Body outline
+      ctx.strokeStyle = darkenColor(car.color, 0.3);
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+
+      // Hood reflection streak
+      const reflectionGrad = ctx.createLinearGradient(x + 15, y + 2, x + 50, y + 12);
+      reflectionGrad.addColorStop(0, 'rgba(255,255,255,0)');
+      reflectionGrad.addColorStop(0.5, 'rgba(255,255,255,0.3)');
+      reflectionGrad.addColorStop(1, 'rgba(255,255,255,0)');
+      ctx.fillStyle = reflectionGrad;
+      ctx.fillRect(x + 15, y + 2, 35, 8);
+
+      // Rear spoiler
+      ctx.fillStyle = darkenColor(car.color, 0.25);
+      ctx.fillRect(x - 4, y + 11, 4, 11);
+      ctx.fillRect(x - 6, y + 11, 2, 1);
+      ctx.fillRect(x - 6, y + 21, 2, 1);
+
+      // Hood vents
+      ctx.fillStyle = 'rgba(0,0,0,0.3)';
+      for (let i = 0; i < 2; i++) {
+        ctx.fillRect(x + 48 + i * 6, y + 4, 3, 1);
+        ctx.fillRect(x + 48 + i * 6, y + 7, 3, 1);
+      }
+
+      // Cabin/cockpit
+      const cabinGrad = ctx.createRadialGradient(x + 28, y + 12, 2, x + 28, y + 16, 15);
+      cabinGrad.addColorStop(0, car.isPlayer ? '#2563eb' : darkenColor(car.color, 0.4));
+      cabinGrad.addColorStop(1, car.isPlayer ? '#1e40af' : darkenColor(car.color, 0.5));
+      ctx.fillStyle = cabinGrad;
+      ctx.beginPath();
+      ctx.moveTo(x + 18, y + 8);
+      ctx.lineTo(x + 42, y + 8);
+      ctx.quadraticCurveTo(x + 46, y + 9, x + 47, y + 12);
+      ctx.lineTo(x + 47, y + 20);
+      ctx.quadraticCurveTo(x + 46, y + 23, x + 42, y + 24);
+      ctx.lineTo(x + 18, y + 24);
+      ctx.quadraticCurveTo(x + 14, y + 23, x + 13, y + 20);
+      ctx.lineTo(x + 13, y + 12);
+      ctx.quadraticCurveTo(x + 14, y + 9, x + 18, y + 8);
+      ctx.closePath();
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(0,0,0,0.4)';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+
+      // Windshield with reflection
+      ctx.fillStyle = 'rgba(150,200,255,0.5)';
+      ctx.fillRect(x + 37, y + 11, 8, 10);
+      ctx.fillStyle = 'rgba(255,255,255,0.3)';
+      ctx.fillRect(x + 37, y + 11, 8, 3);
+
+      // Side windows
+      ctx.fillStyle = 'rgba(150,200,255,0.4)';
+      ctx.fillRect(x + 16, y + 13, 8, 6);
+      ctx.fillRect(x + 26, y + 13, 8, 6);
+
+      // Side mirrors
+      ctx.fillStyle = darkenColor(car.color, 0.2);
+      ctx.fillRect(x + 12, y + 12, 2, 4);
+      ctx.fillRect(x + 46, y + 12, 2, 4);
+      ctx.fillStyle = 'rgba(150,200,255,0.3)';
+      ctx.fillRect(x + 12, y + 13, 2, 2);
+      ctx.fillRect(x + 46, y + 13, 2, 2);
+
+      // Wheels with detailed rims
+      const wheelY = y + carHeight - 3;
+      [x + 16, x + 54].forEach(wx => {
+        // Tire outer
+        ctx.fillStyle = '#1a1a1a';
+        ctx.beginPath();
+        ctx.arc(wx, wheelY, 8, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Tire tread
+        ctx.strokeStyle = '#0a0a0a';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+
+        // Rim - metallic
+        const rimGrad = ctx.createRadialGradient(wx - 1, wheelY - 1, 1, wx, wheelY, 5);
+        rimGrad.addColorStop(0, '#e5e5e5');
+        rimGrad.addColorStop(0.7, '#aaa');
+        rimGrad.addColorStop(1, '#888');
+        ctx.fillStyle = rimGrad;
+        ctx.beginPath();
+        ctx.arc(wx, wheelY, 5, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Rim spokes
+        ctx.strokeStyle = '#666';
+        ctx.lineWidth = 1.2;
+        for (let i = 0; i < 5; i++) {
+          const angle = (Math.PI * 2 / 5) * i;
+          ctx.beginPath();
+          ctx.moveTo(wx, wheelY);
+          ctx.lineTo(wx + Math.cos(angle) * 4.5, wheelY + Math.sin(angle) * 4.5);
+          ctx.stroke();
+        }
+
+        // Center cap
+        ctx.fillStyle = '#c0c0c0';
+        ctx.beginPath();
+        ctx.arc(wx, wheelY, 1.5, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Shine
+        ctx.fillStyle = 'rgba(255,255,255,0.5)';
+        ctx.beginPath();
+        ctx.arc(wx - 2, wheelY - 2, 1.5, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      // Headlights with glow
+      const lightColor = car.boosting ? '#ffeb3b' : '#ffffcc';
+      ctx.fillStyle = lightColor;
+      ctx.beginPath();
+      ctx.arc(x + carWidth - 2, y + 10, 3, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(x + carWidth - 2, y + 22, 3, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Headlight glow/halo
+      if (car.boosting) {
+        ctx.fillStyle = 'rgba(255,235,59,0.4)';
+        ctx.beginPath();
+        ctx.arc(x + carWidth - 2, y + 10, 6, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(x + carWidth - 2, y + 22, 6, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Exhaust flames when boosting
+        ctx.fillStyle = 'rgba(255,120,0,0.7)';
+        ctx.beginPath();
+        ctx.ellipse(x - 5, y + 14, 4, 2, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = 'rgba(255,200,0,0.7)';
+        ctx.beginPath();
+        ctx.ellipse(x - 5, y + 18, 4, 2, 0, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      // Exhaust pipes
+      ctx.fillStyle = '#2a2a2a';
+      ctx.fillRect(x - 2, y + 13, 3, 2);
+      ctx.fillRect(x - 2, y + 17, 3, 2);
+      ctx.strokeStyle = '#444';
+      ctx.lineWidth = 0.5;
+      ctx.strokeRect(x - 2, y + 13, 3, 2);
+      ctx.strokeRect(x - 2, y + 17, 3, 2);
+
+      // Racing stripes for player
+      if (car.isPlayer) {
+        ctx.fillStyle = 'rgba(255,255,255,0.5)';
+        ctx.fillRect(x + 8, y + 15, 50, 1);
+        ctx.fillRect(x + 8, y + 17, 50, 1);
+      }
+
+      // Position badge
+      const position = carsRef.current
+        .sort((a, b) => b.position - a.position)
+        .findIndex(c => c.id === car.id) + 1;
+
+      const badgeColors = ['#fbbf24', '#c0c0c0', '#cd7f32', '#94a3b8'];
+      const badgeColor = badgeColors[position - 1] || '#94a3b8';
+
+      // Badge shadow
+      ctx.fillStyle = 'rgba(0,0,0,0.2)';
+      ctx.beginPath();
+      ctx.arc(x + 31, y + 7, 9, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Badge
+      const badgeGrad = ctx.createRadialGradient(x + 30, y + 5, 2, x + 30, y + 6, 9);
+      badgeGrad.addColorStop(0, lightenColor(badgeColor, 0.3));
+      badgeGrad.addColorStop(1, badgeColor);
+      ctx.fillStyle = badgeGrad;
+      ctx.beginPath();
+      ctx.arc(x + 30, y + 6, 9, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = '#fff';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      // Badge number
+      ctx.fillStyle = '#fff';
+      ctx.font = 'bold 11px Arial';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.shadowColor = 'rgba(0,0,0,0.5)';
+      ctx.shadowBlur = 2;
+      ctx.fillText(`${position}`, x + 30, y + 6);
+      ctx.shadowBlur = 0;
+
+      // Name label with background
+      ctx.fillStyle = 'rgba(0,0,0,0.8)';
+      const nameWidth = ctx.measureText(car.name).width + 10;
+      ctx.fillRect(x, y - 20, nameWidth, 16);
+      ctx.fillStyle = car.isPlayer ? '#60a5fa' : '#fff';
+      ctx.font = 'bold 11px Arial';
+      ctx.textAlign = 'left';
+      ctx.fillText(car.name, x + 5, y - 12);
+    });
+  };
+
+  // Helper to lighten color
+  const lightenColor = (color, amount) => {
+    const hex = color.replace('#', '');
+    const r = Math.min(255, parseInt(hex.substr(0, 2), 16) + (255 - parseInt(hex.substr(0, 2), 16)) * amount);
+    const g = Math.min(255, parseInt(hex.substr(2, 2), 16) + (255 - parseInt(hex.substr(2, 2), 16)) * amount);
+    const b = Math.min(255, parseInt(hex.substr(4, 2), 16) + (255 - parseInt(hex.substr(4, 2), 16)) * amount);
+    return `#${Math.round(r).toString(16).padStart(2, '0')}${Math.round(g).toString(16).padStart(2, '0')}${Math.round(b).toString(16).padStart(2, '0')}`;
+  };
+
+  // Helper to darken color
+  const darkenColor = (color, amount) => {
+    const hex = color.replace('#', '');
+    const r = Math.max(0, parseInt(hex.substr(0, 2), 16) * (1 - amount));
+    const g = Math.max(0, parseInt(hex.substr(2, 2), 16) * (1 - amount));
+    const b = Math.max(0, parseInt(hex.substr(4, 2), 16) * (1 - amount));
+    return `#${Math.round(r).toString(16).padStart(2, '0')}${Math.round(g).toString(16).padStart(2, '0')}${Math.round(b).toString(16).padStart(2, '0')}`;
+  };
+
+  // Resize canvas
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const resize = () => {
+      const parent = canvas.parentElement;
+      if (parent) {
+        canvas.width = parent.clientWidth;
+        canvas.height = parent.clientHeight;
+      }
+    };
+
+    resize();
+    window.addEventListener('resize', resize);
+    return () => window.removeEventListener('resize', resize);
+  }, []);
+
+  const questions = Array.isArray(config.questions) ? config.questions : [];
+  const currentQuestion = questions[gameState.currentQuestionIndex];
+  const playerPosition = carsRef.current
+    .sort((a, b) => b.position - a.position)
+    .findIndex(c => c.isPlayer) + 1;
+
+  const operation = config.operations?.includes?.('add') ? '+' :
+    config.operations?.includes?.('subtract') ? '-' : '+';
 
   return (
-    <Card className="p-6 sm:p-8">
+    <div className="rounded-2xl border border-slate-200 bg-white shadow-lg p-6">
       {/* Header */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
+      <div className="flex items-center justify-between mb-4">
         <div>
           <div className="text-xs font-semibold uppercase tracking-wider text-slate-500">
-            {game?.name || "Math Racing"}
+            🏎️ {game?.name || 'Đua Xe Toán Học'}
           </div>
-          <div className="mt-1 text-lg font-extrabold text-slate-900">
-            Math Racing — Pixel Road (A/D để lái)
-          </div>
-          <div className="mt-1 text-xs text-slate-600">
-            Đúng: boost • Sai/timeout: khựng • Va chạm: trừ máu • Hết câu: dash cán đích.
-          </div>
+          <div className="text-lg font-extrabold text-slate-900">Math Racing Championship</div>
         </div>
-
-        <div className="flex items-center gap-2">
-          <Chip>{idx + 1}/{Math.max(1, totalQuestions)} câu</Chip>
-          <Chip className={cn(timeLeft <= 3 ? "border-rose-200 bg-rose-50 text-rose-700" : "")}>
-            ⏱ {Math.max(0, timeLeft)}s
-          </Chip>
-          <Chip>✅ {correct}</Chip>
-          <Chip className={cn(hp <= 1 ? "border-rose-200 bg-rose-50 text-rose-700" : "")}>
-            ❤️ {hp}/{maxHp}
-          </Chip>
-
+        <div className="flex gap-2">
+          <button
+            onClick={() => {
+              const elem = document.documentElement;
+              if (!document.fullscreenElement) {
+                elem.requestFullscreen().catch(err => console.log(err));
+              } else {
+                document.exitFullscreen();
+              }
+            }}
+            className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-all"
+            title="Fullscreen"
+          >
+            <i className="fa-solid fa-expand" />
+          </button>
           <button
             onClick={onExit}
-            type="button"
-            className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+            className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-all"
           >
-            Quay lại
+            <i className="fa-solid fa-arrow-left mr-2" />
+            Thoát
           </button>
         </div>
       </div>
 
-      {/* Arena */}
-      <div
-        ref={arenaRef}
-        className="relative mt-6 h-[520px] overflow-hidden rounded-3xl border border-slate-200 bg-sky-100"
-      >
-        {/* grass sides (pixel tiles) */}
-        <div className="absolute inset-0">
-          <div
-            ref={grassScrollRef}
-            className="absolute inset-0 will-change-transform"
-            style={{ imageRendering: "pixelated" }}
-          >
-            {/* repeat blocks to look tiled */}
-            <div className="absolute inset-0">
-              <div
-                className="absolute left-0 top-0 bottom-0 w-[22%]"
-                style={{
-                  backgroundImage:
-                    "linear-gradient(#16a34a 0 0), radial-gradient(circle at 20% 30%, rgba(0,0,0,0.18) 0 2px, transparent 3px), radial-gradient(circle at 60% 70%, rgba(255,255,255,0.14) 0 2px, transparent 3px)",
-                  backgroundSize: "100% 100%, 24px 24px, 28px 28px",
-                  backgroundPosition: "0 0, 0 0, 0 0",
-                }}
-              />
-              <div
-                className="absolute right-0 top-0 bottom-0 w-[22%]"
-                style={{
-                  backgroundImage:
-                    "linear-gradient(#16a34a 0 0), radial-gradient(circle at 30% 40%, rgba(0,0,0,0.18) 0 2px, transparent 3px), radial-gradient(circle at 70% 65%, rgba(255,255,255,0.14) 0 2px, transparent 3px)",
-                  backgroundSize: "100% 100%, 24px 24px, 28px 28px",
-                  backgroundPosition: "0 0, 0 0, 0 0",
-                }}
-              />
-            </div>
+      {/* Race Track */}
+      <div className="relative rounded-2xl overflow-hidden border-4 border-slate-300 shadow-xl" style={{ height: '450px' }}>
+        <canvas ref={canvasRef} className="w-full h-full" />
+
+        {/* HUD */}
+        <div className="absolute top-4 left-4 right-4 pointer-events-none flex justify-between z-20">
+          <div className="bg-gradient-to-br from-white to-blue-50 backdrop-blur-sm rounded-2xl px-5 py-3 shadow-xl border-3 border-blue-300">
+            <div className="text-xs font-bold text-slate-600 mb-1">Vị Trí</div>
+            <div className="text-3xl font-black text-blue-600">#{playerPosition}</div>
+          </div>
+          <div className="bg-gradient-to-br from-white to-emerald-50 backdrop-blur-sm rounded-2xl px-5 py-3 shadow-xl border-3 border-emerald-300">
+            <div className="text-xs font-bold text-slate-600 mb-1">Điểm Số</div>
+            <div className="text-3xl font-black text-emerald-600">{gameState.playerScore}</div>
           </div>
         </div>
 
-        {/* Road */}
-        <div
-          ref={roadRef}
-          className="absolute inset-y-0 left-1/2 w-[56%] -translate-x-1/2 overflow-hidden rounded-2xl border"
-          style={{
-            borderColor: "rgba(15,23,42,0.25)",
-            backgroundColor: "#111827",
-            imageRendering: "pixelated",
-          }}
-        >
-          {/* road scroll layer */}
-          <div ref={roadScrollRef} className="absolute inset-0 will-change-transform">
-            {/* lane markings (repeat) */}
-            <div className="absolute inset-0">
-              {/* side borders */}
-              <div className="absolute left-1 top-0 bottom-0 w-[4px] bg-white/35" />
-              <div className="absolute right-1 top-0 bottom-0 w-[4px] bg-white/35" />
-
-              {/* lane dashed lines: create 3 dashed columns for 4 lanes */}
-              {Array.from({ length: lanesCount - 1 }).map((_, col) => (
+        {/* Question Modal */}
+        {showQuestion && !gameState.isGameOver && currentQuestion && (
+          <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-b from-slate-900/60 to-slate-900/80 backdrop-blur-md pointer-events-auto z-30">
+            <div className="bg-white rounded-3xl p-10 shadow-2xl max-w-lg w-full mx-4 border-4 border-blue-400 transform scale-105">
+              {/* Timer */}
+              <div className="mb-6 h-4 bg-slate-200 rounded-full overflow-hidden shadow-inner">
                 <div
-                  key={col}
-                  className="absolute top-[-120px] bottom-[-120px] w-[4px] opacity-80"
-                  style={{
-                    left: `${((col + 1) / lanesCount) * 100}%`,
-                    transform: "translateX(-2px)",
-                  }}
-                >
-                  {Array.from({ length: 14 }).map((__, i) => (
-                    <div
-                      key={i}
-                      className="mx-auto my-[10px] h-[18px] w-[4px] rounded bg-white/85"
-                      style={{ marginTop: i === 0 ? 0 : 12 }}
-                    />
-                  ))}
+                  className="h-full bg-gradient-to-r from-emerald-500 via-blue-500 to-purple-500 transition-all duration-100"
+                  style={{ width: `${(gameState.timeLeft / questionTimeLimit) * 100}%` }}
+                />
+              </div>
+
+              <div className="text-center mb-8">
+                <div className="text-5xl font-black text-slate-900 mb-3 drop-shadow-md">
+                  {currentQuestion.num1} {operation} {currentQuestion.num2} = ?
                 </div>
-              ))}
+                <div className="text-base font-semibold text-slate-600 flex items-center justify-center gap-2">
+                  <i className="fa-solid fa-stopwatch text-red-500" />
+                  <span className="text-red-600 font-bold">{Math.ceil(gameState.timeLeft)}s</span>
+                </div>
+              </div>
 
-              {/* slight grain */}
-              <div
-                className="absolute inset-0 opacity-[0.10]"
-                style={{
-                  backgroundImage:
-                    "radial-gradient(circle at 20% 30%, rgba(255,255,255,0.55) 0 1px, transparent 2px), radial-gradient(circle at 70% 60%, rgba(255,255,255,0.55) 0 1px, transparent 2px)",
-                  backgroundSize: "26px 26px",
-                }}
-              />
+              <div className="grid grid-cols-2 gap-4">
+                {currentQuestion.answers.map((answer, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => handleAnswer(answer)}
+                    disabled={!canAnswer}
+                    className="rounded-2xl bg-gradient-to-br from-blue-500 via-blue-600 to-purple-700 px-8 py-5 text-3xl font-black text-white shadow-xl hover:shadow-2xl hover:scale-110 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed border-4 border-white/30"
+                  >
+                    {answer}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
+        )}
 
-          {/* Finish flag (top) */}
-          <div className="pointer-events-none absolute left-1/2 top-3 -translate-x-1/2 z-[8]">
-            <div
-              className="rounded-md bg-white px-3 py-1 text-[10px] font-extrabold text-slate-900"
-              style={{ border: "2px solid rgba(15,23,42,0.2)" }}
-            >
-              FINISH
+        {/* Game Over */}
+        {gameState.isGameOver && (
+          <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-slate-900/80 to-slate-800/90 backdrop-blur-lg z-40 p-2">
+            <div className="bg-white rounded-3xl p-6 md:p-10 shadow-2xl max-w-xl w-full border-4 border-amber-400">
+              <div className="text-center">
+                <div className="mb-4 animate-bounce">
+                  <i className={`text-6xl md:text-8xl ${gameState.winner === 'Bạn' ? 'fa-solid fa-trophy text-amber-400 drop-shadow-xl' : 'fa-solid fa-flag-checkered text-slate-600'}`} />
+                </div>
+                <h2 className="text-3xl md:text-5xl font-black mb-3 md:mb-4 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
+                  {gameState.winner === 'Bạn' ? '🎉 Chiến Thắng!' : '🏁 Hoàn Thành!'}
+                </h2>
+                <p className="text-base md:text-lg text-slate-700 mb-6 md:mb-8 font-semibold">
+                  Người chiến thắng: <span className="font-black text-blue-600">{gameState.winner}</span>
+                </p>
+
+                <div className="bg-gradient-to-br from-slate-50 to-blue-50 rounded-2xl p-4 md:p-6 mb-6 md:mb-8 border-2 border-slate-200">
+                  <div className="text-xs md:text-sm font-bold text-slate-700 mb-3 md:mb-4 uppercase tracking-wide">🏆 Bảng Xếp Hạng</div>
+                  {carsRef.current
+                    .sort((a, b) => b.position - a.position)
+                    .map((car, idx) => (
+                      <div key={car.id} className="flex items-center justify-between py-2 md:py-3 border-b last:border-0 border-slate-200">
+                        <div className="flex items-center gap-2 md:gap-3">
+                          <div className={`text-xl md:text-2xl font-black ${idx === 0 ? 'text-amber-500' : idx === 1 ? 'text-slate-400' : idx === 2 ? 'text-orange-600' : 'text-slate-500'}`}>
+                            #{idx + 1}
+                          </div>
+                          <div className={car.isPlayer ? 'font-black text-blue-600 text-base md:text-lg' : 'text-slate-700 font-semibold text-sm md:text-base'}>
+                            {car.name}
+                          </div>
+                        </div>
+                        <div className="text-xs md:text-sm font-bold text-slate-600 bg-white px-2 md:px-3 py-1 rounded-full">
+                          {Math.round((car.position / raceLength) * 100)}%
+                        </div>
+                      </div>
+                    ))}
+                </div>
+
+                <div className="flex flex-col sm:flex-row gap-3 md:gap-4">
+                  <button
+                    onClick={() => window.location.reload()}
+                    className="flex-1 rounded-2xl bg-gradient-to-r from-emerald-500 to-green-600 px-6 md:px-8 py-3 md:py-4 text-base md:text-lg font-black text-white shadow-xl hover:shadow-2xl hover:scale-105 transition-all"
+                  >
+                    <i className="fa-solid fa-rotate-right mr-2" />
+                    Đua Lại
+                  </button>
+                  <button
+                    onClick={onExit}
+                    className="flex-1 rounded-2xl border-4 border-slate-300 bg-white px-6 md:px-8 py-3 md:py-4 text-base md:text-lg font-black text-slate-700 hover:bg-slate-100 hover:scale-105 transition-all shadow-lg"
+                  >
+                    <i className="fa-solid fa-home mr-2" />
+                    Về Nhà
+                  </button>
+                </div>
+              </div>
             </div>
-          </div>
-
-          {/* Cars */}
-          <PixelCar
-            isPlayer
-            color="red"
-            label={`YOU • ${Math.round(player?.progress ?? 0)}/${raceLength}`}
-            carRef={playerElRef}
-          />
-          {Array.from({ length: opponentsCount }).map((_, i) => (
-            <PixelCar
-              key={i}
-              isPlayer={false}
-              color={i % 3 === 0 ? "blue" : i % 3 === 1 ? "gray" : "yellow"}
-              label={`CPU ${i + 1} • ${Math.round(
-                carsRef.current.find((c) => c.id === `cpu_${i}`)?.progress ?? 0
-              )}`}
-              carRef={(el) => (cpuElRefs.current[i] = el)}
-            />
-          ))}
-        </div>
-
-        {/* HUD overlay */}
-        <div className="pointer-events-none absolute left-4 top-4 z-[20] flex flex-wrap gap-2">
-          <div className="rounded-xl bg-white/80 px-3 py-2 text-xs font-semibold text-slate-800 shadow-sm">
-            Speed: <span className="font-extrabold">{Math.round(player?.speed ?? 0)}</span>
-          </div>
-          <div className="rounded-xl bg-white/80 px-3 py-2 text-xs font-semibold text-slate-800 shadow-sm">
-            Lead: <span className="font-extrabold">{Math.round(bestAll)}</span> / {raceLength}
-          </div>
-          <div className="rounded-xl bg-white/80 px-3 py-2 text-xs font-semibold text-slate-800 shadow-sm">
-            CPU best: <span className="font-extrabold">{Math.round(bestCpu)}</span>
-          </div>
-          {!done ? (
-            <div className="rounded-xl bg-white/80 px-3 py-2 text-xs font-semibold text-slate-800 shadow-sm">
-              ⌨ A/D (←/→) để đổi làn
-            </div>
-          ) : (
-            <div
-              className={cn(
-                "rounded-xl px-3 py-2 text-xs font-extrabold shadow-sm",
-                winner === "player" ? "bg-emerald-50 text-emerald-700" : "bg-rose-50 text-rose-700"
-              )}
-            >
-              🏁 {winner === "player" ? "Bạn thắng!" : "CPU thắng!"}
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Question Panel */}
-      <div className="mt-6">
-        <Card className="p-5">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <div className="text-sm font-extrabold text-slate-900">
-              {currentQ ? promptText : "Không có câu hỏi"}
-            </div>
-            <Chip className={cn(picked != null ? "border-slate-300" : "")}>
-              {picked == null ? "Chọn đáp án" : "Đã chọn"}
-            </Chip>
-          </div>
-
-          <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            {(currentQ?.answers || []).map((a) => {
-              const locked = picked != null || done;
-              const isPicked = picked != null && Number(picked) === Number(a);
-              const isCorrect = Number(a) === Number(currentQ?.correctAnswer);
-
-              return (
-                <button
-                  key={a}
-                  type="button"
-                  disabled={locked}
-                  onClick={() => handlePlayerAnswer(a)}
-                  className={cn(
-                    "rounded-2xl border px-4 py-3 text-left text-sm font-extrabold shadow-sm transition active:scale-[0.99]",
-                    !locked && "hover:bg-slate-50",
-                    locked && isPicked && isCorrect && "border-emerald-200 bg-emerald-50",
-                    locked && isPicked && !isCorrect && "border-rose-200 bg-rose-50",
-                    locked && !isPicked && "opacity-70",
-                    !locked && "border-slate-200 bg-white"
-                  )}
-                >
-                  {a}
-                </button>
-              );
-            })}
-          </div>
-
-          {!done && picked == null ? (
-            <div className="mt-3 text-xs text-slate-500">
-              Timeout sau <b>{timePerQuestion}s</b> → tính sai (xe khựng).
-            </div>
-          ) : null}
-
-          {done ? (
-            <div className="mt-3 text-xs text-slate-600">
-              *Hết câu hỏi → tất cả sẽ <b>dash</b> cán đích, nhưng winner dựa trên progress thật trước dash.
-            </div>
-          ) : null}
-        </Card>
-      </div>
-
-      {/* Footer */}
-      <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
-        {submitting ? (
-          <div className="text-sm text-slate-600">Đang lưu kết quả…</div>
-        ) : submitMsg ? (
-          <div className="text-sm text-slate-700">{submitMsg}</div>
-        ) : done ? (
-          <div className="text-sm font-semibold text-slate-800">
-            Kết thúc:{" "}
-            <span className={winner === "player" ? "text-emerald-700" : "text-rose-700"}>
-              {winner === "player" ? "Bạn thắng" : "CPU thắng"}
-            </span>
-          </div>
-        ) : (
-          <div className="text-sm text-slate-600">
-            YOU {Math.round(player?.progress ?? 0)}/{raceLength} • CPU best {Math.round(bestCpu)}/{raceLength}
           </div>
         )}
       </div>
-    </Card>
+
+      {/* Progress Bars */}
+      <div className="mt-6 space-y-3">
+        <div className="text-sm font-bold text-slate-700 mb-2 uppercase tracking-wide">
+          <i className="fa-solid fa-chart-line mr-2 text-blue-500" />
+          Tiến Độ Đua
+        </div>
+        {carsRef.current
+          .sort((a, b) => b.position - a.position)
+          .map((car, idx) => (
+            <div key={car.id} className="flex items-center gap-3">
+              <div className={`text-sm font-black ${car.isPlayer ? 'text-blue-600' : 'text-slate-600'} w-20`}>
+                #{idx + 1} {car.name}
+              </div>
+              <div className="flex-1 h-7 bg-slate-200 rounded-full overflow-hidden shadow-inner border-2 border-slate-300">
+                <div
+                  className="h-full transition-all duration-300 shadow-lg"
+                  style={{
+                    width: `${Math.min((car.position / raceLength) * 100, 100)}%`,
+                    background: `linear-gradient(90deg, ${car.color}, ${darkenColor(car.color, 0.2)})`
+                  }}
+                />
+              </div>
+              <div className="text-sm font-bold text-slate-700 w-14 text-right">
+                {Math.round((car.position / raceLength) * 100)}%
+              </div>
+            </div>
+          ))}
+      </div>
+    </div>
   );
-}
+};
+
+export default MathRacingGame;
