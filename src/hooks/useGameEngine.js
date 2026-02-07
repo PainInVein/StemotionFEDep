@@ -1,29 +1,14 @@
 // Game engine hook for Big Fish Eat Small Fish
 import { useState, useRef, useCallback, useEffect } from 'react';
-import type {
-    GameConfig,
-    PlayerFish,
-    EnemyFish,
-    PowerUp,
-    GameState,
-    MovementPattern
-} from '../types/game.types';
 import { usePlayerControl } from './usePlayerControl';
 
-export interface UseGameEngineOptions {
-    config: GameConfig;
-    arenaWidth: number;
-    arenaHeight: number;
-    onGameOver?: () => void;
-}
-
-export const useGameEngine = ({ config, arenaWidth, arenaHeight, onGameOver }: UseGameEngineOptions) => {
+export const useGameEngine = ({ config, arenaWidth, arenaHeight, onGameOver }) => {
     const [minNum, maxNum] = config.numberRange;
     const maxLives = config.lives || 3;
     const speedMultiplier = config.gameSpeed === 'fast' ? 1.4 : config.gameSpeed === 'slow' ? 0.7 : 1.0;
 
     // Game state
-    const [gameState, setGameState] = useState<GameState>({
+    const [gameState, setGameState] = useState({
         lives: maxLives,
         score: 0,
         playerNumber: config.playerFishNumber,
@@ -36,7 +21,7 @@ export const useGameEngine = ({ config, arenaWidth, arenaHeight, onGameOver }: U
     });
 
     // Player
-    const playerRef = useRef<PlayerFish>({
+    const playerRef = useRef({
         id: 'player',
         x: 100,
         y: arenaHeight / 2,
@@ -52,8 +37,8 @@ export const useGameEngine = ({ config, arenaWidth, arenaHeight, onGameOver }: U
     });
 
     // Enemies and power-ups
-    const enemiesRef = useRef<EnemyFish[]>([]);
-    const powerUpsRef = useRef<PowerUp[]>([]);
+    const enemiesRef = useRef([]);
+    const powerUpsRef = useRef([]);
     const spawnIndexRef = useRef(0);
     const nextIdRef = useRef(0);
 
@@ -66,13 +51,13 @@ export const useGameEngine = ({ config, arenaWidth, arenaHeight, onGameOver }: U
     });
 
     // Calculate scale based on number
-    const calculateScale = useCallback((num: number): number => {
+    const calculateScale = useCallback((num) => {
         const t = maxNum === minNum ? 0.5 : (num - minNum) / (maxNum - minNum);
         return 0.7 + t * 0.9;
     }, [minNum, maxNum]);
 
     // Collision detection
-    const checkCollision = useCallback((a: any, b: any): boolean => {
+    const checkCollision = useCallback((a, b) => {
         return !(
             a.x + a.width < b.x ||
             a.x > b.x + b.width ||
@@ -90,10 +75,10 @@ export const useGameEngine = ({ config, arenaWidth, arenaHeight, onGameOver }: U
         const width = 80 * scale;
         const height = 50 * scale;
 
-        const patterns: MovementPattern[] = ['zigzag', 'sine', 'straight'];
+        const patterns = ['zigzag', 'sine', 'straight'];
         const pattern = patterns[Math.floor(Math.random() * patterns.length)];
 
-        const enemy: EnemyFish = {
+        const enemy = {
             id: `enemy_${nextIdRef.current++}`,
             x: arenaWidth + 50,
             y: Math.random() * (arenaHeight - height - 40) + 20,
@@ -117,7 +102,7 @@ export const useGameEngine = ({ config, arenaWidth, arenaHeight, onGameOver }: U
     const spawnPowerUp = useCallback(() => {
         if (!config.powerUps || Math.random() > 0.15) return;
 
-        const powerUp: PowerUp = {
+        const powerUp = {
             id: `power_${nextIdRef.current++}`,
             type: Math.random() < 0.6 ? 'shield' : 'speedBoost',
             x: arenaWidth + 50,
@@ -132,7 +117,7 @@ export const useGameEngine = ({ config, arenaWidth, arenaHeight, onGameOver }: U
     }, [config.powerUps, arenaWidth, arenaHeight, speedMultiplier]);
 
     // Eat enemy
-    const eatEnemy = useCallback((enemy: EnemyFish) => {
+    const eatEnemy = useCallback((enemy) => {
         enemy.alive = false;
         const newNumber = playerRef.current.number + enemy.number;
 
@@ -173,7 +158,7 @@ export const useGameEngine = ({ config, arenaWidth, arenaHeight, onGameOver }: U
     }, [gameState.activePowerUps.shield, gameState.lives]);
 
     // Collect power-up
-    const collectPowerUp = useCallback((powerUp: PowerUp) => {
+    const collectPowerUp = useCallback((powerUp) => {
         powerUp.alive = false;
 
         if (powerUp.type === 'shield') {
@@ -196,7 +181,7 @@ export const useGameEngine = ({ config, arenaWidth, arenaHeight, onGameOver }: U
     }, []);
 
     // Update game (call this in animation frame)
-    const update = useCallback((deltaTime: number) => {
+    const update = useCallback((deltaTime) => {
         if (gameState.isGameOver || gameState.isPaused) return;
 
         const dt = Math.min(deltaTime, 0.1);

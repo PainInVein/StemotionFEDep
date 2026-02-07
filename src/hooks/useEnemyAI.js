@@ -1,28 +1,19 @@
 // Enemy AI hook for managing enemy fish behavior and spawning
 import { useRef, useCallback } from 'react';
-import type { EnemyFish, EnemyConfig, GameSpeed, MovementPattern } from '../types/game.types';
 
-const MOVEMENT_PATTERNS: MovementPattern[] = ['zigzag', 'sine', 'circular', 'straight'];
+const MOVEMENT_PATTERNS = ['zigzag', 'sine', 'circular', 'straight'];
 
-interface UseEnemyAIOptions {
-    enemyConfigs: EnemyConfig[];
-    numberRange: [number, number];
-    gameSpeed: GameSpeed;
-    arenaWidth: number;
-    arenaHeight: number;
-}
-
-export const useEnemyAI = (options: UseEnemyAIOptions) => {
+export const useEnemyAI = (options) => {
     const { enemyConfigs, numberRange, gameSpeed, arenaWidth, arenaHeight } = options;
 
-    const enemiesRef = useRef<EnemyFish[]>([]);
+    const enemiesRef = useRef([]);
     const spawnIndexRef = useRef(0);
     const nextIdRef = useRef(0);
 
     /**
      * Get speed multiplier based on game speed setting
      */
-    const getSpeedMultiplier = useCallback((): number => {
+    const getSpeedMultiplier = useCallback(() => {
         switch (gameSpeed) {
             case 'slow': return 0.7;
             case 'fast': return 1.4;
@@ -33,7 +24,7 @@ export const useEnemyAI = (options: UseEnemyAIOptions) => {
     /**
      * Calculate fish scale based on number value within range
      */
-    const calculateScale = useCallback((fishNumber: number): number => {
+    const calculateScale = useCallback((fishNumber) => {
         const [min, max] = numberRange;
         const t = max === min ? 0.5 : (fishNumber - min) / (max - min);
         return 0.7 + t * 0.9; // Scale from 0.7 to 1.6
@@ -42,14 +33,14 @@ export const useEnemyAI = (options: UseEnemyAIOptions) => {
     /**
      * Get random movement pattern
      */
-    const getRandomPattern = useCallback((): MovementPattern => {
+    const getRandomPattern = useCallback(() => {
         return MOVEMENT_PATTERNS[Math.floor(Math.random() * MOVEMENT_PATTERNS.length)];
     }, []);
 
     /**
      * Spawn a new enemy fish
      */
-    const spawnEnemy = useCallback((): EnemyFish | null => {
+    const spawnEnemy = useCallback(() => {
         if (spawnIndexRef.current >= enemyConfigs.length) {
             return null; // All enemies spawned
         }
@@ -70,7 +61,7 @@ export const useEnemyAI = (options: UseEnemyAIOptions) => {
         const pattern = getRandomPattern();
         const baseSpeed = (180 + config.speed * 50) * getSpeedMultiplier();
 
-        const enemy: EnemyFish = {
+        const enemy = {
             id: `enemy_${nextIdRef.current++}`,
             x,
             y,
@@ -103,7 +94,7 @@ export const useEnemyAI = (options: UseEnemyAIOptions) => {
     /**
      * Update enemy positions and apply movement patterns
      */
-    const updateEnemies = useCallback((deltaTime: number) => {
+    const updateEnemies = useCallback((deltaTime) => {
         const now = Date.now();
 
         enemiesRef.current.forEach((enemy) => {
@@ -150,7 +141,7 @@ export const useEnemyAI = (options: UseEnemyAIOptions) => {
     /**
      * Remove an enemy (when eaten)
      */
-    const removeEnemy = useCallback((enemyId: string) => {
+    const removeEnemy = useCallback((enemyId) => {
         const enemy = enemiesRef.current.find((e) => e.id === enemyId);
         if (enemy) {
             enemy.alive = false;
@@ -160,7 +151,7 @@ export const useEnemyAI = (options: UseEnemyAIOptions) => {
     /**
      * Get all active enemies
      */
-    const getEnemies = useCallback((): EnemyFish[] => {
+    const getEnemies = useCallback(() => {
         return enemiesRef.current.filter((e) => e.alive);
     }, []);
 
@@ -176,7 +167,7 @@ export const useEnemyAI = (options: UseEnemyAIOptions) => {
     /**
      * Check if all enemies have been spawned
      */
-    const allSpawned = useCallback((): boolean => {
+    const allSpawned = useCallback(() => {
         return spawnIndexRef.current >= enemyConfigs.length;
     }, [enemyConfigs.length]);
 

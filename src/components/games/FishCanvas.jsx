@@ -1,79 +1,56 @@
 // Canvas component for rendering fish and game entities
 import { useRef, useEffect, forwardRef, useImperativeHandle } from 'react';
-import type { PlayerFish, EnemyFish, PowerUp } from '../types/game.types';
 
-interface FishCanvasProps {
-    width: number;
-    height: number;
-    player: PlayerFish;
-    enemies: EnemyFish[];
-    powerUps: PowerUp[];
-    maxNumber: number;
-}
+export const FishCanvas = forwardRef((props, ref) => {
+    const { width, height, player, enemies, powerUps, maxNumber } = props;
+    const canvasRef = useRef(null);
 
-export interface FishCanvasHandle {
-    getContext: () => CanvasRenderingContext2D | null;
-}
+    useImperativeHandle(ref, () => ({
+        getContext: () => canvasRef.current?.getContext('2d') || null,
+    }));
 
-export const FishCanvas = forwardRef<FishCanvasHandle, FishCanvasProps>(
-    ({ width, height, player, enemies, powerUps, maxNumber }, ref) => {
-        const canvasRef = useRef<HTMLCanvasElement>(null);
+    useEffect(() => {
+        const canvas = canvasRef.current;
+        if (!canvas) return;
 
-        useImperativeHandle(ref, () => ({
-            getContext: () => canvasRef.current?.getContext('2d') || null,
-        }));
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
 
-        useEffect(() => {
-            const canvas = canvasRef.current;
-            if (!canvas) return;
+        // Clear canvas
+        ctx.clearRect(0, 0, width, height);
 
-            const ctx = canvas.getContext('2d');
-            if (!ctx) return;
+        // Draw enemies
+        enemies.forEach(enemy => {
+            if (enemy.alive) {
+                const isRed = enemy.number > maxNumber * 0.6;
+                drawFish(ctx, enemy.x, enemy.y, enemy.width, enemy.height, enemy.number, isRed);
+            }
+        });
 
-            // Clear canvas
-            ctx.clearRect(0, 0, width, height);
+        // Draw power-ups
+        powerUps.forEach(p => {
+            if (p.alive) {
+                drawPowerUp(ctx, p.x, p.y, p.type);
+            }
+        });
 
-            // Draw enemies
-            enemies.forEach(enemy => {
-                if (enemy.alive) {
-                    const isRed = enemy.number > maxNumber * 0.6;
-                    drawFish(ctx, enemy.x, enemy.y, enemy.width, enemy.height, enemy.number, isRed);
-                }
-            });
+        // Note: Player is rendered separately as DOM element for GSAP animations
+    }, [width, height, enemies, powerUps, maxNumber, player]);
 
-            // Draw power-ups
-            powerUps.forEach(p => {
-                if (p.alive) {
-                    drawPowerUp(ctx, p.x, p.y, p.type);
-                }
-            });
-
-            // Note: Player is rendered separately as DOM element for GSAP animations
-        }, [width, height, enemies, powerUps, maxNumber, player]);
-
-        return (
-            <canvas
-                ref={canvasRef}
-                width={width}
-                height={height}
-                className="absolute inset-0"
-            />
-        );
-    }
-);
+    return (
+        <canvas
+            ref={canvasRef}
+            width={width}
+            height={height}
+            className="absolute inset-0"
+        />
+    );
+});
 
 FishCanvas.displayName = 'FishCanvas';
 
 // Helper: Draw fish
-const drawFish = (
-    ctx: CanvasRenderingContext2D,
-    x: number,
-    y: number,
-    width: number,
-    height: number,
-    number: number,
-    isRed: boolean
-) => {
+const drawFish = (ctx, x, y, width, height, number, isRed) => {
     ctx.save();
     ctx.translate(x + width / 2, y + height / 2);
     ctx.scale(-1, 1);
@@ -153,12 +130,7 @@ const drawFish = (
 };
 
 // Helper: Draw power-up
-const drawPowerUp = (
-    ctx: CanvasRenderingContext2D,
-    x: number,
-    y: number,
-    type: 'shield' | 'speedBoost'
-) => {
+const drawPowerUp = (ctx, x, y, type) => {
     ctx.save();
 
     // Background circle
