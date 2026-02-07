@@ -1,8 +1,6 @@
 import React, { useRef, useState, useEffect, useCallback } from 'react';
 import gsap from 'gsap';
 
-// Math Racing Game - JSX Version
-// Professional arcade racing game with math questions
 
 const MathRacingGame = ({ game, config, onExit, onFinish }) => {
   const canvasRef = useRef(null);

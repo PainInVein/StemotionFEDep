@@ -10,7 +10,7 @@ import {
     ExperimentOutlined,
     PlusOutlined
 } from '@ant-design/icons';
-import { studentProgressService } from '../../services/studentProgressService';
+import { studentProgressService } from '../../services/education/studentProgressService';
 import {
     ParentStudentListDTO,
     StudentProgressOverviewDTO,

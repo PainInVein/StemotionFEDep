@@ -1,11 +1,11 @@
-import axiosClient from '../utils/axiosClient';
+import axiosClient from '../../utils/axiosClient';
 import {
     StudentProgressOverviewDTO,
     ParentStudentListDTO,
     SubjectProgressResponseDTO,
     RecentActivityDTO,
     PerformanceInsightDTO
-} from '../types/studentProgress';
+} from '../../types/studentProgress';
 
 // Mocks kept for missing endpoints
 const MOCK_ACTIVITIES: RecentActivityDTO[] = [

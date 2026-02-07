@@ -1,24 +1,10 @@
 // Player control hook for keyboard input (WASD + Arrow keys)
 import { useEffect, useRef } from 'react';
 
-export interface KeyState {
-    up: boolean;
-    down: boolean;
-    left: boolean;
-    right: boolean;
-}
-
-export interface PlayerControlOptions {
-    enabled: boolean;
-    speed: number;
-    acceleration?: number;
-    friction?: number;
-}
-
-export const usePlayerControl = (options: PlayerControlOptions) => {
+export const usePlayerControl = (options) => {
     const { enabled, speed, acceleration = 0.5, friction = 0.85 } = options;
 
-    const keysRef = useRef<KeyState>({
+    const keysRef = useRef({
         up: false,
         down: false,
         left: false,
@@ -30,7 +16,7 @@ export const usePlayerControl = (options: PlayerControlOptions) => {
     useEffect(() => {
         if (!enabled) return;
 
-        const handleKeyDown = (e: KeyboardEvent) => {
+        const handleKeyDown = (e) => {
             const key = e.key.toLowerCase();
 
             switch (key) {
@@ -53,7 +39,7 @@ export const usePlayerControl = (options: PlayerControlOptions) => {
             }
         };
 
-        const handleKeyUp = (e: KeyboardEvent) => {
+        const handleKeyUp = (e) => {
             const key = e.key.toLowerCase();
 
             switch (key) {
@@ -89,7 +75,7 @@ export const usePlayerControl = (options: PlayerControlOptions) => {
      * Update player velocity based on keyboard input
      * Call this in your game loop
      */
-    const updateVelocity = (): { vx: number; vy: number } => {
+    const updateVelocity = () => {
         const keys = keysRef.current;
         const vel = velocityRef.current;
 
@@ -134,7 +120,7 @@ export const usePlayerControl = (options: PlayerControlOptions) => {
     /**
      * Get current key state (for debugging)
      */
-    const getKeyState = (): KeyState => keysRef.current;
+    const getKeyState = () => keysRef.current;
 
     return {
         updateVelocity,
