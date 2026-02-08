@@ -24,7 +24,6 @@ export default defineConfig({
             'react-toastify',
           ],
           // Split heavy dependencies
-          'three': ['three', '@splinetool/react-spline'],
           'charts': ['recharts'],
           'animation': ['framer-motion', 'gsap'],
         }
