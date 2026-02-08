@@ -21,7 +21,6 @@ export default defineConfig({
           // Split UI libraries
           'ui': [
             'antd',
-            'react-icons',
             'react-toastify',
             'sonner'
           ],
