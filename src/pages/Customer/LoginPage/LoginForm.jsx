@@ -11,7 +11,6 @@ import { toast } from "react-toastify";
 
 import { useAuthModalStore } from "../../../stores/authModalStore";
 
-
 const CONFIG = {
   title: "Đăng nhập",
   description: "Khám phá lộ trình học tập và thử thách của bạn!",
@@ -36,6 +35,17 @@ export default function LoginModal({ isOpen = false, onClose = () => { } }) {
   const [showPassword, setShowPassword] = useState(false);
 
   const defaultValues = useMemo(() => ({ email: "", password: "" }), []);
+
+  const loginGoogle = (role = "student") => {
+    // ✅ lưu trang hiện tại để quay lại sau khi login
+    sessionStorage.setItem(
+      "preLoginUrl",
+      window.location.pathname + window.location.search
+    );
+
+    const base = import.meta.env.VITE_API_BASE_URL;
+    window.location.href = `${base}/api/Auth/google-login?role=${encodeURIComponent(role)}`;
+  };
 
   const {
     register,
@@ -272,6 +282,7 @@ export default function LoginModal({ isOpen = false, onClose = () => { } }) {
                   className={`flex-1 p-[1px] rounded-full bg-gradient-to-br ${CONFIG.borderClass} hover:shadow-md transition-shadow`}
                   aria-label="Đăng nhập bằng Google"
                   type="button"
+                  onClick={() => loginGoogle("student")}
                 >
                   <div className="bg-white rounded-full py-2 flex justify-center items-center">
                     <i

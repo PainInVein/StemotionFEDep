@@ -18,6 +18,7 @@ import CheckOut from "../pages/Customer/PaymentPage/CheckOut";
 import SubscriptionPage from "../pages/Customer/SubscriptionPage/SubscriptionPage";
 import PaymentSuccess from "../pages/Customer/PaymentPage/PaymentSuccess";
 import PaymentCancel from "../pages/Customer/PaymentPage/PaymentCancel";
+import GoogleCallback from "../pages/Customer/LoginPage/GoogleCallback";
 
 export const router = createBrowserRouter([
   {
@@ -35,6 +36,8 @@ export const router = createBrowserRouter([
       { path: "payment", element: <CheckOut /> },
       { path: "payment/success", element: <PaymentSuccess /> },
       { path: "payment/cancel", element: <PaymentCancel /> },
+      { path: "google-callback", element: <GoogleCallback /> },
+
 
       // ✅ Public: chỉ xem subject
       { path: "courses", element: <Courses /> },

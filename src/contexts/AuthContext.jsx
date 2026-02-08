@@ -8,29 +8,30 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // ✅ Check session khi refresh trang (cookie-based)
+  const refreshMe = async () => {
+    const me = await getMeService();
+    const freshUser = me?.result;
+    if (!freshUser) throw new Error("Không lấy được user từ /me");
+    localStorage.setItem("user", JSON.stringify(freshUser));
+    setUser(freshUser);
+    setIsAuthenticated(true);
+    return freshUser;
+  };
+
   useEffect(() => {
     let alive = true;
 
     (async () => {
       try {
-        // Lấy user từ localStorage (đã lưu khi login)
-        const savedUser = localStorage.getItem('user');
+        const savedUser = localStorage.getItem("user");
         if (savedUser) {
           setUser(JSON.parse(savedUser));
           setIsAuthenticated(true);
-
-          // (Optional) Validate cookie còn hạn không
-          try {
-            await getMeService();  // Nếu 200 OK → cookie còn hạn
-          } catch {
-            // 401 → Cookie hết hạn → Logout
-            localStorage.removeItem('user');
-            setUser(null);
-            setIsAuthenticated(false);
-          }
         }
-      } catch (e) {
+
+        await refreshMe();
+      } catch {
+        localStorage.removeItem("user");
         if (!alive) return;
         setUser(null);
         setIsAuthenticated(false);
@@ -40,39 +41,36 @@ export function AuthProvider({ children }) {
       }
     })();
 
-    return () => {
-      alive = false;
-    };
+    return () => { alive = false; };
   }, []);
 
   const login = async (email, password) => {
-    // ✅ Login response đã có user info
-    const data = await loginService(email, password);
-
-    const userData = data?.result;
-    if (userData) {
+    setLoading(true);
+    try {
+      const data = await loginService(email, password);
+      const userData = data?.result;
+      if (!userData) throw new Error("Login thành công nhưng không có user");
       setUser(userData);
       setIsAuthenticated(true);
       return userData;
+    } finally {
+      setLoading(false);
     }
-
-    throw new Error("Login thành công nhưng không nhận được thông tin user");
   };
 
   const logout = async () => {
-    await logoutService(); // Clear cookie + localStorage
-    setUser(null);
-    setIsAuthenticated(false);
+    setLoading(true);
+    try {
+      await logoutService();
+      setUser(null);
+      setIsAuthenticated(false);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const value = useMemo(
-    () => ({
-      isAuthenticated,
-      user,
-      loading,
-      login,
-      logout,
-    }),
+    () => ({ isAuthenticated, user, loading, login, logout, refreshMe }),
     [isAuthenticated, user, loading]
   );
 

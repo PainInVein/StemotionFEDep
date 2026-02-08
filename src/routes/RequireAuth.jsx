@@ -24,7 +24,7 @@ export default function RequireAuth({ children, }) {
         } else {
             notified.current = false;
         }
-    }, [loading, isAuthenticated, openLogin, openLogin, location.pathname, location.search]);
+   }, [loading, isAuthenticated, openLogin, location.pathname, location.search]);
 
     if (loading) return null;
     if (!isAuthenticated) return <AuthRequiredNotice />;
