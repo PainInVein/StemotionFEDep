@@ -22,11 +22,8 @@ export default defineConfig({
           'ui': [
             'antd',
             'react-toastify',
-            'sonner'
           ],
           // Split heavy dependencies
-          'three': ['three', '@splinetool/react-spline'],
-          'charts': ['recharts'],
           'animation': ['framer-motion', 'gsap'],
         }
       }
