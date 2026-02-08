@@ -13,10 +13,12 @@ import NotFound from "../pages/NotFound";
 import RequireAuth from "./RequireAuth";
 import IndexPage from "../pages/Customer/IndexPage";
 import SubscriptionTrialPage from "../pages/Customer/SubscriptionPage/SubscriptionTrialPage";
+import ParentDashboard from "../pages/Parent/ParentDashboard";
 import CheckOut from "../pages/Customer/PaymentPage/CheckOut";
 import SubscriptionPage from "../pages/Customer/SubscriptionPage/SubscriptionPage";
 import PaymentSuccess from "../pages/Customer/PaymentPage/PaymentSuccess";
 import PaymentCancel from "../pages/Customer/PaymentPage/PaymentCancel";
+import GoogleCallback from "../pages/Customer/LoginPage/GoogleCallback";
 
 export const router = createBrowserRouter([
   {
@@ -24,6 +26,7 @@ export const router = createBrowserRouter([
     element: <RootLayout />,
     children: [
       { index: true, element: <IndexPage /> },
+      { path: "parent/dashboard", element: <ParentDashboard /> },
       { path: "register", element: <Register /> },
       { path: "register/verify-otp", element: <VerifyOtp /> },
       { path: "about-us", element: <About /> },
@@ -33,6 +36,8 @@ export const router = createBrowserRouter([
       { path: "payment", element: <CheckOut /> },
       { path: "payment/success", element: <PaymentSuccess /> },
       { path: "payment/cancel", element: <PaymentCancel /> },
+      { path: "google-callback", element: <GoogleCallback /> },
+
 
       // ✅ Public: chỉ xem subject
       { path: "courses", element: <Courses /> },

@@ -24,6 +24,17 @@ function RootLayout() {
     }
   }, [location.state, location.pathname, location.search, openLogin, navigate]);
 
+  useEffect(() => {
+  const params = new URLSearchParams(location.search);
+  if (params.get("google") === "1") {
+    closeLogin(); // đóng modal nếu đang mở
+    // optional: xoá query google=1 khỏi url
+    params.delete("google");
+    const next = params.toString();
+    navigate(location.pathname + (next ? `?${next}` : ""), { replace: true });
+  }
+}, [location.search, location.pathname, closeLogin, navigate]);
+
   if (isLessonPage) {
     return (
       <main>
