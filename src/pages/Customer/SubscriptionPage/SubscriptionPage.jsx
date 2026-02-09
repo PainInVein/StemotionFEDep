@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import Button from "../../../components/common/Button";
-import { FlexibilityIcon, AchievementIcon, TargetIcon, JourneyIcon, CheckCircleIcon, ChartIcon, NoAdsIcon, StarIcon, MascotSVG} from "../../../components/ui/FeatureIcons";
+import { FlexibilityIcon, AchievementIcon, TargetIcon, JourneyIcon, CheckCircleIcon, ChartIcon, NoAdsIcon, StarIcon, MascotSVG } from "../../../components/ui/FeatureIcons";
+import { Link } from "react-router-dom";
 
 export default function SubscriptionPage() {
 
@@ -66,8 +67,9 @@ export default function SubscriptionPage() {
 
                     {/* CTA Button */}
                     <div className="flex justify-center mb-8 w-[50%] mx-auto">
-
-                        <Button size="md" className="bg-gradient-to-r from-indigo-400 via-fuchsia-400 to-amber-300">Cách Premium hoạt động</Button>
+                        <Link to="/subscription-trial" >
+                            <Button size="md" className="bg-gradient-to-r from-indigo-400 via-fuchsia-400 to-amber-300">Cách Premium hoạt động</Button>
+                        </Link>
                     </div>
 
                     <p className="text-center text-sm opacity-70 max-w-md mx-auto">
@@ -226,7 +228,11 @@ export default function SubscriptionPage() {
                             </div>
 
 
-                            <Button size="md" className="bg-gradient-to-r from-indigo-400 via-fuchsia-400 to-amber-300">Đăng ký ngay</Button>
+                            <Link to='/payment'>
+                                <Button size="md" className="bg-gradient-to-r from-indigo-400 via-fuchsia-400 to-amber-300">
+                                    Đăng ký ngay
+                                </Button>
+                            </Link>
                         </div>
 
                         {/* Mascot */}
