@@ -24,6 +24,7 @@ export default function PaymentButton({ subscriptionId = DEFAULT_SUBSCRIPTION_ID
         setFetchError(null);
         const sub = await getSubscriptionByIdService(subscriptionId);
         if (mounted) setSubscription(sub);
+        console.log("Fetched subscription:", sub);
       } catch (err) {
         console.error("Failed to fetch subscription:", err);
         const msg = err?.message || "Không thể tải thông tin gói";
@@ -46,7 +47,7 @@ export default function PaymentButton({ subscriptionId = DEFAULT_SUBSCRIPTION_ID
     }
 
     // tuỳ backend bạn dùng field nào: id / userId
-    const userId = user?.id || user?.userId;
+    const userId = user?.userId;
     if (!userId) {
       toast.error("Không tìm thấy userId. Vui lòng đăng nhập lại.");
       return;
@@ -68,6 +69,9 @@ export default function PaymentButton({ subscriptionId = DEFAULT_SUBSCRIPTION_ID
           billingPeriod: subscription.billingPeriod,
         },
       });
+      console.log("User ID for payment:", userId);
+      console.log("Subscription for payment:", subscription);
+      console.log("Redirecting to checkout URL:", checkoutUrl);
 
       window.location.href = checkoutUrl;
     } catch (err) {

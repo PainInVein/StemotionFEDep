@@ -22,19 +22,23 @@ export function AuthProvider({ children }) {
     let alive = true;
 
     (async () => {
-      try {
-        const savedUser = localStorage.getItem("user");
-        if (savedUser) {
-          setUser(JSON.parse(savedUser));
-          setIsAuthenticated(true);
-        }
+      const savedUser = localStorage.getItem("user");
+      if (savedUser) {
+        setUser(JSON.parse(savedUser));
+        setIsAuthenticated(true);
+      }
 
+      try {
         await refreshMe();
-      } catch {
-        localStorage.removeItem("user");
-        if (!alive) return;
-        setUser(null);
-        setIsAuthenticated(false);
+      } catch (e) {
+        console.error("refreshMe failed:", e);
+        // ✅ Nếu đã có savedUser thì giữ nguyên, đừng logout ngay
+        if (!savedUser) {
+          localStorage.removeItem("user");
+          if (!alive) return;
+          setUser(null);
+          setIsAuthenticated(false);
+        }
       } finally {
         if (!alive) return;
         setLoading(false);
@@ -44,12 +48,14 @@ export function AuthProvider({ children }) {
     return () => { alive = false; };
   }, []);
 
+
   const login = async (email, password) => {
     setLoading(true);
     try {
       const data = await loginService(email, password);
       const userData = data?.result;
       if (!userData) throw new Error("Login thành công nhưng không có user");
+      localStorage.setItem("user", JSON.stringify(userData));
       setUser(userData);
       setIsAuthenticated(true);
       return userData;
@@ -57,6 +63,7 @@ export function AuthProvider({ children }) {
       setLoading(false);
     }
   };
+
 
   const logout = async () => {
     setLoading(true);

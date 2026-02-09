@@ -69,6 +69,11 @@ export default function Header() {
               <span>Khóa học</span>
             </Link>
 
+             <Link to="/subscription" className={navItemClass}>
+              <i className="fa-solid fa-angles-up text-xl" aria-hidden="true" />
+              <span>Nâng cấp premium</span>
+            </Link>
+
             <Link to="/about-us" className={navItemClass}>
               <i className="fa-solid fa-circle-info text-xl" aria-hidden="true" />
               <span>Giới thiệu</span>

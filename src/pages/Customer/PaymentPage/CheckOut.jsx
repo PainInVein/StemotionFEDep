@@ -1,6 +1,13 @@
 import PaymentButton from "./PaymentButton";
+import usePayOSPayment from "../../../hooks/usePayOSPayment";
 
 export default function CheckOut() {
+
+    const { subscription, fetchError, pay, loadingPay, authLoading, isAuthenticated } =
+        usePayOSPayment(); // hoặc usePayOSPayment(subscriptionId)
+
+    const disablePayOS = loadingPay || authLoading || !isAuthenticated || !subscription || !!fetchError;
+
     return (
         <div className="min-h-screen md:max-h-screen bg-white">
             {/* Max height = 1 screen, nếu content dài sẽ cuộn trong main */}
@@ -63,24 +70,86 @@ export default function CheckOut() {
                     </div>
 
                     {/* Right section */}
-                    <div className="flex flex-col items-center justify-center md:justify-start md:pt-32">
-                        <div className="w-full max-w-md space-y-8">
+                    <div className="flex flex-col items-center justify-center md:justify-start">
+                        <div className="w-full max-w-md space-y-6">
                             <h2 className="font-brilliant text-3xl md:text-4xl text-black text-center font-medium">
                                 Phương thức thanh toán
                             </h2>
 
-                            <div className="space-y-6">
+                            {/* ✅ Thông tin gói hiển thị bên ngoài */}
+                            {fetchError ? (
+                                <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-red-700">
+                                    <p className="text-sm font-semibold">Đã xảy ra lỗi</p>
+                                    <p className="mt-1 text-sm">Lỗi: <span className="font-medium">{fetchError}</span></p>
+                                    <button
+                                        onClick={() => window.location.reload()}
+                                        className="mt-3 rounded-lg bg-red-600 px-3 py-2 text-sm font-medium text-white"
+                                    >
+                                        Thử lại
+                                    </button>
+                                </div>
+                            ) : !subscription ? (
+                                <div className="rounded-2xl border bg-white p-6">
+                                    <div className="animate-pulse space-y-3">
+                                        <div className="h-5 w-1/2 rounded bg-gray-200" />
+                                        <div className="h-4 w-4/5 rounded bg-gray-200" />
+                                        <div className="h-8 w-2/3 rounded bg-gray-200" />
+                                    </div>
+                                    <p className="mt-4 text-sm text-gray-500">Đang tải thông tin gói...</p>
+                                </div>
+                            ) : (
+                                <div className="rounded-2xl border bg-white p-6 shadow-sm">
+                                    <h3 className="text-xl font-semibold text-gray-900">
+                                        {subscription.subscriptionName}
+                                    </h3>
+                                    <p className="mt-2 text-sm text-gray-600">
+                                        {subscription.description || "Gói đăng ký"}
+                                    </p>
+
+                                    <div className="mt-4 flex items-baseline gap-2">
+                                        <span className="text-2xl font-bold text-emerald-600">
+                                            {subscription.subscriptionPrice.toLocaleString("vi-VN")} VNĐ
+                                        </span>
+                                        <span className="text-sm text-gray-500">
+                                            / {String(subscription.billingPeriod).toLowerCase()}
+                                        </span>
+                                    </div>
+
+                                    <p className="mt-3 text-xs text-gray-500">
+                                        Bằng việc thanh toán, bạn đồng ý với các điều khoản dịch vụ của chúng tôi.
+                                    </p>
+                                </div>
+                            )}
+
+                            {/* ✅ Buttons */}
+                            <div className="space-y-4">
                                 <button className="w-full px-2 md:px-5 py-2 md:py-5 border-2 border-black bg-white rounded-[54px] shadow-lg hover:shadow-xl transition-shadow">
                                     <span className="font-brilliant text-lg md:text-xl text-gray-custom font-medium">
                                         <i className="fa-regular fa-credit-card"></i> Thẻ tín dụng & thẻ ghi nợ
                                     </span>
                                 </button>
 
-                                <button className="w-full px-2 md:px-5 py-2 md:py-5 border-2 border-black bg-white rounded-[54px] shadow-lg hover:shadow-xl transition-shadow">
+                                {/* ✅ Nút payOS CHỈ là 1 nút, click để thanh toán */}
+                                <button
+                                    type="button"
+                                    onClick={pay}
+                                    disabled={disablePayOS}
+                                    className={[
+                                        "w-full px-2 md:px-5 py-2 md:py-5 border-2 border-black bg-white rounded-[54px] shadow-lg transition-shadow",
+                                        "hover:shadow-xl",
+                                        disablePayOS ? "opacity-60 cursor-not-allowed" : "",
+                                    ].join(" ")}
+                                >
                                     <span className="font-brilliant text-lg md:text-xl text-gray-custom font-medium">
-                                        <i className="fa-solid fa-qrcode"></i> Thanh toán bằng payOS
+                                        <i className="fa-solid fa-qrcode"></i>{" "}
+                                        {authLoading
+                                            ? "Đang xác thực..."
+                                            : loadingPay
+                                                ? "Đang chuyển hướng..."
+                                                : !isAuthenticated
+                                                    ? "Vui lòng đăng nhập để thanh toán"
+                                                    : "Thanh toán bằng payOS"}
                                     </span>
-                                    <span><PaymentButton/></span>
                                 </button>
                             </div>
 
