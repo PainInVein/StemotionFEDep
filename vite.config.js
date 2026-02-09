@@ -21,13 +21,9 @@ export default defineConfig({
           // Split UI libraries
           'ui': [
             'antd',
-            'react-icons',
             'react-toastify',
-            'sonner'
           ],
           // Split heavy dependencies
-          'three': ['three', '@splinetool/react-spline'],
-          'charts': ['recharts'],
           'animation': ['framer-motion', 'gsap'],
         }
       }

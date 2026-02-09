@@ -26,25 +26,25 @@ export const router = createBrowserRouter([
     element: <RootLayout />,
     children: [
       { index: true, element: <IndexPage /> },
-      { path: "parent/dashboard", element: <ParentDashboard /> },
-      { path: "register", element: <Register /> },
-      { path: "register/verify-otp", element: <VerifyOtp /> },
-      { path: "about-us", element: <About /> },
-      { path: "contact", element: <Contact /> },
-      { path: "subscription-trial", element: <SubscriptionTrialPage /> },
-      { path: "subscription", element: <SubscriptionPage /> },
-      { path: "payment", element: <CheckOut /> },
-      { path: "payment/success", element: <PaymentSuccess /> },
-      { path: "payment/cancel", element: <PaymentCancel /> },
-      { path: "google-callback", element: <GoogleCallback /> },
+      { path: "/parent/dashboard", element: <ParentDashboard /> },
+      { path: "/register", element: <Register /> },
+      { path: "/register/verify-otp", element: <VerifyOtp /> },
+      { path: "/about-us", element: <About /> },
+      { path: "/contact", element: <Contact /> },
+      { path: "/subscription-trial", element: <SubscriptionTrialPage /> },
+      { path: "/subscription", element: <SubscriptionPage /> },
+      { path: "/payment", element: <CheckOut /> },
+      { path: "/payment/success", element: <PaymentSuccess /> },
+      { path: "/payment/cancel", element: <PaymentCancel /> },
+      { path: "/google-callback", element: <GoogleCallback /> },
 
 
       // ✅ Public: chỉ xem subject
-      { path: "courses", element: <Courses /> },
+      { path: "/courses", element: <Courses /> },
 
       // ✅ Protected: xem chapters của subject
       {
-        path: "courses/:subjectSlug",
+        path: "/courses/:subjectSlug",
         element: (
           <RequireAuth>
             <Courses />
@@ -54,7 +54,7 @@ export const router = createBrowserRouter([
 
       // ✅ Protected: chapter detail (list lesson)
       {
-        path: "courses/:subjectSlug/chapter/:chapterSlug",
+        path: "/courses/:subjectSlug/chapter/:chapterSlug",
         element: (
           <RequireAuth>
             <CourseDetail />
@@ -64,7 +64,7 @@ export const router = createBrowserRouter([
 
       // ✅ Protected: lesson detail
       {
-        path: "courses/:subjectSlug/chapter/:chapterSlug/lesson/:lessonSlug",
+        path: "/courses/:subjectSlug/chapter/:chapterSlug/lesson/:lessonSlug",
         element: (
           <RequireAuth>
             <LessonDetail />
