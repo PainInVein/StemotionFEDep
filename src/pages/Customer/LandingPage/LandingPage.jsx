@@ -1,22 +1,15 @@
-// src/pages/LandingPage/LandingPage.jsx
-import { lazy, Suspense, useCallback, useEffect, useRef, useState, memo } from "react";
+import { lazy, Suspense, useEffect, useRef, useState, memo } from "react";
 
 import CTASkeleton from "./skeletons/CTASkeleton";
 import FeaturesSkeleton from "./skeletons/FeaturesSkeleton";
 import HeroSkeleton from "./skeletons/HeroSkeleton";
+import { useAuthModalStore } from "../../../stores/authModalStore";
 
 const HeroSection = lazy(() => import("./sections/HeroSection"));
 const FeaturesSection = lazy(() => import("./sections/FeaturesSection"));
 const CTASection = lazy(() => import("./sections/CTASection"));
 
-const LoginModal = lazy(() => import("../LoginPage/LoginForm"));
-
-const LazySection = memo(function LazySection({
-  children,
-  fallback,
-  rootMargin = "400px",
-  threshold = 0.01,
-}) {
+const LazySection = memo(function LazySection({ children, fallback, rootMargin="400px", threshold=0.01 }) {
   const [isVisible, setIsVisible] = useState(false);
   const ref = useRef(null);
 
@@ -25,15 +18,12 @@ const LazySection = memo(function LazySection({
     const el = ref.current;
     if (!el) return;
 
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsVisible(true);
-          observer.disconnect();
-        }
-      },
-      { rootMargin, threshold }
-    );
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) {
+        setIsVisible(true);
+        observer.disconnect();
+      }
+    }, { rootMargin, threshold });
 
     observer.observe(el);
     return () => observer.disconnect();
@@ -43,15 +33,7 @@ const LazySection = memo(function LazySection({
 });
 
 export default function LandingPage() {
-  const [modalConfig, setModalConfig] = useState({ isOpen: false, role: "student" });
-
-  const openLogin = useCallback((role) => {
-    setModalConfig({ isOpen: true, role });
-  }, []);
-
-  const closeLogin = useCallback(() => {
-    setModalConfig((prev) => ({ ...prev, isOpen: false }));
-  }, []);
+  const openLogin = useAuthModalStore((s) => s.openLogin);
 
   return (
     <div className="min-h-screen bg-gradient-hero">
@@ -70,12 +52,6 @@ export default function LandingPage() {
           <CTASection />
         </Suspense>
       </LazySection>
-
-      {modalConfig.isOpen && (
-        <Suspense fallback={null}>
-          <LoginModal isOpen={modalConfig.isOpen} onClose={closeLogin} role={modalConfig.role} />
-        </Suspense>
-      )}
     </div>
   );
 }

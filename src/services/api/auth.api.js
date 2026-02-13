@@ -14,3 +14,10 @@ export const meApi = () => axiosClient.get("/api/Auth/me");
 
 export const logoutApi = () => axiosClient.post("/api/Auth/logout");
 
+export const loginStudentApi = (payload) => {
+  return axiosClient.post("/api/Student/login", payload);
+}
+
+export const createStudentApi = (payload) => {
+  return axiosClient.post("/api/Student", payload);
+}

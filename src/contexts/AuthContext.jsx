@@ -18,27 +18,68 @@ export function AuthProvider({ children }) {
     return freshUser;
   };
 
+  // useEffect(() => {
+  //   let alive = true;
+
+  //   (async () => {
+  //     const savedUser = localStorage.getItem("user");
+  //     if (savedUser) {
+  //       setUser(JSON.parse(savedUser));
+  //       setIsAuthenticated(true);
+  //     }
+
+  //     try {
+  //       await refreshMe();
+  //     } catch (e) {
+  //       console.error("refreshMe failed:", e);
+  //       // ✅ Nếu đã có savedUser thì giữ nguyên, đừng logout ngay
+  //       if (!savedUser) {
+  //         localStorage.removeItem("user");
+  //         if (!alive) return;
+  //         setUser(null);
+  //         setIsAuthenticated(false);
+  //       }
+  //     } finally {
+  //       if (!alive) return;
+  //       setLoading(false);
+  //     }
+  //   })();
+
+  //   return () => { alive = false; };
+  // }, []);
+
   useEffect(() => {
     let alive = true;
 
     (async () => {
-      const savedUser = localStorage.getItem("user");
+      const savedUserRaw = localStorage.getItem("user");
+      const savedUser = savedUserRaw ? JSON.parse(savedUserRaw) : null;
+
       if (savedUser) {
-        setUser(JSON.parse(savedUser));
+        setUser(savedUser);
         setIsAuthenticated(true);
+      }
+
+      // ✅ nếu là student thì khỏi gọi /me
+      if (savedUser?.role === "student") {
+        if (alive) setLoading(false);
+        return;
       }
 
       try {
         await refreshMe();
       } catch (e) {
         console.error("refreshMe failed:", e);
-        // ✅ Nếu đã có savedUser thì giữ nguyên, đừng logout ngay
-        if (!savedUser) {
-          localStorage.removeItem("user");
-          if (!alive) return;
-          setUser(null);
-          setIsAuthenticated(false);
-        }
+        // if (!savedUser) {
+        //   localStorage.removeItem("user");
+        //   if (!alive) return;
+        //   setUser(null);
+        //   setIsAuthenticated(false);
+        // }
+        localStorage.removeItem("user");
+        if (!alive) return;
+        setUser(null);
+        setIsAuthenticated(false);
       } finally {
         if (!alive) return;
         setLoading(false);
@@ -47,6 +88,7 @@ export function AuthProvider({ children }) {
 
     return () => { alive = false; };
   }, []);
+
 
 
   const login = async (email, password) => {

@@ -82,7 +82,9 @@ HeroIllustration.displayName = "HeroIllustration";
 
 const HeroSection = memo(function HeroSection({ openLogin }) {
   // ✅ 1 handler chung: mở modal đăng nhập
-  const handleLogin = useCallback(() => openLogin(), [openLogin]);
+  // const handleLogin = useCallback(() => openLogin(), [openLogin]);
+  const handleLoginStudent = useCallback(() => openLogin(null, "student"), [openLogin]);
+  const handleLoginParent = useCallback(() => openLogin(null, "parent"), [openLogin]);
 
   return (
     <section
@@ -117,7 +119,7 @@ const HeroSection = memo(function HeroSection({ openLogin }) {
                   subtitle="Truy cập lộ trình học tập của bạn"
                   borderColor="border-indigo-100"
                   bgColor="bg-indigo-100"
-                  onClick={handleLogin}
+                   onClick={handleLoginStudent}
                 />
 
                 <IconCard
@@ -126,7 +128,7 @@ const HeroSection = memo(function HeroSection({ openLogin }) {
                   subtitle="Theo dõi tiến độ học tập của con"
                   borderColor="border-pink-100"
                   bgColor="bg-pink-100"
-                  onClick={handleLogin}
+                  onClick={handleLoginParent}
                 />
               </div>
             </div>
