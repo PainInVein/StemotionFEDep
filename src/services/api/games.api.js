@@ -7,11 +7,13 @@ export const getGamesByLessonId = (lessonId) => {
 };
 
 export const submitGameResult = (payload) => {
-  const { gameId, score, correctAnswers, totalQuestions, playDurations } = payload || {};
+  const { studentId, gameId, score, correctAnswers, totalQuestions, playDurations } = payload || {};
 
   if (!gameId) throw new Error("gameId is required");
+  if (!studentId) throw new Error("studentId is required");
 
   return axiosClient.post("/api/GameResults", {
+    studentId,
     gameId,
     score: Number(score) || 0,
     correctAnswers: Number(correctAnswers) || 0,
