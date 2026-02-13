@@ -4,6 +4,7 @@ import {
   meApi,
   sendRegisterOtpApi,
   verifyRegisterOtpApi,
+  loginStudentApi,
 } from "../api/auth.api";
 
 // ✅ Login - Backend trả user info trong response
@@ -25,6 +26,7 @@ export const logoutService = async () => {
     await logoutApi();
   } finally {
     localStorage.removeItem('user');
+    localStorage.removeItem('student');
   }
 };
 
@@ -42,5 +44,26 @@ export const sendRegisterOtpService = async (payload) => {
 
 export const verifyRegisterOtpService = async (payload) => {
   const res = await verifyRegisterOtpApi(payload);
+  return res.data;
+};
+
+// export const loginStudentService = async (username, password) => {
+//   const res = await loginStudentApi({ username, password });
+
+//   if (res.data?.result) {
+//     localStorage.setItem("student", JSON.stringify(res.data.result));
+//   }
+//   return res.data;
+// };
+
+export const loginStudentService = async (username, password) => {
+  const res = await loginStudentApi({ username, password });
+
+  if (res.data?.result) {
+    const studentUser = { ...res.data.result, role: "student" };
+    localStorage.setItem("user", JSON.stringify(studentUser)); // ✅ quan trọng
+    localStorage.setItem("student", JSON.stringify(res.data.result)); // optional
+  }
+
   return res.data;
 };

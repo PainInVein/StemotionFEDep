@@ -11,13 +11,17 @@ export const LoginVersionContext = createContext();
 function RootLayout() {
   const location = useLocation();
   const navigate = useNavigate();
-  const isLessonPage = location.pathname.includes("/lesson/"); 
+  const isLessonPage = location.pathname.includes("/lesson/");
 
-  const { isLoginOpen, closeLogin, openLogin } = useAuthModalStore();
+  const { isLoginOpen, closeLogin, openLogin, role } = useAuthModalStore();
 
   useEffect(() => {
     if (location.state?.openLogin) {
-      openLogin(location.state.redirectTo || "/");
+      // openLogin(location.state.redirectTo || "/");
+      openLogin(
+        location.state.redirectTo || "/",
+        location.state.role || "student"
+      );
 
       // clear state để refresh không mở lại lần nữa
       navigate(location.pathname + location.search, { replace: true, state: null });
@@ -25,15 +29,15 @@ function RootLayout() {
   }, [location.state, location.pathname, location.search, openLogin, navigate]);
 
   useEffect(() => {
-  const params = new URLSearchParams(location.search);
-  if (params.get("google") === "1") {
-    closeLogin(); // đóng modal nếu đang mở
-    // optional: xoá query google=1 khỏi url
-    params.delete("google");
-    const next = params.toString();
-    navigate(location.pathname + (next ? `?${next}` : ""), { replace: true });
-  }
-}, [location.search, location.pathname, closeLogin, navigate]);
+    const params = new URLSearchParams(location.search);
+    if (params.get("google") === "1") {
+      closeLogin(); // đóng modal nếu đang mở
+      // optional: xoá query google=1 khỏi url
+      params.delete("google");
+      const next = params.toString();
+      navigate(location.pathname + (next ? `?${next}` : ""), { replace: true });
+    }
+  }, [location.search, location.pathname, closeLogin, navigate]);
 
   if (isLessonPage) {
     return (
@@ -53,7 +57,7 @@ function RootLayout() {
         <FooterComponent />
       </div>
 
-      <LoginModal isOpen={isLoginOpen} onClose={closeLogin} />
+      <LoginModal isOpen={isLoginOpen} onClose={closeLogin} role={role} />
     </div>
   );
 }
