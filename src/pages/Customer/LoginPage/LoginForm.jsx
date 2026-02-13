@@ -43,7 +43,7 @@ const studentSchema = z.object({
   password: z.string().min(6, "Mật khẩu tối thiểu 6 ký tự"),
 });
 
-export default function LoginModal({ isOpen = false, onClose = () => {}, role = "student" }) {
+export default function LoginModal({ isOpen = false, onClose = () => { }, role = "student" }) {
   const navigate = useNavigate();
   const titleId = useId();
 
@@ -97,9 +97,15 @@ export default function LoginModal({ isOpen = false, onClose = () => {}, role = 
       toast.success("Đăng nhập thành công!");
       onClose();
 
-      const target = redirectTo || "/";
+      // const target = redirectTo || "/";
+      // clearRedirect();
+      // navigate(target, { replace: true });
+      const defaultTarget = role === ROLE.PARENT ? "/parent/dashboard" : "/";
+      const target = redirectTo || defaultTarget;
+
       clearRedirect();
       navigate(target, { replace: true });
+
     } catch (err) {
       const message =
         err?.response?.data?.message ||
@@ -141,15 +147,17 @@ export default function LoginModal({ isOpen = false, onClose = () => {}, role = 
               <p className="text-gray-500 text-center text-sm mb-2">
                 {config.description}
               </p>
-
-              <Link
-                to={config.registerLink}
-                onClick={onClose}
-                className="text-gray-800 font-bold underline mb-4 hover:text-indigo-600 transition-colors"
-              >
-                Đăng ký miễn phí ngay
-              </Link>
-
+              {role === ROLE.PARENT ? (
+                <Link
+                  to={config.registerLink}
+                  onClick={onClose}
+                  className="text-gray-800 font-bold underline mb-4 hover:text-indigo-600 transition-colors"
+                >
+                  Đăng ký miễn phí ngay
+                </Link>
+              ) : (
+                <div className="h-6" />
+              )}
               <form className="w-full space-y-4" onSubmit={handleSubmit(onSubmit)}>
                 {role === ROLE.PARENT ? (
                   <div className="flex flex-col">
