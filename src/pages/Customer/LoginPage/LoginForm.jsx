@@ -89,9 +89,12 @@ export default function LoginModal({ isOpen = false, onClose = () => { }, role =
   const onSubmit = async (values) => {
     try {
       if (role === ROLE.PARENT) {
-        await loginParent(values.email, values.password);
+      const user = await loginParent(values.email, values.password);
+        
+      console.log("data user: ", user);
       } else {
-        await loginStudentService(values.username, values.password);
+      const student = await loginStudentService(values.username, values.password);
+        console.log("Student logged in: ", student);
       }
 
       toast.success("Đăng nhập thành công!");
