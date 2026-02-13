@@ -16,31 +16,6 @@ export default function CTASection() {
         </p>
 
         <div className="flex gap-4 justify-center flex-wrap pt-4">
-          {/* Student */}
-          <Link to="/register">
-            <div
-              className={`group inline-flex rounded-full bg-gradient-to-r ${GRADIENT} p-[2px] shadow-lg active:scale-95 transition`}
-            >
-              <button
-                className="flex items-center text-lg px-8 py-3 rounded-full font-bold
-                           bg-white transition-all
-                           group-hover:bg-transparent group-hover:text-white"
-              >
-                {/* FaUsers -> FA users */}
-                <i
-                  className="fa-solid fa-users mr-2 text-xl text-[#7E82E4] group-hover:text-white transition-colors"
-                  aria-hidden="true"
-                />
-
-                <span
-                  className={`bg-gradient-to-r ${GRADIENT} bg-clip-text text-transparent group-hover:text-white`}
-                >
-                  Đăng ký học sinh
-                </span>
-              </button>
-            </div>
-          </Link>
-
           {/* Parent */}
           <Link to="/register">
             <div
@@ -53,7 +28,7 @@ export default function CTASection() {
               >
                 {/* FaRegHeart -> FA heart (regular) */}
                 <i
-                  className="fa-regular fa-heart mr-2 text-xl text-[#7E82E4] group-hover:text-white transition-colors"
+                  className="fa-solid fa-person-breastfeeding mr-2 text-3xl text-[#7E82E4] group-hover:text-white transition-colors"
                   aria-hidden="true"
                 />
 
