@@ -4,7 +4,9 @@ export const useAuthModalStore = create((set) => ({
   isLoginOpen: false,
   redirectTo: null,
 
-  openLogin: (redirectTo = null) => set({ isLoginOpen: true, redirectTo }),
+  role: "student",
+
+  openLogin: (redirectTo = null, role = "student") => set({ isLoginOpen: true, redirectTo, role }),
   closeLogin: () => set({ isLoginOpen: false }),
 
   clearRedirect: () => set({ redirectTo: null }),
