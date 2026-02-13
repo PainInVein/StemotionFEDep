@@ -7,7 +7,7 @@ import useAuth from "../../contexts/AuthContext";
 
 export default function Header() {
   const navigate = useNavigate();
-  const { isAuthenticated, logout } = useAuth();
+  // const { isAuthenticated, logout } = useAuth();
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isLoginOpen, setIsLoginOpen] = useState(false);
@@ -32,12 +32,17 @@ export default function Header() {
     // không cần dispatch storage nữa vì dùng context rồi
   };
 
+const { isAuthenticated, logout, user } = useAuth();
+const homePath = user?.role === "parent" ? "/parent/dashboard" : "/";
+
+
   return (
     <>
       <header className="w-full border-b px-4 md:px-10 py-3 sticky top-0 z-50 shadow-sm border-border bg-white backdrop-blur">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           {/* Left: Logo */}
-          <Link to="/">
+          {/* <Link to="/"> */}
+          <Link to={homePath} >
             <div className="flex items-center flex-shrink-0">
               <img
                 src={logo}
@@ -59,7 +64,8 @@ export default function Header() {
 
           {/* Center: Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-8">
-            <Link to="/" className={navItemClass}>
+            {/* <Link to="/" className={navItemClass}> */}
+            <Link to={homePath} className={navItemClass}>
               <i className="fa-solid fa-house text-xl" aria-hidden="true" />
               <span>Trang chủ</span>
             </Link>
@@ -144,7 +150,8 @@ export default function Header() {
           `}
         >
           <nav className="flex flex-col p-6 bg-white">
-            <Link to="/" onClick={() => setIsMenuOpen(false)} className={mobileItemClass}>
+            {/* <Link to="/" onClick={() => setIsMenuOpen(false)} className={mobileItemClass}> */}
+            <Link to={homePath} onClick={() => setIsMenuOpen(false)} className={mobileItemClass}>
               <i className="fa-solid fa-house text-2xl text-indigo-500" aria-hidden="true" />
               <span>Trang chủ</span>
             </Link>

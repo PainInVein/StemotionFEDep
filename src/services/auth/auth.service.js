@@ -5,16 +5,16 @@ import {
   sendRegisterOtpApi,
   verifyRegisterOtpApi,
   loginStudentApi,
+  createStudentApi 
 } from "../api/auth.api";
 
 // ✅ Login - Backend trả user info trong response
 export const loginService = async (email, password) => {
   const res = await loginApi({ email, password });
 
-  // ✅ Backend trả: { message, isSuccess, result: userInfo }
-  // Lưu vào localStorage
   if (res.data?.result) {
-    localStorage.setItem('user', JSON.stringify(res.data.result));
+    const parentUser = { ...res.data.result, role: "parent" };
+    localStorage.setItem("user", JSON.stringify(parentUser));
   }
 
   return res.data;
@@ -65,5 +65,11 @@ export const loginStudentService = async (username, password) => {
     localStorage.setItem("student", JSON.stringify(res.data.result)); // optional
   }
 
+  return res.data;
+};
+
+// ✅ Create student
+export const createStudentService = async (payload) => {
+  const res = await createStudentApi(payload);
   return res.data;
 };
