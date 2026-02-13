@@ -69,7 +69,7 @@ export default function VerifyOtp() {
             // về Home rồi mở login modal
             navigate("/", {
                 replace: true,
-                state: { openLogin: true, redirectTo: "/" },
+                state: { openLogin: true, redirectTo: "/", role: "parent" },
             });
 
         } catch (err) {
