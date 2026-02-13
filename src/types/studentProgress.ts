@@ -15,8 +15,9 @@ export interface StudentProgressOverviewDTO {
     currentLevel: number;
     overallProgress: number; // 0-100
     learningStreak: number; // days
-    totalTimeSpent: number; // minutes or hours
-    points: number;
+    totalTimeSpentMinutes: number; // Changed from totalTimeSpent to match backend
+    totalPoints: number;
+    lastActivityDate?: Date;
     subjects: SubjectProgressResponseDTO[]; // Updated to match backend
 }
 
@@ -30,17 +31,25 @@ export interface SubjectProgressResponseDTO {
 }
 
 export interface RecentActivityDTO {
-    id: string;
+    activityId: string;
     activityName: string;
-    type: 'Game' | 'Lesson' | 'Quiz';
-    date: string; // ISO date
-    duration: number; // minutes
+    activityType: 'Game' | 'Lesson' | 'Quiz';
+    referenceId: string;
+    activityDate: string; // ISO date
+    durationMinutes: number; // minutes
     score: number; // or accuracy %
     status: 'Completed' | 'In Progress';
+    correctAnswers?: number;
+    totalQuestions?: number;
 }
 
 export interface PerformanceInsightDTO {
     strengths: string[];
     weaknesses: string[];
     suggestedFocus: string[];
+    subjectPerformance?: Record<string, number>;
+    totalGamesPlayed?: number;
+    averageGameScore?: number;
+    learningStreak?: number;
+    performanceTrend?: string;
 }
