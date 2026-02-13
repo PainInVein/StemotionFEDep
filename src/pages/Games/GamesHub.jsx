@@ -117,7 +117,7 @@ export default function GamesHub({ lessonId, onClose }) {
                 const user = userStr ? JSON.parse(userStr) : null;
                 console.log("🔍 [DEBUG] parsed user:", user);
 
-                // ✅ localStorage có studentId (chữ thường) vì JSON serialization từ C# API tự động convert sang camelCase
+                // ✅ localStorage có studentId (chữ thường) - API response tự động camelCase
                 const studentId = user?.studentId;
                 console.log("🔍 [DEBUG] studentId:", studentId);
 
