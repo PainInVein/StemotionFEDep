@@ -62,7 +62,7 @@ export const loginStudentService = async (username, password) => {
   if (res.data?.result) {
     const studentUser = { ...res.data.result, role: "student" };
     localStorage.setItem("user", JSON.stringify(studentUser)); // ✅ quan trọng
-    localStorage.setItem("student", JSON.stringify(res.data.result)); // optional
+    // localStorage.setItem("student", JSON.stringify(res.data.result)); // optional
   }
 
   return res.data;
