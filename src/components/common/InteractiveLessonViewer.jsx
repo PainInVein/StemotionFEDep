@@ -302,7 +302,7 @@ export default function InteractiveLessonViewer({ lessonId, lessonName, onComple
                         </motion.button>
 
                         <motion.button
-                            onClick={isLastPage ? handleExit : goToNext}
+                            onClick={goToNext}
                             disabled={!canContinue}
                             className={`flex items-center gap-2 px-8 py-3 rounded-full font-bold text-base transition-all ${canContinue
                                 ? 'bg-gradient-to-r from-green-500 to-blue-500 text-white hover:from-green-600 hover:to-blue-600 shadow-lg cursor-pointer'
