@@ -56,7 +56,7 @@ const StudyTimeChart = ({ data }) => {
     };
 
     return (
-        <Card title="Study Time (Last 7 Days)" bordered={false} className="h-full">
+        <Card title="Study Time (Last 7 Days)" variant="borderless" className="h-full">
             <div style={{ height: "300px" }}>
                 <Bar options={options} data={chartData} />
             </div>

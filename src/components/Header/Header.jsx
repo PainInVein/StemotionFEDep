@@ -32,8 +32,8 @@ export default function Header() {
     // không cần dispatch storage nữa vì dùng context rồi
   };
 
-const { isAuthenticated, logout, user } = useAuth();
-const homePath = user?.role === "parent" ? "/parent/dashboard" : "/";
+  const { isAuthenticated, logout, user } = useAuth();
+  const homePath = user?.role === "parent" ? "/parent/dashboard" : "/";
 
 
   return (
@@ -75,11 +75,12 @@ const homePath = user?.role === "parent" ? "/parent/dashboard" : "/";
               <span>Khóa học</span>
             </Link>
 
-             <Link to="/subscription" className={navItemClass}>
-              <i className="fa-solid fa-angles-up text-xl" aria-hidden="true" />
-              <span>Nâng cấp premium</span>
-            </Link>
-
+            {user?.role === "parent" && (
+              <Link to="/subscription" className={navItemClass}>
+                <i className="fa-solid fa-angles-up text-xl" aria-hidden="true" />
+                <span>Nâng cấp premium</span>
+              </Link>
+            )}
             <Link to="/about-us" className={navItemClass}>
               <i className="fa-solid fa-circle-info text-xl" aria-hidden="true" />
               <span>Giới thiệu</span>
@@ -160,6 +161,17 @@ const homePath = user?.role === "parent" ? "/parent/dashboard" : "/";
               <i className="fa-solid fa-book-open text-2xl text-indigo-500" aria-hidden="true" />
               <span>Khóa học</span>
             </Link>
+
+            {user?.role === "parent" && (
+              <Link
+                to="/subscription"
+                onClick={() => setIsMenuOpen(false)}
+                className={mobileItemClass}
+              >
+                <i className="fa-solid fa-angles-up text-2xl text-indigo-500" aria-hidden="true" />
+                <span>Nâng cấp premium</span>
+              </Link>
+            )}
 
             <Link to="/about-us" onClick={() => setIsMenuOpen(false)} className={mobileItemClass}>
               <i className="fa-solid fa-circle-info text-2xl text-indigo-500" aria-hidden="true" />

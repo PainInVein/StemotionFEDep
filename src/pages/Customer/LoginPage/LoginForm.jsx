@@ -6,7 +6,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "react-toastify";
 import { useAuthModalStore } from "../../../stores/authModalStore";
-import { loginStudentService } from "../../../services/auth/auth.service";
+// import { loginStudentService, loginService} from "../../../services/auth/auth.service";
 
 const ROLE = { STUDENT: "student", PARENT: "parent" };
 
@@ -47,7 +47,7 @@ export default function LoginModal({ isOpen = false, onClose = () => { }, role =
   const navigate = useNavigate();
   const titleId = useId();
 
-  const { login: loginParent, loading } = useAuth();
+  const { login, loginStudent, loading } = useAuth();
 
   // const role = useAuthModalStore((s) => s.role);
   const redirectTo = useAuthModalStore((s) => s.redirectTo);
@@ -89,11 +89,11 @@ export default function LoginModal({ isOpen = false, onClose = () => { }, role =
   const onSubmit = async (values) => {
     try {
       if (role === ROLE.PARENT) {
-      const user = await loginParent(values.email, values.password);
+      const user = await login(values.email, values.password);
         
       console.log("data user: ", user);
       } else {
-      const student = await loginStudentService(values.username, values.password);
+      const student = await loginStudent(values.username, values.password);
         console.log("Student logged in: ", student);
       }
 

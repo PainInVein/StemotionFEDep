@@ -137,6 +137,7 @@ import {
   loginService,
   logoutService,
   getMeService,
+  loginStudentService,
 } from "../services/auth/auth.service";
 
 const AuthContext = createContext(null);
@@ -148,62 +149,98 @@ export function AuthProvider({ children }) {
 
   const refreshMe = async () => {
     const me = await getMeService();
-    const freshUser = me?.result;
-    if (!freshUser) throw new Error("Không lấy được user từ /me");
+    // const freshUser = me;
+    if (!me) {
+      
+      console.error("getMeService trả về dữ liệu không hợp lệ:", me);
+      throw new Error("Không lấy được user từ /me");
+    };
 
     // ✅ giữ role đã lưu trước đó (vì /me có thể không trả role)
     const savedRaw = localStorage.getItem("user");
     const savedUser = savedRaw ? JSON.parse(savedRaw) : null;
 
     const mergedUser = {
-      ...freshUser,
-      role: freshUser?.role || savedUser?.role, // giữ role cũ nếu thiếu
+      ...me,
+      role: me?.role || savedUser?.role, // giữ role cũ nếu thiếu
     };
 
     localStorage.setItem("user", JSON.stringify(mergedUser));
+    console.log("refreshMe got user:", mergedUser);
     setUser(mergedUser);
     setIsAuthenticated(true);
     return mergedUser;
   };
 
+  // useEffect(() => {
+  //   let alive = true;
+
+  //   (async () => {
+  //     const savedUserRaw = localStorage.getItem("user");
+  //     const savedUser = savedUserRaw ? JSON.parse(savedUserRaw) : null;
+
+  //     if (savedUser) {
+  //       setUser(savedUser);
+  //       setIsAuthenticated(true);
+  //     }
+
+  //     // ✅ nếu là student thì khỏi gọi /me (vì student không dùng cookie /me)
+  //     if (savedUser?.role === "student") {
+  //       if (alive) setLoading(false);
+  //       return;
+  //     }
+
+  //     // try {
+  //     //   await refreshMe();
+  //     // } catch (e) {
+  //     //   console.error("refreshMe failed:", e);
+
+  //     //   // ✅ nếu refresh fail -> coi như chưa đăng nhập (tuỳ bạn muốn giữ savedUser hay không)
+  //     //   localStorage.removeItem("user");
+  //     //   if (!alive) return;
+  //     //   setUser(null);
+  //     //   setIsAuthenticated(false);
+  //     // } finally {
+  //     //   if (!alive) return;
+  //     //   setLoading(false);
+  //     // }
+  //     try {
+  //       await refreshMe();
+  //     } catch (e) {
+  //       console.error("refreshMe failed:", e);
+
+  //       // ✅ nếu đã có savedUser thì đừng xoá ngay
+  //       if (!savedUser) {
+  //         localStorage.removeItem("user");
+  //         if (!alive) return;
+  //         setUser(null);
+  //         setIsAuthenticated(false);
+  //       }
+  //     } finally {
+  //       if (alive) setLoading(false);
+  //     }
+
+  //   })();
+
+  //   return () => {
+  //     alive = false;
+  //   };
+  // }, []);
+
   useEffect(() => {
-    let alive = true;
+  const savedRaw = localStorage.getItem("user");
+  const savedUser = savedRaw ? JSON.parse(savedRaw) : null;
 
-    (async () => {
-      const savedUserRaw = localStorage.getItem("user");
-      const savedUser = savedUserRaw ? JSON.parse(savedUserRaw) : null;
+  if (savedUser) {
+    setUser(savedUser);
+    setIsAuthenticated(true);
+  } else {
+    setUser(null);
+    setIsAuthenticated(false);
+  }
 
-      if (savedUser) {
-        setUser(savedUser);
-        setIsAuthenticated(true);
-      }
-
-      // ✅ nếu là student thì khỏi gọi /me (vì student không dùng cookie /me)
-      if (savedUser?.role === "student") {
-        if (alive) setLoading(false);
-        return;
-      }
-
-      try {
-        await refreshMe();
-      } catch (e) {
-        console.error("refreshMe failed:", e);
-
-        // ✅ nếu refresh fail -> coi như chưa đăng nhập (tuỳ bạn muốn giữ savedUser hay không)
-        localStorage.removeItem("user");
-        if (!alive) return;
-        setUser(null);
-        setIsAuthenticated(false);
-      } finally {
-        if (!alive) return;
-        setLoading(false);
-      }
-    })();
-
-    return () => {
-      alive = false;
-    };
-  }, []);
+  setLoading(false);
+}, []);
 
   // ✅ Parent login (service đã set role + lưu localStorage rồi)
   const login = async (email, password) => {
@@ -226,6 +263,23 @@ export function AuthProvider({ children }) {
     }
   };
 
+  const loginStudent = async (username, password) => {
+    setLoading(true);
+    try {
+      await loginStudentService(username, password);
+
+      const savedRaw = localStorage.getItem("user");
+      const savedUser = savedRaw ? JSON.parse(savedRaw) : null;
+      if (!savedUser) throw new Error("Không có user trong localStorage");
+
+      setUser(savedUser);
+      setIsAuthenticated(true);
+      return savedUser;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const logout = async () => {
     setLoading(true);
     try {
@@ -238,7 +292,7 @@ export function AuthProvider({ children }) {
   };
 
   const value = useMemo(
-    () => ({ isAuthenticated, user, loading, login, logout, refreshMe }),
+    () => ({ isAuthenticated, user, loading, login, loginStudent, logout, refreshMe }),
     [isAuthenticated, user, loading]
   );
 

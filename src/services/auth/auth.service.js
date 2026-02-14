@@ -17,7 +17,7 @@ export const loginService = async (email, password) => {
     localStorage.setItem("user", JSON.stringify(parentUser));
   }
 
-  return res.data;
+  return res.data.result;
 };
 
 // ✅ Logout - clear localStorage
@@ -26,7 +26,7 @@ export const logoutService = async () => {
     await logoutApi();
   } finally {
     localStorage.removeItem('user');
-    localStorage.removeItem('student');
+    // localStorage.removeItem('accessToken');
   }
 };
 
@@ -61,8 +61,7 @@ export const loginStudentService = async (username, password) => {
 
   if (res.data?.result) {
     const studentUser = { ...res.data.result, role: "student" };
-    localStorage.setItem("user", JSON.stringify(studentUser)); // ✅ quan trọng
-    localStorage.setItem("student", JSON.stringify(res.data.result)); // optional
+    localStorage.setItem("user", JSON.stringify(studentUser));
   }
 
   return res.data;
