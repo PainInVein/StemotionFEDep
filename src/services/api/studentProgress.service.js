@@ -21,3 +21,7 @@ export const getStudyTimeStatisticsApi = (studentId, startDate, endDate) => {
         params: { startDate, endDate },
     });
 };
+
+export const updateLessonProgressApi = (studentId, lessonId, data) => {
+    return axiosClient.put(`/api/StudentProgress/lesson/${lessonId}/student/${studentId}`, data);
+};

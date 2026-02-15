@@ -1,7 +1,10 @@
+import React, { useState } from "react";
 import Button from "../../../components/common/Button";
 import CupIcon from "../../../components/common/CupIcon";
-
+import LeaderboardModal from "../../../components/Customer/Leaderboard/LeaderboardModal";
 export default function HomePage() {
+  const [showVideo, setShowVideo] = useState(false);
+  const [showLeaderboard, setShowLeaderboard] = useState(false); // Add state
   return (
     <div className="min-h-screen bg-white relative overflow-hidden">
       <div
@@ -61,7 +64,10 @@ export default function HomePage() {
               </div>
 
               {/* Leaderboard Card */}
-              <div className="bg-gradient-to-r from-[#FF9FB2] via-[#B2A5FF] to-[#FFD09B] p-1 rounded-[20px] shadow-md">
+              <div
+                className="bg-gradient-to-r from-[#FF9FB2] via-[#B2A5FF] to-[#FFD09B] p-1 rounded-[20px] shadow-md cursor-pointer hover:scale-[1.02] transition-transform"
+                onClick={() => setShowLeaderboard(true)}
+              >
                 <div className="bg-[#F5F5F8] rounded-[18px] p-5 md:p-6">
                   <div className="flex items-center justify-center mb-5 gap-2">
                     <CupIcon />
@@ -71,6 +77,24 @@ export default function HomePage() {
                     </h2>
                   </div>
                   <Button size='md' className="bg-[#7491FF] hover:bg-brand-blue/90">Xem ngay</Button>
+                </div>
+              </div>
+
+              {/* Guide Video Card - New Addition */}
+              <div className="bg-gradient-to-r from-blue-300 to-indigo-300 p-1 rounded-[20px] shadow-md cursor-pointer hover:scale-[1.02] transition-transform" onClick={() => setShowVideo(true)}>
+                <div className="bg-white rounded-[18px] p-4 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
+                      <i className="fa-solid fa-play text-red-500 text-xl pl-1"></i>
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-indigo-900 text-lg">Hướng dẫn</h3>
+                      <p className="text-xs text-slate-500">Xem video cách sử dụng</p>
+                    </div>
+                  </div>
+                  <div className="bg-slate-50 w-8 h-8 rounded-full flex items-center justify-center">
+                    <i className="fa-solid fa-chevron-right text-slate-400"></i>
+                  </div>
                 </div>
               </div>
             </div>
@@ -102,6 +126,33 @@ export default function HomePage() {
           </div>
         </div>
       </div>
+
+      {/* Video Modal */}
+      {showVideo && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4" onClick={() => setShowVideo(false)}>
+          <div className="relative w-full max-w-4xl bg-black rounded-2xl overflow-hidden shadow-2xl aspect-video" onClick={e => e.stopPropagation()}>
+            <iframe
+              className="w-full h-full"
+              src={`https://www.youtube.com/embed/BnWiFq0AxQc?autoplay=1`}
+              title="Hướng dẫn sử dụng"
+              frameBorder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            ></iframe>
+            <button
+              onClick={() => setShowVideo(false)}
+              className="absolute top-4 right-4 w-10 h-10 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center text-white hover:bg-white/40 transition-colors"
+            >
+              <i className="fa-solid fa-xmark text-xl"></i>
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Leaderboard Modal */}
+      {showLeaderboard && (
+        <LeaderboardModal onClose={() => setShowLeaderboard(false)} />
+      )}
     </div>
   );
 }

@@ -1,4 +1,4 @@
-import { getGamesByLessonId, submitGameResult } from "../api/games.api";
+import { getGamesByLessonId, submitGameResult, getLeaderboard } from "../api/games.api";
 
 /**
  * Unwrap helper:
@@ -36,4 +36,11 @@ export const submitGameResultService = async (payload) => {
 
   // tuỳ BE có trả result hay không
   return data?.result ?? data;
+};
+
+export const getLeaderboardService = async (limit = 10) => {
+  const res = await getLeaderboard(limit);
+  const data = unwrap(res);
+  assertSuccess(data);
+  return data?.result ?? [];
 };
