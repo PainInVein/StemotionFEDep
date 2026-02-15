@@ -1,3 +1,4 @@
+//src/stores/authModalStore.js
 import { create } from "zustand";
 
 export const useAuthModalStore = create((set) => ({

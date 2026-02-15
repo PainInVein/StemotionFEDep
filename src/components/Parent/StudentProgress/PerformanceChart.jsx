@@ -57,7 +57,7 @@ const PerformanceChart = ({ data }) => {
     };
 
     return (
-        <Card title="Subject Performance" bordered={false} className="h-full">
+        <Card title="Subject Performance" variant="borderless" className="h-full">
             <div style={{ height: "300px", display: "flex", justifyContent: "center" }}>
                 <Radar data={chartData} options={options} />
             </div>

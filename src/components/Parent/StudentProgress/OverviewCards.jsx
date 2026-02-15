@@ -7,7 +7,7 @@ const OverviewCards = ({ data }) => {
     return (
         <Row gutter={[16, 16]}>
             <Col xs={24} sm={12} md={6}>
-                <Card bordered={false}>
+                <Card variant="borderless">
                     <Statistic
                         title="Total Lessons"
                         value={data.totalLessons}
@@ -16,7 +16,7 @@ const OverviewCards = ({ data }) => {
                 </Card>
             </Col>
             <Col xs={24} sm={12} md={6}>
-                <Card bordered={false}>
+                <Card variant="borderless">
                     <Statistic
                         title="Completed"
                         value={data.completedLessons}
@@ -26,7 +26,7 @@ const OverviewCards = ({ data }) => {
                 </Card>
             </Col>
             <Col xs={24} sm={12} md={6}>
-                <Card bordered={false}>
+                <Card variant="borderless">
                     <Statistic
                         title="Learning Streak"
                         value={data.learningStreak}
@@ -36,7 +36,7 @@ const OverviewCards = ({ data }) => {
                 </Card>
             </Col>
             <Col xs={24} sm={12} md={6}>
-                <Card bordered={false}>
+                <Card variant="borderless">
                     <Statistic
                         title="Total Points"
                         value={data.totalPoints}
