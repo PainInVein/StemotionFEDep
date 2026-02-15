@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { getLessonContentsByLessonIdService } from '../../services/education/education.service';
 import GamesHub from '../../pages/Games/GamesHub';
 
-// Import các page type components
 import TextPage from '../lessonPages/TextPage';
 import ImagePage from '../lessonPages/ImagePage';
 import FormulaPage from '../lessonPages/FormulaPage';
@@ -11,10 +10,6 @@ import VideoPage from '../lessonPages/VideoPage';
 import PracticePage from '../lessonPages/PracticePage';
 import ExamplePage from '../lessonPages/ExamplePage';
 
-/**
- * InteractiveLessonViewer - Component chính cho giao diện học tập tương tác
- * Hiển thị từng trang một, với navigation và progress bar
- */
 export default function InteractiveLessonViewer({ lessonId, lessonName, onComplete }) {
     const [contents, setContents] = useState([]);
     const [currentPage, setCurrentPage] = useState(0);
@@ -24,7 +19,16 @@ export default function InteractiveLessonViewer({ lessonId, lessonName, onComple
     const [canContinue, setCanContinue] = useState(true);
     const [showGames, setShowGames] = useState(false);
 
-    // Fetch lesson contents
+    // ✅ Thoát viewer (giống logic bạn đưa)
+    const handleExit = () => {
+        // optional: reset nhẹ nếu bạn muốn khi quay lại sẽ bắt đầu lại
+        // setShowGames(false);
+        // setCurrentPage(0);
+        // setCompletedPages(new Set());
+
+        onComplete?.();
+    };
+
     useEffect(() => {
         const fetchContents = async () => {
             try {
@@ -32,6 +36,9 @@ export default function InteractiveLessonViewer({ lessonId, lessonName, onComple
                 setError('');
                 const data = await getLessonContentsByLessonIdService(lessonId);
                 setContents(data || []);
+                setCurrentPage(0);
+                setShowGames(false);
+                setCompletedPages(new Set());
             } catch (err) {
                 setError(err?.message || 'Không thể tải nội dung bài học');
             } finally {
@@ -39,21 +46,16 @@ export default function InteractiveLessonViewer({ lessonId, lessonName, onComple
             }
         };
 
-        if (lessonId) {
-            fetchContents();
-        }
+        if (lessonId) fetchContents();
     }, [lessonId]);
 
-    // Check if current page requires interaction
     useEffect(() => {
         if (contents.length === 0) return;
 
         const currentContent = contents[currentPage];
         const type = currentContent?.contentType?.toLowerCase() || '';
 
-        // Video và Practice pages cần interaction trước khi continue
         if (type === 'video' || type === 'practice') {
-            // Check nếu page này đã hoàn thành chưa
             const pageId = currentContent.lessonContentId;
             setCanContinue(completedPages.has(pageId));
         } else {
@@ -66,18 +68,12 @@ export default function InteractiveLessonViewer({ lessonId, lessonName, onComple
     const isLastPage = currentPage === totalPages - 1;
 
     const goToNext = () => {
-        if (currentPage < totalPages - 1) {
-            setCurrentPage(prev => prev + 1);
-        } else {
-            // Completed all pages - show games option
-            setShowGames(true);
-        }
+        if (currentPage < totalPages - 1) setCurrentPage((prev) => prev + 1);
+        else setShowGames(true);
     };
 
     const goToPrevious = () => {
-        if (currentPage > 0) {
-            setCurrentPage(prev => prev - 1);
-        }
+        if (currentPage > 0) setCurrentPage((prev) => prev - 1);
     };
 
     const handlePageComplete = () => {
@@ -85,12 +81,11 @@ export default function InteractiveLessonViewer({ lessonId, lessonName, onComple
         const pageId = currentContent?.lessonContentId;
 
         if (pageId) {
-            setCompletedPages(prev => new Set([...prev, pageId]));
+            setCompletedPages((prev) => new Set([...prev, pageId]));
             setCanContinue(true);
         }
     };
 
-    // Render current page content
     const renderPage = () => {
         if (contents.length === 0) return null;
 
@@ -108,21 +103,15 @@ export default function InteractiveLessonViewer({ lessonId, lessonName, onComple
         switch (type) {
             case 'text':
                 return <TextPage key={key} {...commonProps} />;
-
             case 'image':
                 return <ImagePage key={key} {...commonProps} />;
-
             case 'formula':
                 return <FormulaPage key={key} {...commonProps} />;
-
             case 'video':
                 return <VideoPage key={key} {...commonProps} onWatched={handlePageComplete} />;
-
             case 'practice':
                 return <PracticePage key={key} {...commonProps} onCorrect={handlePageComplete} />;
-
             default:
-                // Treat as example or text
                 return <ExamplePage key={key} {...commonProps} />;
         }
     };
@@ -150,22 +139,40 @@ export default function InteractiveLessonViewer({ lessonId, lessonName, onComple
                         <div className="text-6xl mb-4">😕</div>
                         <h2 className="text-2xl font-bold text-slate-800 mb-2">Có lỗi xảy ra</h2>
                         <p className="text-slate-600">{error}</p>
+
+                        {/* ✅ nút thoát luôn có */}
+                        <button
+                            onClick={handleExit}
+                            className="mt-6 px-5 py-2 rounded-full font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700"
+                        >
+                            ✕ Thoát
+                        </button>
                     </div>
                 </div>
             </div>
         );
     }
 
+    // ✅ Không có nội dung: vẫn có nút X ở header + GamesHub dùng onClose như bạn muốn
     if (contents.length === 0) {
         return (
             <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 px-4 py-8">
                 <div className="max-w-5xl mx-auto space-y-6">
-                    {/* Message */}
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="bg-white rounded-3xl p-8 shadow-xl border-2 border-amber-100 text-center"
+                        className="bg-white rounded-3xl p-8 shadow-xl border-2 border-amber-100 text-center relative"
                     >
+                        {/* ✅ nút X */}
+                        <button
+                            type="button"
+                            onClick={handleExit}
+                            aria-label="Thoát"
+                            className="absolute right-4 top-4 w-10 h-10 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center font-bold"
+                        >
+                            ✕
+                        </button>
+
                         <motion.div
                             initial={{ scale: 0 }}
                             animate={{ scale: 1 }}
@@ -174,19 +181,16 @@ export default function InteractiveLessonViewer({ lessonId, lessonName, onComple
                         >
                             🎮
                         </motion.div>
-                        <h2 className="text-2xl font-bold text-slate-800 mb-2">
-                            Bài học chưa có nội dung
-                        </h2>
+                        <h2 className="text-2xl font-bold text-slate-800 mb-2">Bài học chưa có nội dung</h2>
                         <p className="text-lg text-slate-600 mb-4">
                             Nhưng đừng lo! Hãy chơi mini game để rèn luyện kỹ năng nhé! 🚀
                         </p>
                     </motion.div>
 
-                    {/* Games Hub */}
                     <GamesHub
                         lessonId={lessonId}
                         onClose={() => {
-                            // Quay về trang trước hoặc gọi onComplete
+                            // ✅ đúng như bạn yêu cầu
                             onComplete?.();
                         }}
                     />
@@ -199,47 +203,61 @@ export default function InteractiveLessonViewer({ lessonId, lessonName, onComple
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
-            {/* Progress Bar - Sticky Top */}
+            {/* Top Bar - Sticky */}
             <div className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-200 shadow-sm">
-                <div className="max-w-5xl mx-auto px-4 py-4">
-                    {/* Lesson title & page counter */}
-                    <div className="flex items-center justify-between mb-3">
-                        <h1 className="text-lg font-bold text-slate-800 truncate">
-                            {lessonName || 'Bài học'}
-                        </h1>
-                        <div className="flex items-center gap-2">
-                            <span className="text-sm font-semibold text-slate-600">
-                                Trang {currentPage + 1} / {totalPages}
-                            </span>
-                        </div>
-                    </div>
+                <div className="max-w-5xl mx-auto px-4 py-3">
+                    <div className="flex items-center gap-3">
+                        {/* LEFT: X */}
+                        <button
+                            type="button"
+                            onClick={handleExit}
+                            aria-label="Thoát"
+                            className="w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center font-bold shrink-0"
+                            title="Thoát"
+                        >
+                            ✕
+                        </button>
 
-                    {/* Progress bar */}
-                    <div className="relative h-3 bg-slate-200 rounded-full overflow-hidden">
-                        <motion.div
-                            className="absolute top-0 left-0 h-full bg-gradient-to-r from-green-400 via-blue-500 to-purple-500 rounded-full"
-                            initial={{ width: 0 }}
-                            animate={{ width: `${progress}%` }}
-                            transition={{ duration: 0.5 }}
-                        />
+                        {/* CENTER: Progress bar */}
+                        <div className="flex-1">
+                            <div className="relative h-3 bg-slate-200 rounded-full overflow-hidden">
+                                <motion.div
+                                    className="absolute top-0 left-0 h-full bg-gradient-to-r from-green-400 via-blue-500 to-purple-500 rounded-full"
+                                    initial={{ width: 0 }}
+                                    animate={{ width: `${progress}%` }}
+                                    transition={{ duration: 0.5 }}
+                                />
+                            </div>
+                        </div>
+
+                        {/* RIGHT: counter */}
+                        <div className="text-sm font-semibold text-slate-600 shrink-0">
+                            {currentPage + 1}/{totalPages}
+                        </div>
                     </div>
                 </div>
             </div>
 
-            {/* Main Content Area */}
             <div className="max-w-5xl mx-auto px-4 py-8">
                 {!showGames ? (
-                    <AnimatePresence mode="wait">
-                        {renderPage()}
-                    </AnimatePresence>
+                    <AnimatePresence mode="wait">{renderPage()}</AnimatePresence>
                 ) : (
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         className="text-center space-y-6"
                     >
-                        {/* Completion Message */}
-                        <div className="bg-white rounded-3xl p-8 shadow-xl border-2 border-green-100">
+                        <div className="bg-white rounded-3xl p-8 shadow-xl border-2 border-green-100 relative">
+                            {/* ✅ nút X ở màn hoàn thành */}
+                            <button
+                                type="button"
+                                onClick={handleExit}
+                                aria-label="Thoát"
+                                className="absolute right-4 top-4 w-10 h-10 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center font-bold"
+                            >
+                                ✕
+                            </button>
+
                             <motion.div
                                 initial={{ scale: 0 }}
                                 animate={{ scale: 1 }}
@@ -248,19 +266,19 @@ export default function InteractiveLessonViewer({ lessonId, lessonName, onComple
                             >
                                 🎉
                             </motion.div>
-                            <h2 className="text-3xl font-bold text-slate-800 mb-2">
-                                Chúc mừng!
-                            </h2>
+                            <h2 className="text-3xl font-bold text-slate-800 mb-2">Chúc mừng!</h2>
                             <p className="text-lg text-slate-600 mb-6">
                                 Con đã hoàn thành bài học! Giờ hãy chơi mini game để ôn tập nhé! 🎮
                             </p>
                         </div>
 
-                        {/* Games Hub */}
-                        <GamesHub lessonId={lessonId} onClose={() => {
-                            setShowGames(false);
-                            onComplete?.();
-                        }} />
+                        <GamesHub
+                            lessonId={lessonId}
+                            onClose={() => {
+                                setShowGames(false);
+                                onComplete?.();
+                            }}
+                        />
                     </motion.div>
                 )}
             </div>
@@ -269,7 +287,6 @@ export default function InteractiveLessonViewer({ lessonId, lessonName, onComple
             <div className="sticky bottom-0 z-50 bg-white/80 backdrop-blur-md border-t border-slate-200 shadow-lg">
                 <div className="max-w-5xl mx-auto px-4 py-4">
                     <div className="flex items-center justify-between gap-4">
-                        {/* Previous Button */}
                         <motion.button
                             onClick={goToPrevious}
                             disabled={isFirstPage}
@@ -284,7 +301,6 @@ export default function InteractiveLessonViewer({ lessonId, lessonName, onComple
                             <span>Quay lại</span>
                         </motion.button>
 
-                        {/* Continue Button */}
                         <motion.button
                             onClick={goToNext}
                             disabled={!canContinue}
@@ -300,7 +316,6 @@ export default function InteractiveLessonViewer({ lessonId, lessonName, onComple
                         </motion.button>
                     </div>
 
-                    {/* Can't continue hint */}
                     {!canContinue && (
                         <motion.p
                             initial={{ opacity: 0, y: -10 }}

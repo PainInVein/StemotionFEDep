@@ -1,3 +1,4 @@
+//src/layouts/RootLayout.jsx
 import { createContext, useEffect } from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import "react-toastify/dist/ReactToastify.css";

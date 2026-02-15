@@ -3,7 +3,7 @@ import { List, Avatar, Tag, Card } from "antd";
 
 const RecentActivityList = ({ activities }) => {
     return (
-        <Card title="Recent Activities" bordered={false} className="h-full">
+        <Card title="Recent Activities" variant="borderless" className="h-full">
             <List
                 itemLayout="horizontal"
                 dataSource={activities}

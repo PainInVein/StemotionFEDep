@@ -111,21 +111,43 @@ export default function GamesHub({ lessonId, onClose }) {
             onFinish: async ({ correctAnswers, totalQuestions, playDurations }) => {
                 const score = calcScore(correctAnswers, totalQuestions);
 
+                const userStr = localStorage.getItem("user");
+                console.log("🔍 [DEBUG] userStr from localStorage:", userStr);
+
+                const user = userStr ? JSON.parse(userStr) : null;
+                console.log("🔍 [DEBUG] parsed user:", user);
+
+                // ✅ localStorage có studentId (chữ thường) - API response tự động camelCase
+                const studentId = user?.studentId;
+                console.log("🔍 [DEBUG] studentId:", studentId);
+
+                if (!studentId) {
+                    setSubmitMsg("❌ Không tìm thấy thông tin học sinh. Vui lòng đăng nhập lại.");
+                    return;
+                }
+
                 try {
                     setSubmitting(true);
                     setSubmitMsg("");
 
-                    // ✅ dùng service submit
-                    await submitGameResultService({
+                    const payload = {
+                        studentId,
                         gameId: activeGame.gameId,
                         score,
                         correctAnswers,
                         totalQuestions,
                         playDurations,
-                    });
+                    };
+
+                    console.log("🔍 [DEBUG] Submitting game result payload:", payload);
+
+                    await submitGameResultService(payload);
 
                     setSubmitMsg("✅ Đã lưu kết quả chơi game!");
+                    console.log("✅ [DEBUG] Game result submitted successfully");
                 } catch (e) {
+                    console.error("❌ [DEBUG] Error submitting game result:", e);
+                    console.error("❌ [DEBUG] Error details:", e?.response?.data || e?.message);
                     setSubmitMsg(e?.message || "❌ Lưu kết quả thất bại");
                 } finally {
                     setSubmitting(false);
