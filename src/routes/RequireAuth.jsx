@@ -1,3 +1,4 @@
+//src/routes/RequireAuth.jsx
 import { useEffect, useRef } from "react";
 import { toast } from "react-toastify";
 import useAuth from "../contexts/AuthContext";
