@@ -1,0 +1,40 @@
+import React from 'react';
+
+const CircularProgress = ({ value, size = 60, strokeWidth = 5, color = 'text-green-500', trackColor = 'text-gray-100' }) => {
+    const radius = (size - strokeWidth) / 2;
+    const circumference = radius * 2 * Math.PI;
+    const offset = circumference - (value / 100) * circumference;
+
+    return (
+        <div className="relative flex items-center justify-center" style={{ width: size, height: size }}>
+            <svg className="transform -rotate-90 w-full h-full">
+                <circle
+                    className={trackColor}
+                    strokeWidth={strokeWidth}
+                    stroke="currentColor"
+                    fill="transparent"
+                    r={radius}
+                    cx={size / 2}
+                    cy={size / 2}
+                />
+                <circle
+                    className={`${color} transition-all duration-1000 ease-out`}
+                    strokeWidth={strokeWidth}
+                    strokeDasharray={circumference}
+                    strokeDashoffset={offset}
+                    strokeLinecap="round"
+                    stroke="currentColor"
+                    fill="transparent"
+                    r={radius}
+                    cx={size / 2}
+                    cy={size / 2}
+                />
+            </svg>
+            <div className={`absolute text-sm font-bold ${color}`}>
+                {value}
+            </div>
+        </div>
+    );
+};
+
+export default CircularProgress;

@@ -15,32 +15,6 @@ function cn(...xs) {
     return xs.filter(Boolean).join(" ");
 }
 
-function Card({ className, children }) {
-    return (
-        <div
-            className={cn(
-                "rounded-2xl border border-slate-200/70 bg-white shadow-[0_1px_0_rgba(15,23,42,0.04)]",
-                className
-            )}
-        >
-            {children}
-        </div>
-    );
-}
-
-function Chip({ children, className }) {
-    return (
-        <span
-            className={cn(
-                "inline-flex items-center rounded-full border border-slate-200 bg-white/70 px-3 py-1 text-xs font-medium text-slate-700 shadow-sm",
-                className
-            )}
-        >
-            {children}
-        </span>
-    );
-}
-
 function safeJsonParse(str, fallback = null) {
     try {
         return JSON.parse(str);
@@ -71,7 +45,6 @@ export default function GamesHub({ lessonId, onClose }) {
                 setLoading(true);
                 setError("");
 
-                // ✅ dùng service -> trả về array games
                 const list = await getGamesByLessonIdService(lessonId);
 
                 if (!alive) return;
@@ -110,16 +83,9 @@ export default function GamesHub({ lessonId, onClose }) {
             },
             onFinish: async ({ correctAnswers, totalQuestions, playDurations }) => {
                 const score = calcScore(correctAnswers, totalQuestions);
-
                 const userStr = localStorage.getItem("user");
-                console.log("🔍 [DEBUG] userStr from localStorage:", userStr);
-
                 const user = userStr ? JSON.parse(userStr) : null;
-                console.log("🔍 [DEBUG] parsed user:", user);
-
-                // ✅ localStorage có studentId (chữ thường) - API response tự động camelCase
                 const studentId = user?.studentId;
-                console.log("🔍 [DEBUG] studentId:", studentId);
 
                 if (!studentId) {
                     setSubmitMsg("❌ Không tìm thấy thông tin học sinh. Vui lòng đăng nhập lại.");
@@ -139,15 +105,10 @@ export default function GamesHub({ lessonId, onClose }) {
                         playDurations,
                     };
 
-                    console.log("🔍 [DEBUG] Submitting game result payload:", payload);
-
                     await submitGameResultService(payload);
-
                     setSubmitMsg("✅ Đã lưu kết quả chơi game!");
-                    console.log("✅ [DEBUG] Game result submitted successfully");
                 } catch (e) {
-                    console.error("❌ [DEBUG] Error submitting game result:", e);
-                    console.error("❌ [DEBUG] Error details:", e?.response?.data || e?.message);
+                    console.error("❌ Error submitting game result:", e);
                     setSubmitMsg(e?.message || "❌ Lưu kết quả thất bại");
                 } finally {
                     setSubmitting(false);
@@ -167,110 +128,131 @@ export default function GamesHub({ lessonId, onClose }) {
         if (code === "math_racing") return <MathRacingGame {...commonProps} />
 
         return (
-            <Card className="p-6">
-                <div className="text-sm font-semibold text-slate-900">Chưa hỗ trợ game</div>
-                <div className="mt-2 text-sm text-slate-600">
-                    gameCode: <span className="font-mono">{activeGame?.gameCode}</span>
+            <div className="flex flex-col items-center justify-center p-12 bg-white rounded-[2rem] shadow-xl border border-slate-100 text-center">
+                <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mb-4 text-3xl">
+                    🕹️
                 </div>
+                <h3 className="text-xl font-bold text-slate-800">Chưa hỗ trợ game này</h3>
+                <p className="mt-2 text-slate-500 font-mono text-sm bg-slate-50 px-3 py-1 rounded-lg border border-slate-100">
+                    gameCode: {activeGame?.gameCode}
+                </p>
                 <button
-                    className="mt-4 rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800"
+                    className="mt-6 rounded-full bg-slate-900 px-6 py-3 text-sm font-bold text-white shadow-lg shadow-slate-200 hover:bg-slate-800 hover:shadow-xl hover:-translate-y-0.5 transition-all"
                     onClick={() => setActiveGame(null)}
                     type="button"
                 >
-                    Quay lại
+                    Quay lại danh sách
                 </button>
-            </Card>
+            </div>
         );
     };
 
+    if (activeGame) {
+        return renderActiveGame();
+    }
+
     return (
-        <div className="space-y-6">
+        <div className="space-y-8 animate-in fade-in duration-500">
             {/* Header */}
-            <Card className="p-6">
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                    <div>
-                        <div className="text-xs font-semibold uppercase tracking-wider text-slate-500">
-                            Mini Games
-                        </div>
-                        <div className="mt-1 text-lg font-extrabold text-slate-900">
-                            Chọn game để bắt đầu
-                        </div>
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+                <div>
+                    <div className="flex items-center gap-2 mb-2">
+                        <span className="px-3 py-1 rounded-full bg-indigo-50 text-indigo-600 text-xs font-bold uppercase tracking-wider border border-indigo-100">
+                            Mini Games Zone
+                        </span>
+                        {games.length > 0 && (
+                            <span className="px-3 py-1 rounded-full bg-emerald-50 text-emerald-600 text-xs font-bold border border-emerald-100">
+                                {games.length} trò chơi có sẵn
+                            </span>
+                        )}
                     </div>
-
-                    <div className="flex items-center gap-2">
-                        <Chip>{games.length} games</Chip>
-                        <button
-                            onClick={onClose}
-                            type="button"
-                            className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
-                        >
-                            Đóng
-                        </button>
-                    </div>
+                    <h2 className="text-3xl md:text-4xl font-black text-slate-800 tracking-tight">
+                        Chọn Game Để Bắt Đầu 🎮
+                    </h2>
+                    <p className="mt-2 text-slate-500">
+                        Vừa học vừa chơi, tích lũy điểm thưởng và leo bảng xếp hạng!
+                    </p>
                 </div>
-            </Card>
 
-            {/* Body */}
-            {loading && (
-                <Card className="p-6">
-                    <div className="animate-pulse space-y-3">
-                        <div className="h-4 w-40 rounded bg-slate-200" />
-                        <div className="h-3 w-full rounded bg-slate-200" />
-                        <div className="h-3 w-5/6 rounded bg-slate-200" />
+                <button
+                    onClick={onClose}
+                    type="button"
+                    className="group flex items-center gap-2 px-5 py-2.5 rounded-full bg-white border border-slate-200 text-slate-600 font-bold hover:border-rose-200 hover:bg-rose-50 hover:text-rose-600 transition-all shadow-sm hover:shadow-md"
+                >
+                    <span>Đóng</span>
+                    <i className="fa-solid fa-xmark text-lg group-hover:rotate-90 transition-transform duration-300"></i>
+                </button>
+            </div>
+
+            {/* Content */}
+            {loading ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {[1, 2, 3].map((i) => (
+                        <div key={i} className="bg-white rounded-[2rem] p-4 h-64 border border-slate-100 shadow-sm animate-pulse">
+                            <div className="w-full h-32 bg-slate-100 rounded-[1.5rem] mb-4"></div>
+                            <div className="h-4 bg-slate-100 rounded-full w-3/4 mb-2"></div>
+                            <div className="h-3 bg-slate-50 rounded-full w-1/2"></div>
+                        </div>
+                    ))}
+                </div>
+            ) : error ? (
+                <div className="flex flex-col items-center justify-center py-16 bg-rose-50/50 rounded-[2rem] border border-rose-100 text-center">
+                    <div className="w-16 h-16 bg-rose-100 text-rose-500 rounded-full flex items-center justify-center text-2xl mb-4">
+                        ⚠️
                     </div>
-                    <div className="mt-4 text-sm text-slate-600">Đang tải danh sách game…</div>
-                </Card>
-            )}
-
-            {!loading && error && (
-                <Card className="border-rose-200 bg-rose-50/60 p-6">
-                    <div className="text-sm font-semibold text-rose-700">Có lỗi</div>
-                    <div className="mt-1 text-sm text-rose-700/90">{error}</div>
-                </Card>
-            )}
-
-            {!loading && !error && activeGame && renderActiveGame()}
-
-            {!loading && !error && !activeGame && (
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                    <h3 className="text-lg font-bold text-rose-700">Không tải được danh sách game</h3>
+                    <p className="text-rose-600/80 mt-1">{error}</p>
+                </div>
+            ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
                     {games.map((g) => (
-                        <Card key={g.gameId} className="overflow-hidden">
-                            <div className="aspect-[16/9] w-full bg-slate-100">
+                        <div
+                            key={g.gameId}
+                            onClick={() => {
+                                setSubmitMsg("");
+                                setActiveGame(g);
+                            }}
+                            className="group relative bg-white rounded-[2rem] shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden cursor-pointer hover:shadow-2xl hover:shadow-indigo-200/50 hover:-translate-y-2 transition-all duration-300"
+                        >
+                            {/* Thumbnail */}
+                            <div className="relative aspect-[16/10] overflow-hidden bg-slate-100">
                                 {g.thumbnailUrl ? (
                                     <img
                                         src={g.thumbnailUrl}
-                                        alt=""
-                                        className="h-full w-full object-cover"
-                                        loading="lazy"
+                                        alt={g.name}
+                                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                                     />
-                                ) : null}
+                                ) : (
+                                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-indigo-50 to-purple-50">
+                                        <span className="text-4xl">🎮</span>
+                                    </div>
+                                )}
+                                {/* Overlay Gradient */}
+                                <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 via-transparent to-transparent opacity-60 group-hover:opacity-40 transition-opacity"></div>
+
+                                {/* Play Button Overlay */}
+                                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 transform scale-75 group-hover:scale-100">
+                                    <div className="w-16 h-16 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center text-white border-2 border-white/50 shadow-2xl">
+                                        <i className="fa-solid fa-play text-2xl ml-1"></i>
+                                    </div>
+                                </div>
                             </div>
 
-                            <div className="p-5">
-                                <div className="flex items-start justify-between gap-3">
-                                    <div className="min-w-0">
-                                        <div className="truncate text-sm font-extrabold text-slate-900">
-                                            {g.name}
-                                        </div>
-                                        <div className="mt-1 line-clamp-2 text-xs text-slate-600">
-                                            {g.description}
-                                        </div>
-                                    </div>
-                                    <Chip className="shrink-0">{g.gameCode}</Chip>
-                                </div>
+                            {/* Info */}
+                            <div className="p-6">
+                                <h3 className="text-xl font-bold text-slate-800 group-hover:text-indigo-600 transition-colors line-clamp-1 mb-2">
+                                    {g.name}
+                                </h3>
+                                <p className="text-slate-500 text-sm line-clamp-2 leading-relaxed h-10 mb-6">
+                                    {g.description || "Hãy thử thách bản thân với trò chơi này nhé!"}
+                                </p>
 
-                                <button
-                                    onClick={() => {
-                                        setSubmitMsg("");
-                                        setActiveGame(g);
-                                    }}
-                                    type="button"
-                                    className="mt-4 w-full rounded-2xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-slate-800 active:scale-[0.99]"
-                                >
-                                    Bắt đầu
+                                <button className="w-full py-3 rounded-xl bg-slate-100 text-slate-700 font-bold text-sm group-hover:bg-indigo-600 group-hover:text-white transition-all duration-300 shadow-sm group-hover:shadow-indigo-200 flex items-center justify-center gap-2">
+                                    <span>Bắt đầu chơi</span>
+                                    <i className="fa-solid fa-arrow-right group-hover:translate-x-1 transition-transform"></i>
                                 </button>
                             </div>
-                        </Card>
+                        </div>
                     ))}
                 </div>
             )}

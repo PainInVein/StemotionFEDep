@@ -14,3 +14,9 @@ export const cancelPaymentApi = (params) => {
   // params là object: { Code, PaymentLinkId, Status, OrderCode, Cancel }
   return axiosClient.get("/api/SubscriptionPayment/cancel-payment", { params });
 };
+
+export const getPaymentApi = (userId) => {
+  return axiosClient.get("/api/Payment", {
+    params: { userId },
+  });
+}

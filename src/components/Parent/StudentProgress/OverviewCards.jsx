@@ -1,51 +1,42 @@
 import React from "react";
-import { Card, Col, Row, Statistic } from "antd";
+import StatCard from "../../common/StatCard";
 
 const OverviewCards = ({ data }) => {
     if (!data) return null;
 
     return (
-        <Row gutter={[16, 16]}>
-            <Col xs={24} sm={12} md={6}>
-                <Card variant="borderless">
-                    <Statistic
-                        title="Total Lessons"
-                        value={data.totalLessons}
-                        prefix={<i className="fa-solid fa-book text-blue-500" />}
-                    />
-                </Card>
-            </Col>
-            <Col xs={24} sm={12} md={6}>
-                <Card variant="borderless">
-                    <Statistic
-                        title="Completed"
-                        value={data.completedLessons}
-                        prefix={<i className="fa-solid fa-circle-check text-green-500" />}
-                        suffix={`/ ${data.totalLessons}`}
-                    />
-                </Card>
-            </Col>
-            <Col xs={24} sm={12} md={6}>
-                <Card variant="borderless">
-                    <Statistic
-                        title="Learning Streak"
-                        value={data.learningStreak}
-                        prefix={<i className="fa-solid fa-fire text-orange-500" />}
-                        suffix="days"
-                    />
-                </Card>
-            </Col>
-            <Col xs={24} sm={12} md={6}>
-                <Card variant="borderless">
-                    <Statistic
-                        title="Total Points"
-                        value={data.totalPoints}
-                        precision={0}
-                        prefix={<i className="fa-solid fa-trophy text-yellow-500" />}
-                    />
-                </Card>
-            </Col>
-        </Row>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <StatCard
+                title="Tổng bài học"
+                value={data.totalLessons}
+                icon="fa-book-open"
+                iconColor="text-blue-600"
+                iconBg="bg-blue-50"
+            />
+            <StatCard
+                title="Đã hoàn thành"
+                value={data.completedLessons}
+                suffix={`/ ${data.totalLessons}`}
+                icon="fa-circle-check"
+                iconColor="text-emerald-600"
+                iconBg="bg-emerald-50"
+            />
+            <StatCard
+                title="Chuỗi ngày học"
+                value={data.learningStreak}
+                suffix="ngày"
+                icon="fa-fire"
+                iconColor="text-orange-500"
+                iconBg="bg-orange-50"
+            />
+            <StatCard
+                title="Tổng điểm"
+                value={data.totalPoints}
+                icon="fa-trophy"
+                iconColor="text-yellow-500"
+                iconBg="bg-yellow-50"
+            />
+        </div>
     );
 };
 
