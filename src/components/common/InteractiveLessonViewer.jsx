@@ -284,7 +284,8 @@ export default function InteractiveLessonViewer({ lessonId, lessonName, onComple
             </div>
 
             {/* Navigation Buttons - Sticky Bottom */}
-            <div className="sticky bottom-0 z-50 bg-white/80 backdrop-blur-md border-t border-slate-200 shadow-lg">
+            {!showGames && (
+                <div className="sticky bottom-0 z-50 bg-white/80 backdrop-blur-md border-t border-slate-200 shadow-lg">
                 <div className="max-w-5xl mx-auto px-4 py-4">
                     <div className="flex items-center justify-between gap-4">
                         <motion.button
@@ -326,7 +327,8 @@ export default function InteractiveLessonViewer({ lessonId, lessonName, onComple
                         </motion.p>
                     )}
                 </div>
-            </div>
+                </div>
+            )}
         </div>
     );
 }

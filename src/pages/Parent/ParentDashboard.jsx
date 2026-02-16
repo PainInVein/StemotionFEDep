@@ -27,6 +27,7 @@ import OverviewCards from "../../components/Parent/StudentProgress/OverviewCards
 import RecentActivityList from "../../components/Parent/StudentProgress/RecentActivityList";
 import PerformanceChart from "../../components/Parent/StudentProgress/PerformanceChart";
 import StudyTimeChart from "../../components/Parent/StudentProgress/StudyTimeChart";
+import WeeklyStreak from "../../components/Parent/StudentProgress/WeeklyStreak";
 
 const { Content } = Layout;
 const { Title } = Typography;
@@ -184,29 +185,33 @@ const ParentDashboard = () => {
 
   if ((loading || authLoading) && !selectedStudentId) {
     return (
-      <div className="flex justify-center items-center h-screen">
+      <div className="flex justify-center items-center h-screen bg-gray-50">
         <Spin size="large" />
       </div>
     );
   }
 
   return (
-    <Layout className="min-h-screen bg-gray-50">
-      <Content className="p-6">
+    <Layout className="min-h-screen bg-gray-50 font-sans text-gray-800">
+      <Content className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
         {/* Header row */}
-        <div className="flex justify-between items-center mb-6">
-          <Title level={2} style={{ margin: 0 }}>
-            Parent Dashboard
-          </Title>
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-10">
+          <div>
+            <h1 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">
+              Chào mừng, {user?.lastName || "Phụ huynh"}! 👋
+            </h1>
+            <p className="text-gray-500 mt-2 text-lg">Dưới đây là tình hình học tập của con bạn hôm nay.</p>
+          </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 w-full sm:w-auto">
             {students.length > 0 && (
               <>
                 <Select
                   value={selectedStudentId}
                   style={{ width: 260 }}
                   onChange={handleStudentChange}
-                  placeholder="Select a child"
+                  placeholder="Chọn học sinh"
+                  className="shadow-sm rounded-lg"
                 >
                   {students.map((student) => (
                     <Option key={student.studentId} value={student.studentId}>
@@ -215,34 +220,48 @@ const ParentDashboard = () => {
                   ))}
                 </Select>
 
-                <Button onClick={handleReloadCurrentStudent}>
-                  Tải lại
-                </Button>
+                <button
+                  onClick={handleReloadCurrentStudent}
+                  className="w-10 h-10 flex items-center justify-center bg-white border border-gray-200 rounded-xl hover:bg-gray-50 text-gray-600 shadow-sm transition-all hover:shadow-md"
+                  title="Tải lại"
+                >
+                  <i className={`fa-solid fa-rotate ${loading ? 'animate-spin' : ''}`}></i>
+                </button>
               </>
             )}
 
-            <Button type="primary" onClick={openCreateStudent}>
-              Tạo học sinh
-            </Button>
+            <button
+              onClick={openCreateStudent}
+              className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-5 py-2.5 rounded-xl flex items-center gap-2 font-medium transition-all shadow-md hover:shadow-lg whitespace-nowrap active:scale-95"
+            >
+              <i className="fa-solid fa-plus"></i> Tạo học sinh
+            </button>
           </div>
         </div>
 
         {/* No students case */}
         {students.length === 0 ? (
-          <div className="bg-white rounded-xl p-6">
-            <Empty description="No students linked to this account." />
-            <div className="mt-4 flex justify-center">
-              <Button type="primary" onClick={openCreateStudent}>
-                Tạo học sinh ngay
-              </Button>
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-16 text-center max-w-2xl mx-auto mt-10">
+            <div className="w-32 h-32 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-6 transform transition-transform hover:scale-110 duration-300">
+              <i className="fa-solid fa-child-reaching text-5xl text-blue-400"></i>
             </div>
+            <h3 className="text-2xl font-bold text-gray-800 mb-3">Chưa có học sinh nào</h3>
+            <p className="text-gray-500 mb-8 max-w-md mx-auto text-lg">
+              Bắt đầu hành trình bằng cách tạo tài khoản cho con bạn để theo dõi tiến độ học tập.
+            </p>
+            <button
+              onClick={openCreateStudent}
+              className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-8 py-3.5 rounded-xl font-bold text-lg transition-all shadow-lg hover:shadow-xl hover:-translate-y-1 active:scale-95 active:translate-y-0"
+            >
+              Tạo học sinh ngay
+            </button>
           </div>
         ) : (
           <Spin spinning={loading}>
-            <div className="space-y-6">
+            <div className="space-y-8">
               {overview && <OverviewCards data={overview} />}
 
-              <Row gutter={[16, 16]}>
+              <Row gutter={[24, 24]}>
                 <Col xs={24} lg={16}>
                   <StudyTimeChart data={studyTime} />
                 </Col>
@@ -251,12 +270,27 @@ const ParentDashboard = () => {
                 </Col>
               </Row>
 
-              <Row gutter={[16, 16]}>
+              <Row gutter={[24, 24]}>
                 <Col xs={24} lg={12}>
                   <PerformanceChart data={performance} />
                 </Col>
                 <Col xs={24} lg={12}>
-                  {/* Placeholder for future widgets */}
+                  {/* Premium Feature Card */}
+                  <div className="bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 rounded-2xl p-8 text-white flex flex-col justify-center items-center text-center shadow-xl relative overflow-hidden group h-full">
+                    <div className="absolute top-0 right-0 p-32 bg-white/10 rounded-full blur-3xl -mr-16 -mt-16 transform group-hover:scale-110 transition-transform duration-700"></div>
+                    <div className="absolute bottom-0 left-0 p-24 bg-black/10 rounded-full blur-2xl -ml-10 -mb-10"></div>
+
+                    <div className="w-20 h-20 bg-white/20 rounded-2xl flex items-center justify-center mb-6 backdrop-blur-md shadow-inner transform rotate-3 group-hover:rotate-6 transition-transform">
+                      <i className="fa-solid fa-wand-magic-sparkles text-4xl"></i>
+                    </div>
+                    <h3 className="text-3xl font-bold mb-3">AI Insights Sắp Ra Mắt</h3>
+                    <p className="text-indigo-100 mb-8 max-w-sm text-lg leading-relaxed">
+                      Sẵn sàng cho lộ trình học tập cá nhân hóa và các đề xuất thông minh từ AI cho con bạn.
+                    </p>
+                    <button className="bg-white text-indigo-600 px-8 py-3 rounded-xl font-bold shadow-lg hover:bg-gray-50 transition-all hover:-translate-y-1 active:translate-y-0">
+                      Tham gia danh sách chờ
+                    </button>
+                  </div>
                 </Col>
               </Row>
             </div>
