@@ -21,3 +21,7 @@ export const submitGameResult = (payload) => {
     playDurations: Number(playDurations) || 0,
   });
 };
+
+export const getLeaderboard = (limit = 10) => {
+  return axiosClient.get(`/api/GameResults/leaderboard`, { params: { limit } });
+};
