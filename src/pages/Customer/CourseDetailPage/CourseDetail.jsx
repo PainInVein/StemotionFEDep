@@ -4,6 +4,7 @@ import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { getChaptersService, getLessonsService } from "../../../services/education/education.service";
 import { useSelector } from "react-redux";
 import { useLessonProgressStore } from "../../../stores/lessonProgressStore";
+import { getUserKey } from "../../../utils/getUserKey";
 
 const slugify = (text) =>
   (text || "")
@@ -38,8 +39,9 @@ export default function CourseDetail() {
   const chapterKey = chapterIdFromSlug || chapterSlug;
 
   // ✅ userKey theo redux
-  const reduxUser = useSelector((s) => s.user.user);
-  const userKey = reduxUser?.userId || reduxUser?.id || reduxUser?.email || "guest";
+  // const reduxUser = useSelector((s) => s.user.user);
+  // const userKey = reduxUser?.userId || reduxUser?.id || reduxUser?.email || "guest";
+  const userKey = useMemo(() => getUserKey(), []);
 
   // ✅ Zustand: subscribe "byUser" thôi để tránh infinite loop
   const byUser = useLessonProgressStore((s) => s.byUser);
