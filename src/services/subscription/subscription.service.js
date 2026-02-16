@@ -1,4 +1,4 @@
-import { getSubscriptionByIdApi, createPaymentIntentApi, cancelPaymentApi } from "../api/subscription.api";
+import { getSubscriptionByIdApi, createPaymentIntentApi, cancelPaymentApi, getPaymentApi } from "../api/subscription.api";
 
 export const getSubscriptionByIdService = async (subscriptionId) => {
   const res = await getSubscriptionByIdApi(subscriptionId);
@@ -45,4 +45,20 @@ export const cancelPaymentService = async (payload) => {
   }
 
   return data;
+};
+
+export const getPaymentService = async (userId) => {
+  const res = await getPaymentApi(userId);
+  const data = res.data;
+
+  if (!data?.isSuccess) {
+    throw new Error(data?.message || "Không kiểm tra được trạng thái thanh toán");
+  }
+
+  // BE đang trả result: true/false (đã mua gói hay chưa)
+  if (typeof data?.result !== "boolean") {
+    throw new Error("Dữ liệu trả về không hợp lệ");
+  }
+
+  return data.result; // true/false
 };
