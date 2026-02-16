@@ -70,10 +70,13 @@ export default function Header() {
               <span>Trang chủ</span>
             </Link>
 
-            <Link to="/courses" className={navItemClass}>
-              <i className="fa-solid fa-book-open text-xl" aria-hidden="true" />
-              <span>Khóa học</span>
-            </Link>
+            {user?.role !== "parent" && (
+              <Link to="/courses" className={navItemClass}>
+                <i className="fa-solid fa-book-open text-xl" aria-hidden="true" />
+                <span>Khóa học</span>
+              </Link>
+            )}
+
 
             {user?.role === "parent" && (
               <Link to="/subscription" className={navItemClass}>
@@ -157,10 +160,13 @@ export default function Header() {
               <span>Trang chủ</span>
             </Link>
 
-            <Link to="/courses" onClick={() => setIsMenuOpen(false)} className={mobileItemClass}>
-              <i className="fa-solid fa-book-open text-2xl text-indigo-500" aria-hidden="true" />
-              <span>Khóa học</span>
-            </Link>
+            {user?.role !== "parent" && (
+              <Link to="/courses" onClick={() => setIsMenuOpen(false)} className={mobileItemClass}>
+                <i className="fa-solid fa-book-open text-2xl text-indigo-500" aria-hidden="true" />
+                <span>Khóa học</span>
+              </Link>
+            )}
+
 
             {user?.role === "parent" && (
               <Link
