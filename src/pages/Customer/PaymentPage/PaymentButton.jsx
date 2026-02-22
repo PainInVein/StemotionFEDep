@@ -7,11 +7,9 @@ import {
 import { toast } from "react-toastify";
 import useAuth from "../../../contexts/AuthContext"; // <-- chỉnh path đúng theo dự án bạn
 
-const DEFAULT_SUBSCRIPTION_ID = "62a98145-abbe-47b1-9389-91e8cd9423dc";
+const DEFAULT_SUBSCRIPTION_ID = "7e259b3e-b40f-4bbf-b770-a221ad8670f0";
 
-export default function PaymentButton({
-  subscriptionId = DEFAULT_SUBSCRIPTION_ID,
-}) {
+export default function PaymentButton({ subscriptionId = DEFAULT_SUBSCRIPTION_ID }) {
   const { user, isAuthenticated, loading: authLoading } = useAuth(); // lấy user từ context
 
   const [loading, setLoading] = useState(false);
@@ -78,9 +76,7 @@ export default function PaymentButton({
       window.location.href = checkoutUrl;
     } catch (err) {
       console.error("Payment initiation failed:", err);
-      toast.error(
-        err?.message || "Lỗi khi khởi tạo thanh toán. Vui lòng thử lại.",
-      );
+      toast.error(err?.message || "Lỗi khi khởi tạo thanh toán. Vui lòng thử lại.");
     } finally {
       setLoading(false);
     }
@@ -131,9 +127,7 @@ export default function PaymentButton({
         </h3>
 
         {subscription.description ? (
-          <p className="mt-2 text-sm text-gray-600">
-            {subscription.description}
-          </p>
+          <p className="mt-2 text-sm text-gray-600">{subscription.description}</p>
         ) : (
           <p className="mt-2 text-sm text-gray-500">Gói đăng ký</p>
         )}
@@ -154,9 +148,7 @@ export default function PaymentButton({
         className={[
           "w-full rounded-xl px-4 py-3 text-base font-semibold text-white shadow-sm transition",
           "focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2",
-          disablePay
-            ? "cursor-not-allowed bg-gray-300"
-            : "bg-blue-600 hover:bg-blue-700 active:bg-blue-800",
+          disablePay ? "cursor-not-allowed bg-gray-300" : "bg-blue-600 hover:bg-blue-700 active:bg-blue-800",
         ].join(" ")}
       >
         {authLoading ? (
@@ -174,8 +166,7 @@ export default function PaymentButton({
       </button>
 
       <p className="mt-3 text-xs text-gray-500">
-        Bằng việc thanh toán, bạn đồng ý với các điều khoản dịch vụ của chúng
-        tôi.
+        Bằng việc thanh toán, bạn đồng ý với các điều khoản dịch vụ của chúng tôi.
       </p>
     </div>
   );
