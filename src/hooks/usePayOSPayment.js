@@ -7,9 +7,11 @@ import {
   createPaymentIntentService,
 } from "../services/subscription/subscription.service";
 
-const DEFAULT_SUBSCRIPTION_ID = "7e259b3e-b40f-4bbf-b770-a221ad8670f0";
+const DEFAULT_SUBSCRIPTION_ID = "62a98145-abbe-47b1-9389-91e8cd9423dc";
 
-export default function usePayOSPayment(subscriptionId = DEFAULT_SUBSCRIPTION_ID) {
+export default function usePayOSPayment(
+  subscriptionId = DEFAULT_SUBSCRIPTION_ID,
+) {
   const { user, isAuthenticated, loading: authLoading } = useAuth();
 
   const [loading, setLoading] = useState(false);
@@ -31,7 +33,9 @@ export default function usePayOSPayment(subscriptionId = DEFAULT_SUBSCRIPTION_ID
       }
     })();
 
-    return () => { mounted = false; };
+    return () => {
+      mounted = false;
+    };
   }, [subscriptionId]);
 
   const pay = async () => {
@@ -65,7 +69,9 @@ export default function usePayOSPayment(subscriptionId = DEFAULT_SUBSCRIPTION_ID
       });
       window.location.href = checkoutUrl;
     } catch (err) {
-      toast.error(err?.message || "Lỗi khi khởi tạo thanh toán. Vui lòng thử lại.");
+      toast.error(
+        err?.message || "Lỗi khi khởi tạo thanh toán. Vui lòng thử lại.",
+      );
     } finally {
       setLoading(false);
     }
