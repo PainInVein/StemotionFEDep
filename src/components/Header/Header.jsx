@@ -32,8 +32,8 @@ export default function Header() {
     // không cần dispatch storage nữa vì dùng context rồi
   };
 
-const { isAuthenticated, logout, user } = useAuth();
-const homePath = user?.role === "parent" ? "/parent/dashboard" : "/";
+  const { isAuthenticated, logout, user } = useAuth();
+  const homePath = user?.role === "parent" ? "/parent/dashboard" : "/";
 
 
   return (
@@ -70,16 +70,20 @@ const homePath = user?.role === "parent" ? "/parent/dashboard" : "/";
               <span>Trang chủ</span>
             </Link>
 
-            <Link to="/courses" className={navItemClass}>
-              <i className="fa-solid fa-book-open text-xl" aria-hidden="true" />
-              <span>Khóa học</span>
-            </Link>
+            {user?.role !== "parent" && (
+              <Link to="/courses" className={navItemClass}>
+                <i className="fa-solid fa-book-open text-xl" aria-hidden="true" />
+                <span>Khóa học</span>
+              </Link>
+            )}
 
-             <Link to="/subscription" className={navItemClass}>
-              <i className="fa-solid fa-angles-up text-xl" aria-hidden="true" />
-              <span>Nâng cấp premium</span>
-            </Link>
 
+            {user?.role === "parent" && (
+              <Link to="/subscription" className={navItemClass}>
+                <i className="fa-solid fa-angles-up text-xl" aria-hidden="true" />
+                <span>Nâng cấp premium</span>
+              </Link>
+            )}
             <Link to="/about-us" className={navItemClass}>
               <i className="fa-solid fa-circle-info text-xl" aria-hidden="true" />
               <span>Giới thiệu</span>
@@ -94,12 +98,14 @@ const homePath = user?.role === "parent" ? "/parent/dashboard" : "/";
           {/* Right: Action Buttons */}
           <div className="flex items-center justify-end space-x-3 md:space-x-4">
             {/* Trial button */}
-            <button className="relative p-[2px] md:p-[3px] inline-flex items-center justify-center rounded-full bg-gradient-to-r from-[#7E82E4] via-[#FE99BF] via-[#FBA889] to-[#F8BB44] group transition-all duration-300 active:scale-95 shadow-md hover:shadow-lg">
-              <span className="px-3 py-1.5 md:px-5 md:py-2 bg-white rounded-full text-[#7E82E4] text-xs md:text-sm font-bold transition-all duration-300 group-hover:bg-transparent group-hover:text-white">
-                Bắt đầu dùng thử
-              </span>
-            </button>
-
+            <Link to="/trial/courses/toan-hoc-485b6ae3-b9d9-4687-94b8-0a5d5f63abd8/chapter/chuong-1-lam-quen-voi-so-tu-0-den-10-ed682078-ff82-4e16-8f09-2a968ac3369f/lesson/bai-2-dem-so-tu-6-den-10-b7f70ed3-320b-4f01-b20f-9ae90835e52e"
+            >
+              <button className="relative p-[2px] md:p-[3px] inline-flex items-center justify-center rounded-full bg-gradient-to-r from-[#7E82E4] via-[#FE99BF] via-[#FBA889] to-[#F8BB44] group transition-all duration-300 active:scale-95 shadow-md hover:shadow-lg">
+                <span className="px-3 py-1.5 md:px-5 md:py-2 bg-white rounded-full text-[#7E82E4] text-xs md:text-sm font-bold transition-all duration-300 group-hover:bg-transparent group-hover:text-white">
+                  Bắt đầu dùng thử
+                </span>
+              </button>
+            </Link>
             {/* Mobile menu toggle */}
             <button
               onClick={() => setIsMenuOpen((v) => !v)}
@@ -156,10 +162,24 @@ const homePath = user?.role === "parent" ? "/parent/dashboard" : "/";
               <span>Trang chủ</span>
             </Link>
 
-            <Link to="/courses" onClick={() => setIsMenuOpen(false)} className={mobileItemClass}>
-              <i className="fa-solid fa-book-open text-2xl text-indigo-500" aria-hidden="true" />
-              <span>Khóa học</span>
-            </Link>
+            {user?.role !== "parent" && (
+              <Link to="/courses" onClick={() => setIsMenuOpen(false)} className={mobileItemClass}>
+                <i className="fa-solid fa-book-open text-2xl text-indigo-500" aria-hidden="true" />
+                <span>Khóa học</span>
+              </Link>
+            )}
+
+
+            {user?.role === "parent" && (
+              <Link
+                to="/subscription"
+                onClick={() => setIsMenuOpen(false)}
+                className={mobileItemClass}
+              >
+                <i className="fa-solid fa-angles-up text-2xl text-indigo-500" aria-hidden="true" />
+                <span>Nâng cấp premium</span>
+              </Link>
+            )}
 
             <Link to="/about-us" onClick={() => setIsMenuOpen(false)} className={mobileItemClass}>
               <i className="fa-solid fa-circle-info text-2xl text-indigo-500" aria-hidden="true" />

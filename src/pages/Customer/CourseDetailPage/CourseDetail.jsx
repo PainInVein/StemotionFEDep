@@ -1,6 +1,10 @@
+// src/pages/Customer/CourseDetailPage/CourseDetail.jsx
 import { useEffect, useMemo, useState } from "react";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { getChaptersService, getLessonsService } from "../../../services/education/education.service";
+import { useSelector } from "react-redux";
+import { useLessonProgressStore } from "../../../stores/lessonProgressStore";
+import { getUserKey } from "../../../utils/getUserKey";
 
 const slugify = (text) =>
   (text || "")
@@ -30,18 +34,32 @@ export default function CourseDetail() {
   const location = useLocation();
   const state = location.state || {};
 
+  // ✅ chapterKey ổn định
+  const chapterIdFromSlug = useMemo(() => extractUuidFromSlug(chapterSlug), [chapterSlug]);
+  const chapterKey = chapterIdFromSlug || chapterSlug;
+
+  // ✅ userKey theo redux
+  // const reduxUser = useSelector((s) => s.user.user);
+  // const userKey = reduxUser?.userId || reduxUser?.id || reduxUser?.email || "guest";
+  const userKey = useMemo(() => getUserKey(), []);
+
+  // ✅ Zustand: subscribe "byUser" thôi để tránh infinite loop
+  const byUser = useLessonProgressStore((s) => s.byUser);
+  const setDoingLesson = useLessonProgressStore((s) => s.setDoingLesson);
+
+  const chapterProgress = useMemo(() => {
+    const c = byUser?.[userKey]?.[chapterKey];
+    return c || { doingLessonId: null, completed: [] };
+  }, [byUser, userKey, chapterKey]);
+
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState("");
 
   const [chapterName, setChapterName] = useState(state.chapterName || "");
   const [subjectName, setSubjectName] = useState(state.subjectName || "");
-
-  // ✅ NEW: giữ gradeLevel của chapter để lọc lesson đúng
   const [chapterGradeLevel, setChapterGradeLevel] = useState(state.gradeLevel ?? null);
 
   const [lessons, setLessons] = useState([]);
-
-  const chapterIdFromSlug = useMemo(() => extractUuidFromSlug(chapterSlug), [chapterSlug]);
 
   useEffect(() => {
     const run = async () => {
@@ -53,16 +71,12 @@ export default function CourseDetail() {
         let resolvedSubjectName = state.subjectName || "";
         let resolvedGradeLevel = state.gradeLevel ?? null;
 
-        // ✅ reload mất state -> tìm chapter từ slug (ưu tiên chapterId)
         if (!resolvedChapterName || resolvedGradeLevel == null) {
           const chapRes = await getChaptersService(1, 5000);
           const chapItems = chapRes?.items ?? [];
 
           let found = null;
-
-          if (chapterIdFromSlug) {
-            found = chapItems.find((c) => c.chapterId === chapterIdFromSlug);
-          }
+          if (chapterIdFromSlug) found = chapItems.find((c) => c.chapterId === chapterIdFromSlug);
 
           if (!found) {
             const slugNoId = chapterSlug.replace(/-[0-9a-fA-F-]{36}$/, "");
@@ -71,11 +85,9 @@ export default function CourseDetail() {
 
           resolvedChapterName = found?.chapterName || resolvedChapterName || "";
           resolvedSubjectName = found?.subjectName || resolvedSubjectName || "";
-          // ✅ lấy gradeLevel từ chapter để filter lesson
           resolvedGradeLevel = found?.gradeLevel ?? resolvedGradeLevel;
         }
 
-        // fallback subjectName theo URL nếu vẫn rỗng
         if (!resolvedSubjectName && subjectSlug) {
           resolvedSubjectName = subjectSlug
             .replace(/-[0-9a-fA-F-]{36}$/, "")
@@ -86,34 +98,25 @@ export default function CourseDetail() {
         setSubjectName(resolvedSubjectName);
         setChapterGradeLevel(resolvedGradeLevel);
 
-        // ✅ load lessons và filter theo (chapterName + gradeLevel)
         const lessonRes = await getLessonsService(1, 5000);
         const lessonItems = lessonRes?.items ?? [];
 
         const filtered = resolvedChapterName
           ? lessonItems.filter((l) => {
-              const sameChapterName = l.chapterName === resolvedChapterName;
-              const active = l.status !== "Inactive";
-              // ✅ KEY FIX: phân biệt lesson theo gradeLevel
-              const sameGrade =
-                resolvedGradeLevel == null ? true : Number(l.gradeLevel) === Number(resolvedGradeLevel);
-              return sameChapterName && sameGrade && active;
-            })
+            const sameChapterName = l.chapterName === resolvedChapterName;
+            const active = l.status !== "Inactive";
+            const sameGrade = resolvedGradeLevel == null ? true : Number(l.gradeLevel) === Number(resolvedGradeLevel);
+            return sameChapterName && sameGrade && active;
+          })
           : [];
 
-        const uiLessons = filtered.map((l) => ({
-          id: l.lessonId,
-          title: l.lessonName,
-          status: "doing",
-          raw: l,
-        }));
-
-        const normalized = uiLessons.map((x, idx) => ({
-          ...x,
-          status: idx === 0 ? "doing" : "notyet",
-        }));
-
-        setLessons(normalized);
+        setLessons(
+          filtered.map((l) => ({
+            id: l.lessonId,
+            title: l.lessonName,
+            raw: l,
+          }))
+        );
       } catch (e) {
         setErr(e?.message || "Load failed");
       } finally {
@@ -125,17 +128,34 @@ export default function CourseDetail() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [subjectSlug, chapterSlug, chapterIdFromSlug]);
 
+  // ✅ Status đúng theo flow bạn muốn:
+  // - complete: nằm trong completed
+  // - doing: đúng doingLessonId
+  // - notyet: còn lại
+  const lessonsWithStatus = useMemo(() => {
+    const doingId = chapterProgress?.doingLessonId || null;
+    const completedSet = new Set(chapterProgress?.completed || []);
+
+    return lessons.map((l) => ({
+      ...l,
+      // ✅ doing ưu tiên cao nhất
+      status: doingId === l.id ? "doing" : completedSet.has(l.id) ? "complete" : "notyet",
+    }));
+  }, [lessons, chapterProgress]);
+
   const titleOnCard = chapterName || "Chapter";
 
   const openLesson = (lesson) => {
-    const lessonSlug = `${slugify(lesson.title)}-${lesson.id}`;
-    navigate(`/courses/${subjectSlug}/chapter/${chapterSlug}/lesson/${lessonSlug}`, {
+    // ✅ Quan trọng: chuyển lesson doing cũ -> complete, lesson mới -> doing
+    setDoingLesson(userKey, chapterKey, lesson.id);
+
+    const lessonSlug2 = `${slugify(lesson.title)}-${lesson.id}`;
+    navigate(`/courses/${subjectSlug}/chapter/${chapterSlug}/lesson/${lessonSlug2}`, {
       state: {
         lessonId: lesson.id,
         lessonName: lesson.title,
         chapterName,
         subjectName,
-        // ✅ NEW: truyền gradeLevel qua route state để các page sau dùng được (nếu cần)
         gradeLevel: chapterGradeLevel,
       },
     });
@@ -146,15 +166,15 @@ export default function CourseDetail() {
       <div className="max-w-[1440px] mx-auto px-4 py-8 lg:py-10">
         <div className="flex flex-col lg:flex-row gap-8 lg:gap-16 items-start justify-center">
           <div className="w-full lg:w-auto flex-shrink-0">
-            <CourseCard title={titleOnCard} subtitle={subjectName} lessonCount={lessons.length} />
+            <CourseCard title={titleOnCard} subtitle={subjectName} lessonCount={lessonsWithStatus.length} />
             <div className="mt-3 text-sm text-slate-500">
-              {loading ? "Đang tải..." : err ? `Lỗi: ${err}` : `Lessons: ${lessons.length}`}
+              {loading ? "Đang tải..." : err ? `Lỗi: ${err}` : `Lessons: ${lessonsWithStatus.length}`}
               {chapterGradeLevel != null ? ` • Grade: ${chapterGradeLevel}` : ""}
             </div>
           </div>
 
           <div className="w-full lg:w-auto flex-shrink-0">
-            <LessonsList chapterName={chapterName} lessons={lessons} onOpenLesson={openLesson} />
+            <LessonsList chapterName={chapterName} lessons={lessonsWithStatus} onOpenLesson={openLesson} />
           </div>
         </div>
 
@@ -173,7 +193,6 @@ export default function CourseDetail() {
     </div>
   );
 }
-
 
 /* CourseCard/LessonsList/LessonItem giữ UI như bạn, chỉ lưu ý LessonItem KHÔNG lock */
 function CourseCard({ title = "Chapter", subtitle = "", lessonCount = 0 }) {

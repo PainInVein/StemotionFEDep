@@ -123,11 +123,11 @@ export default function CheckOut() {
 
                             {/* ✅ Buttons */}
                             <div className="space-y-4">
-                                <button className="w-full px-2 md:px-5 py-2 md:py-5 border-2 border-black bg-white rounded-[54px] shadow-lg hover:shadow-xl transition-shadow">
+                                {/* <button className="w-full px-2 md:px-5 py-2 md:py-5 border-2 border-black bg-white rounded-[54px] shadow-lg hover:shadow-xl transition-shadow">
                                     <span className="font-brilliant text-lg md:text-xl text-gray-custom font-medium">
                                         <i className="fa-regular fa-credit-card"></i> Thẻ tín dụng & thẻ ghi nợ
                                     </span>
-                                </button>
+                                </button> */}
 
                                 {/* ✅ Nút payOS CHỈ là 1 nút, click để thanh toán */}
                                 <button

@@ -86,36 +86,33 @@ export default function LoginModal({ isOpen = false, onClose = () => { }, role =
   };
 
   const onSubmit = async (values) => {
-    try {
-      if (role === ROLE.PARENT) {
-        const user = await loginParent(values.email, values.password);
-
-        console.log("data user: ", user);
-      } else {
-        const student = await loginStudent(values.username, values.password);
-        console.log("Student logged in: ", student);
-      }
+  try {
+    if (role === ROLE.PARENT) {
+      const user = await loginParent(values.email, values.password);
+      console.log("data user: ", user);
 
       toast.success("Đăng nhập thành công!");
       onClose();
+      navigate("/parent/dashboard", { replace: true });
+      return;
+    } else {
+      const student = await loginStudent(values.username, values.password);
+      console.log("Student logged in: ", student);
 
-      // const target = redirectTo || "/";
-      // clearRedirect();
-      // navigate(target, { replace: true });
-      const defaultTarget = role === ROLE.PARENT ? "/parent/dashboard" : "/";
-      const target = redirectTo || defaultTarget;
-
-      clearRedirect();
-      navigate(target, { replace: true });
-
-    } catch (err) {
-      const message =
-        err?.response?.data?.message ||
-        err?.message ||
-        "Thông tin đăng nhập không đúng";
-      toast.error(message);
+      toast.success("Đăng nhập thành công!");
+      onClose();
+      navigate("/", { replace: true });
+      return;
     }
-  };
+  } catch (err) {
+    const message =
+      err?.response?.data?.message ||
+      err?.message ||
+      "Thông tin đăng nhập không đúng";
+    toast.error(message);
+  }
+};
+
 
   const disableSubmit = loading || isSubmitting;
   if (!isOpen) return null;

@@ -302,17 +302,6 @@ const ParentDashboard = () => {
           title="Tạo học sinh"
           open={createOpen}
           onCancel={() => setCreateOpen(false)}
-          footer={null} // Use custom footer or form buttons if needed, but keeping default standard form structure is easier with AntD forms. User logic used onOk.
-          // Wait, user logic used onOk in the Modal props.
-          //   okText="Tạo"
-          //   cancelText="Hủy"
-          //   confirmLoading={creating}
-          //   onOk={handleCreateStudent}
-          // I should styling the Modal footer buttons too? 
-          // User said "code xu ly de nguyen". I should probably keep the standard AntD modal footer for logic safety, 
-          // OR I can override the footer to use my premium buttons calling the same logic.
-          // Let's stick to the User Snippet for Modal strictly to avoid breaking form validation logic, as form submission is bound to Modal ok?
-          // The user snippet has `onOk={handleCreateStudent}`.
           okText="Tạo"
           cancelText="Hủy"
           confirmLoading={creating}
