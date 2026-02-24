@@ -2,29 +2,58 @@ import React, { useState } from "react";
 import Button from "../../../components/common/Button";
 import { FlexibilityIcon, AchievementIcon, TargetIcon, JourneyIcon, CheckCircleIcon, ChartIcon, NoAdsIcon, StarIcon, MascotSVG } from "../../../components/ui/FeatureIcons";
 import { Link } from "react-router-dom";
+import usePayOSPayment from "../../../hooks/usePayOSPayment";
 
 export default function SubscriptionPage() {
 
-    const PLANS = [
-        {
-            id: "annual",
-            title: "Hàng năm",
-            price: "75.000",
-            suffix: "/tháng",
-            popular: true,
-            featured: true,
-        },
-        {
-            id: "monthly",
-            title: "Hàng tháng",
-            price: "100.000",
-            suffix: "/tháng",
-            popular: false,
-            featured: false,
-        },
-    ];
+
+    const { subscription, fetchError } = usePayOSPayment();
 
     const [selectedPlan, setSelectedPlan] = useState("annual");
+
+    const PLANS = subscription
+        ? [
+            {
+                id: "annual",
+                title: subscription.subscriptionName,
+                price: subscription.subscriptionPrice.toLocaleString("vi-VN") + " VNĐ",
+                suffix: "/ " + String(subscription.billingPeriod).toLowerCase(),
+                popular: true,
+                featured: true,
+            },
+        ]
+        : [];
+
+    // Loading state
+    if (!subscription && !fetchError) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-white">
+                <div className="animate-pulse space-y-4 text-center">
+                    <div className="h-8 w-64 rounded bg-gray-200 mx-auto" />
+                    <div className="h-4 w-48 rounded bg-gray-200 mx-auto" />
+                    <p className="text-sm text-gray-500 mt-4">Đang tải thông tin gói...</p>
+                </div>
+            </div>
+        );
+    }
+
+    // Error state
+    if (fetchError) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-white">
+                <div className="text-center space-y-4">
+                    <p className="text-red-600 font-semibold">Không thể tải thông tin gói</p>
+                    <p className="text-sm text-gray-500">{fetchError}</p>
+                    <button
+                        onClick={() => window.location.reload()}
+                        className="mt-2 rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white"
+                    >
+                        Thử lại
+                    </button>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-white">
@@ -254,60 +283,62 @@ function PlanCard({ plan, selected, onSelect }) {
         : "bg-[#EAEAEA]";
 
     return (
-        <button
-            type="button"
-            onClick={onSelect}
-            className="relative flex-1 w-full text-left focus:outline-none"
-            aria-pressed={selected}
-        >
-            {/* Outer border */}
-            <div
-                className={[
-                    "relative rounded-[28px] p-[3px]",
-                    outerClass,
-                    // selected state (không “hard”, chỉ là state UI)
-                    selected ? "shadow-[0_10px_30px_rgba(0,0,0,0.08)]" : "shadow-none",
-                    // hover feel
-                    "transition-all duration-200",
-                ].join(" ")}
+        <Link to="/payment" className="w-full">
+            <button
+                type="button"
+                onClick={onSelect}
+                className="relative flex-1 w-full text-left focus:outline-none"
+                aria-pressed={selected}
             >
-                {/* Badge */}
-                {plan.popular && (
-                    <div className="absolute -top-[14px] left-1/2 -translate-x-1/2 z-10">
-                        <div className="rounded-full px-6 py-[6px] bg-[linear-gradient(90deg,#6A7BFF_0%,#FF90E0_55%,#F7C325_100%)]">
-                            <span className="text-[15px] font-bold text-white">
-                                GÓI PHỔ BIẾN NHẤT
-                            </span>
-                        </div>
-                    </div>
-                )}
-
-                {/* Inner card */}
+                {/* Outer border */}
                 <div
                     className={[
-                        "rounded-[26px] bg-white",
-                        "px-10 py-9",
-                        "min-h-[140px] md:min-h-[160px]",
-                        "flex flex-col items-center justify-center",
-                        // subtle inner border giống ảnh
-                        "border border-black/[0.06]",
+                        "relative rounded-[28px] p-[3px]",
+                        outerClass,
+                        // selected state (không “hard”, chỉ là state UI)
+                        selected ? "shadow-[0_10px_30px_rgba(0,0,0,0.08)]" : "shadow-none",
+                        // hover feel
+                        "transition-all duration-200",
                     ].join(" ")}
                 >
-                    <div className="text-center">
-                        <h3 className="text-[28px] leading-[34px] font-semibold text-[#1F1F1F] mb-2">
-                            {plan.title}
-                        </h3>
+                    {/* Badge */}
+                    {plan.popular && (
+                        <div className="absolute -top-[14px] left-1/2 -translate-x-1/2 z-10">
+                            <div className="rounded-full px-6 py-[6px] bg-[linear-gradient(90deg,#6A7BFF_0%,#FF90E0_55%,#F7C325_100%)]">
+                                <span className="text-[15px] font-bold text-white">
+                                    GÓI PHỔ BIẾN NHẤT
+                                </span>
+                            </div>
+                        </div>
+                    )}
 
-                        <div className="flex items-baseline justify-center gap-1">
-                            <span className="text-[22px] font-semibold text-[#1F1F1F]">
-                                {plan.price}
-                            </span>
-                            <span className="text-[18px] text-[#1F1F1F]/70">{plan.suffix}</span>
+                    {/* Inner card */}
+                    <div
+                        className={[
+                            "rounded-[26px] bg-white",
+                            "px-10 py-9",
+                            "min-h-[140px] md:min-h-[160px]",
+                            "flex flex-col items-center justify-center",
+                            // subtle inner border giống ảnh
+                            "border border-black/[0.06]",
+                        ].join(" ")}
+                    >
+                        <div className="text-center">
+                            <h3 className="text-[28px] leading-[34px] font-semibold text-[#1F1F1F] mb-2">
+                                {plan.title}
+                            </h3>
+
+                            <div className="flex items-baseline justify-center gap-1">
+                                <span className="text-[22px] font-semibold text-[#1F1F1F]">
+                                    {plan.price}
+                                </span>
+                                <span className="text-[18px] text-[#1F1F1F]/70">{plan.suffix}</span>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-        </button>
+            </button>
+        </Link>
     );
 }
 
