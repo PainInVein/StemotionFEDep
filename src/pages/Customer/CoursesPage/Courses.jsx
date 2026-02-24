@@ -5,6 +5,9 @@ import {
   getSubjectsService,
   getChaptersService,
 } from "../../../services/education/education.service";
+import useAuth from "../../../contexts/AuthContext";
+import { useAuthModalStore } from "../../../stores/authModalStore";
+import { TRIAL_CHAPTER_ID } from "../../../constants/trialChapter";
 
 const slugify = (text = "") =>
   text
@@ -36,11 +39,17 @@ const CHAPTER_IMAGE_FALLBACK = [
 ];
 
 export default function Courses() {
-  const { subjectSlug } = useParams(); // ✅ có nghĩa là đang ở /courses/:subjectSlug
+  const { subjectSlug } = useParams();
   const navigate = useNavigate();
 
-  const scrollContainerRef = useRef(null);
+  // ✅ Auth
+  const { isAuthenticated, user } = useAuth();
+  const openLogin = useAuthModalStore((s) => s.openLogin);
 
+  // ✅ Popup cảnh báo chapter bị khóa
+  const [lockedPopup, setLockedPopup] = useState(null); // { chapterName }
+
+  const scrollContainerRef = useRef(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
 
@@ -56,6 +65,8 @@ export default function Courses() {
   const [subjects, setSubjects] = useState([]);
   const [chapters, setChapters] = useState([]);
   const [selectedGradeLevel, setSelectedGradeLevel] = useState(null);
+
+  const { logout } = useAuth();
 
   useEffect(() => {
     const run = async () => {
@@ -91,7 +102,6 @@ export default function Courses() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // ✅ resolve selected subject theo subjectSlug (để show chapter)
   const selectedSubject = useMemo(() => {
     if (!subjectSlug) return null;
 
@@ -101,14 +111,12 @@ export default function Courses() {
       if (found) return found;
     }
 
-    // fallback theo slug name (kém ổn định hơn nếu trùng tên)
     const foundByName = subjects.find(
       (s) => slugify(s.subjectName) === subjectSlug
     );
     return foundByName || null;
   }, [subjectSlug, subjects]);
 
-  // ✅ nếu đang ở subject route, grade hiển thị theo subject đó (đỡ lệch UI)
   useEffect(() => {
     if (selectedSubject?.gradeLevel != null) {
       setSelectedGradeLevel(Number(selectedSubject.gradeLevel));
@@ -143,18 +151,15 @@ export default function Courses() {
       .filter((c) => {
         if (!c || c?.status === "Inactive") return false;
 
-        // ✅ khóa theo gradeLevel để không lẫn chapter giữa các lớp
         const chapterGrade = Number(c.gradeLevel);
         if (!Number.isNaN(selectedGrade) && !Number.isNaN(chapterGrade)) {
           if (chapterGrade !== selectedGrade) return false;
         }
 
-        // ✅ match subject: ưu tiên subjectId nếu BE có, fallback subjectName
         if (c.subjectId && selectedSubject.subjectId) {
           return c.subjectId === selectedSubject.subjectId;
         }
 
-        // fallback: subjectName (đã khóa grade ở trên nên an toàn hơn nhiều)
         return c.subjectName === selectedSubject.subjectName;
       })
       .map((c, idx) => ({
@@ -167,13 +172,22 @@ export default function Courses() {
       }));
   }, [chapters, selectedSubject]);
 
-
   const learningCards = subjectSlug ? chapterCards : subjectCards;
 
   const selectedGradeName = useMemo(() => {
     const g = grades.find((x) => Number(x.gradeLevel) === Number(selectedGradeLevel));
     return g?.name || `Lớp ${selectedGradeLevel ?? ""}`;
   }, [grades, selectedGradeLevel]);
+
+  // ✅ Kiểm tra chapter có bị khóa không
+  const isChapterLocked = (chapterId) => {
+    const isTrial = chapterId === TRIAL_CHAPTER_ID;
+    if (isTrial) return false; // chapter thử luôn mở
+
+    if (!isAuthenticated) return true; // chưa login → khóa
+    if (user?.role === "student" && !user?.parentPaid) return true; // student chưa paid → khóa
+    return false;
+  };
 
   const checkScrollButtons = () => {
     const el = scrollContainerRef.current;
@@ -217,6 +231,25 @@ export default function Courses() {
     isDraggingRef.current = false;
   };
 
+  // ✅ Handle click chapter bị khóa
+  const handleLockedChapterClick = (card) => {
+    if (!isAuthenticated) {
+      // Chưa login → mở modal login
+      openLogin(window.location.pathname);
+    } else {
+      // Đã login nhưng chưa paid → hiện popup nâng cấp
+      setLockedPopup({ chapterName: card.title });
+    }
+  };
+
+  const handleUpgradeClick = async () => {
+    // 1) Logout tài khoản student hiện tại
+    await logout();
+
+    // 2) Mở modal login với role parent (giống HeroSection)
+    openLogin(null, "parent");
+  };
+
   return (
     <div className="min-h-screen bg-white">
       <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 lg:py-[63px]">
@@ -255,7 +288,6 @@ export default function Courses() {
 
             {!!grades.length && (
               <div className="sm:ml-auto">
-                {/* ✅ chỉ cho đổi grade khi đang ở /courses (subject list) */}
                 <select
                   disabled={!!subjectSlug}
                   value={selectedGradeLevel ?? ""}
@@ -273,7 +305,7 @@ export default function Courses() {
           </div>
         </div>
 
-        {/* ✅ Nếu đang xem chapter list: show back */}
+        {/* Back button khi đang xem chapter */}
         {subjectSlug && (
           <div className="mb-4 flex items-center gap-3">
             <button
@@ -289,7 +321,7 @@ export default function Courses() {
           </div>
         )}
 
-        {/* Learning Cards Section */}
+        {/* Learning Cards */}
         <div className="pt-3">
           <div className="relative">
             <div className="rounded-xl bg-purple-100 p-6 sm:p-8 lg:px-6 lg:py-9 overflow-hidden">
@@ -306,7 +338,7 @@ export default function Courses() {
                   style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
                 >
                   {learningCards.map((card) => {
-                    // ✅ /courses: click subject -> đi route protected /courses/:subjectSlug
+                    // ======== SUBJECT CARDS (trang /courses) ========
                     if (!subjectSlug && card.kind === "subject") {
                       const to = `/courses/${slugify(card.title)}-${card.subjectId}`;
                       return (
@@ -326,27 +358,78 @@ export default function Courses() {
                       );
                     }
 
-                    // ✅ /courses/:subjectSlug: click chapter -> /courses/:subjectSlug/chapter/:chapterSlug
-                    const to = `/courses/${subjectSlug}/chapter/${slugify(card.title)}-${card.chapterId}`;
+                    // ======== CHAPTER CARDS (trang /courses/:subjectSlug) ========
+                    const isTrial = card.chapterId === TRIAL_CHAPTER_ID;
+                    const locked = isChapterLocked(card.chapterId);
+
+                    // Route: trial dùng /trial/..., bình thường dùng /courses/...
+                    const to = isTrial
+                      ? `/trial/courses/${subjectSlug}/chapter/${slugify(card.title)}-${card.chapterId}`
+                      : `/courses/${subjectSlug}/chapter/${slugify(card.title)}-${card.chapterId}`;
+
+                    const linkState = {
+                      subjectName: selectedSubject?.subjectName,
+                      chapterName: card.chapterName,
+                      chapterId: card.chapterId,
+                    };
+
                     return (
-                      <Link
+                      <div
                         key={card.id}
-                        to={to}
-                        state={{
-                          subjectName: selectedSubject?.subjectName,
-                          chapterName: card.chapterName,
-                          chapterId: card.chapterId,
-                        }}
-                        onClick={(e) => {
-                          if (draggedRef.current) {
-                            e.preventDefault();
-                            e.stopPropagation();
-                          }
-                        }}
-                        className="flex-shrink-0 w-44 sm:w-48 lg:w-44 block"
+                        className="flex-shrink-0 w-44 sm:w-48 lg:w-44 relative"
                       >
-                        <CardUI title={card.title} image={card.image} />
-                      </Link>
+                        {locked ? (
+                          // ✅ LOCKED: click hiện cảnh báo, không navigate
+                          <div
+                            className="block cursor-pointer"
+                            onClick={() => {
+                              if (draggedRef.current) return;
+                              handleLockedChapterClick(card);
+                            }}
+                          >
+                            <CardUI
+                              title={card.title}
+                              image={card.image}
+                              locked={true}
+                            />
+                          </div>
+                        ) : (
+                          // ✅ UNLOCKED: navigate bình thường
+                          <Link
+                            to={to}
+                            state={linkState}
+                            onClick={(e) => {
+                              if (draggedRef.current) {
+                                e.preventDefault();
+                                e.stopPropagation();
+                              }
+                            }}
+                            className="block"
+                          >
+                            <CardUI
+                              title={card.title}
+                              image={card.image}
+                              locked={false}
+                              isTrial={isTrial}
+                            />
+                          </Link>
+                        )}
+
+                        {/* ✅ Badge "Miễn phí" cho trial chapter */}
+                        {isTrial && (
+                          <div className="absolute top-2 left-2 z-20 bg-green-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm">
+                            Miễn phí
+                          </div>
+                        )}
+
+                        {/* ✅ Badge khoá cho locked chapter */}
+                        {locked && (
+                          <div className="absolute top-2 right-2 z-20 bg-gray-700/80 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm flex items-center gap-1">
+                            <i className="fa-solid fa-lock text-[8px]" />
+                            Premium
+                          </div>
+                        )}
+                      </div>
                     );
                   })}
                 </div>
@@ -359,7 +442,7 @@ export default function Courses() {
                         className="w-12 h-12 rounded-full flex items-center justify-center bg-gray-800 transition-colors"
                         aria-label="Scroll left"
                       >
-                        <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
                           <path d="M23.3333 10L25.6833 12.35L18.05 20L25.6833 27.65L23.3333 30L13.3334 20L23.3333 10Z" fill="white" />
                         </svg>
                       </button>
@@ -375,7 +458,7 @@ export default function Courses() {
                         className="w-12 h-12 rounded-full flex items-center justify-center bg-gray-800 transition-colors"
                         aria-label="Scroll right"
                       >
-                        <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
                           <path d="M16.6667 10L14.3167 12.35L21.95 20L14.3167 27.65L16.6667 30L26.6666 20L16.6667 10Z" fill="white" />
                         </svg>
                       </button>
@@ -390,6 +473,77 @@ export default function Courses() {
         </div>
       </div>
 
+      {/* ✅ POPUP CẢNH BÁO CHAPTER BỊ KHÓA */}
+      {lockedPopup && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+          onClick={() => setLockedPopup(null)}
+        >
+          <div
+            className="bg-white rounded-3xl shadow-2xl p-7 w-full max-w-sm mx-4 animate-in fade-in zoom-in-95 duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex flex-col items-center text-center gap-4">
+              {/* Icon */}
+              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-yellow-100 to-orange-100 flex items-center justify-center">
+                <i className="fa-solid fa-crown text-yellow-500 text-2xl" />
+              </div>
+
+              {/* Title */}
+              <div>
+                <h3 className="text-xl font-bold text-gray-900">
+                  Cần nâng cấp Premium
+                </h3>
+                <p className="text-sm text-gray-500 mt-2 leading-relaxed">
+                  Chương{" "}
+                  <span className="font-semibold text-gray-800">
+                    "{lockedPopup.chapterName}"
+                  </span>{" "}
+                  yêu cầu tài khoản Premium. Phụ huynh vui lòng nâng cấp để mở
+                  khóa toàn bộ nội dung học.
+                </p>
+              </div>
+
+              {/* Lợi ích Premium */}
+              <div className="w-full bg-gradient-to-br from-indigo-50 to-purple-50 rounded-2xl p-4 text-left space-y-2">
+                {[
+                  "Truy cập toàn bộ bài học",
+                  "Không giới hạn luyện tập",
+                  "Nội dung cập nhật thường xuyên",
+                ].map((item) => (
+                  <div key={item} className="flex items-center gap-2">
+                    <i className="fa-solid fa-check text-indigo-500 text-xs" />
+                    <span className="text-sm text-gray-700">{item}</span>
+                  </div>
+                ))}
+              </div>
+
+              {/* Buttons */}
+              <div className="flex flex-col gap-2 w-full">
+                <button
+                  // onClick={() => {
+                  //   setLockedPopup(null);
+                  //   navigate("/subscription");
+                  // }}
+                  onClick={handleUpgradeClick}
+                  className="w-full py-3 rounded-2xl bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white font-semibold text-sm shadow-md hover:opacity-90 transition-opacity"
+                >
+                  <i className="fa-solid fa-crown mr-2" />
+                  Nâng cấp Premium ngay
+                </button>
+
+                <button
+                  onClick={() => setLockedPopup(null)}
+                  className="w-full py-3 rounded-2xl border border-gray-200 text-gray-600 font-medium text-sm hover:bg-gray-50 transition-colors"
+                >
+                  Để sau
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       <style>{`
         .scrollbar-hide::-webkit-scrollbar { display: none; }
       `}</style>
@@ -397,21 +551,41 @@ export default function Courses() {
   );
 }
 
-function CardUI({ title, image }) {
+// ✅ CardUI — thêm prop locked và isTrial
+function CardUI({ title, image, locked = false, isTrial = false }) {
   return (
-    <div className="flex flex-col items-center gap-6 group cursor-pointer">
+    <div
+      className={`flex flex-col items-center gap-6 group ${locked ? "cursor-pointer" : "cursor-pointer"}`}
+    >
       <div
-        className="
+        className={`
           relative isolate w-44 h-44 rounded-[20px]
           before:content-[''] before:absolute before:inset-0
-          before:rounded-[20px] before:bg-gray-200
-          before:translate-x-0 before:translate-y-[8px]
-          before:-z-10
-          transition-transform duration-200 group-hover:scale-[1.02]
-        "
+          before:rounded-[20px] before:translate-x-0 before:translate-y-[8px] before:-z-10
+          transition-all duration-200
+          ${locked
+            ? "before:bg-gray-300 grayscale opacity-60"
+            : isTrial
+              ? "before:bg-green-200 group-hover:scale-[1.02]"
+              : "before:bg-gray-200 group-hover:scale-[1.02]"
+          }
+        `}
       >
-        <div className="relative z-10 w-full h-full rounded-[20px] border-2 border-gray-200 bg-white overflow-hidden">
+        <div
+          className={`
+            relative z-10 w-full h-full rounded-[20px] border-2 overflow-hidden
+            ${locked
+              ? "border-gray-300 bg-gray-100"
+              : isTrial
+                ? "border-green-200 bg-white"
+                : "border-gray-200 bg-white"
+            }
+          `}
+        >
+          {/* Right line decoration */}
           <div className="absolute right-0 top-1/2 -translate-y-1/2 w-4 h-0.5 bg-gray-100" />
+
+          {/* Image */}
           <div className="absolute inset-0 flex items-center justify-center p-10">
             <img
               src={image}
@@ -420,11 +594,28 @@ function CardUI({ title, image }) {
               draggable="false"
             />
           </div>
+
+          {/* ✅ Lock overlay khi bị khóa */}
+          {locked && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/25 rounded-[18px] gap-1">
+              <div className="w-10 h-10 rounded-full bg-white/90 flex items-center justify-center shadow-sm">
+                <i className="fa-solid fa-lock text-gray-500 text-base" />
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
+      {/* Title */}
       <div className="text-center px-4">
-        <p className="text-base leading-6 text-brilliant-black group-hover:underline">
+        <p
+          className={`text-base leading-6 ${locked
+            ? "text-gray-400"
+            : isTrial
+              ? "text-green-700 font-medium group-hover:underline"
+              : "text-brilliant-black group-hover:underline"
+            }`}
+        >
           {title}
         </p>
       </div>

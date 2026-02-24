@@ -2,7 +2,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { getChaptersService, getLessonsService } from "../../../services/education/education.service";
-import { useSelector } from "react-redux";
 import { useLessonProgressStore } from "../../../stores/lessonProgressStore";
 import { getUserKey } from "../../../utils/getUserKey";
 
@@ -21,7 +20,6 @@ const extractUuidFromSlug = (slug = "") => {
   return /^[0-9a-fA-F-]{36}$/.test(maybe) ? maybe : "";
 };
 
-// ====== ASSETS giữ nguyên ======
 const ASSETS = {
   completeShadow: "https://api.builder.io/api/v1/image/assets/TEMP/265bdad652a24ce9a83545e7aeab19fa14fc5dd2?width=184",
   doingMascot: "https://api.builder.io/api/v1/image/assets/TEMP/65172b3050fa147bc742b9bbdc5ac846b7365557?width=177",
@@ -34,16 +32,14 @@ export default function CourseDetail() {
   const location = useLocation();
   const state = location.state || {};
 
-  // ✅ chapterKey ổn định
+  // ✅ Kiểm tra đang ở route trial không
+  const isTrial = location.pathname.startsWith("/trial/");
+
   const chapterIdFromSlug = useMemo(() => extractUuidFromSlug(chapterSlug), [chapterSlug]);
   const chapterKey = chapterIdFromSlug || chapterSlug;
 
-  // ✅ userKey theo redux
-  // const reduxUser = useSelector((s) => s.user.user);
-  // const userKey = reduxUser?.userId || reduxUser?.id || reduxUser?.email || "guest";
   const userKey = useMemo(() => getUserKey(), []);
 
-  // ✅ Zustand: subscribe "byUser" thôi để tránh infinite loop
   const byUser = useLessonProgressStore((s) => s.byUser);
   const setDoingLesson = useLessonProgressStore((s) => s.setDoingLesson);
 
@@ -103,11 +99,14 @@ export default function CourseDetail() {
 
         const filtered = resolvedChapterName
           ? lessonItems.filter((l) => {
-            const sameChapterName = l.chapterName === resolvedChapterName;
-            const active = l.status !== "Inactive";
-            const sameGrade = resolvedGradeLevel == null ? true : Number(l.gradeLevel) === Number(resolvedGradeLevel);
-            return sameChapterName && sameGrade && active;
-          })
+              const sameChapterName = l.chapterName === resolvedChapterName;
+              const active = l.status !== "Inactive";
+              const sameGrade =
+                resolvedGradeLevel == null
+                  ? true
+                  : Number(l.gradeLevel) === Number(resolvedGradeLevel);
+              return sameChapterName && sameGrade && active;
+            })
           : [];
 
         setLessons(
@@ -128,17 +127,12 @@ export default function CourseDetail() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [subjectSlug, chapterSlug, chapterIdFromSlug]);
 
-  // ✅ Status đúng theo flow bạn muốn:
-  // - complete: nằm trong completed
-  // - doing: đúng doingLessonId
-  // - notyet: còn lại
   const lessonsWithStatus = useMemo(() => {
     const doingId = chapterProgress?.doingLessonId || null;
     const completedSet = new Set(chapterProgress?.completed || []);
 
     return lessons.map((l) => ({
       ...l,
-      // ✅ doing ưu tiên cao nhất
       status: doingId === l.id ? "doing" : completedSet.has(l.id) ? "complete" : "notyet",
     }));
   }, [lessons, chapterProgress]);
@@ -146,27 +140,44 @@ export default function CourseDetail() {
   const titleOnCard = chapterName || "Chapter";
 
   const openLesson = (lesson) => {
-    // ✅ Quan trọng: chuyển lesson doing cũ -> complete, lesson mới -> doing
     setDoingLesson(userKey, chapterKey, lesson.id);
 
     const lessonSlug2 = `${slugify(lesson.title)}-${lesson.id}`;
-    navigate(`/courses/${subjectSlug}/chapter/${chapterSlug}/lesson/${lessonSlug2}`, {
+
+    // ✅ FIX: giữ nguyên prefix /trial/ nếu đang ở route trial
+    const basePath = isTrial
+      ? `/trial/courses/${subjectSlug}/chapter/${chapterSlug}/lesson/${lessonSlug2}`
+      : `/courses/${subjectSlug}/chapter/${chapterSlug}/lesson/${lessonSlug2}`;
+
+    navigate(basePath, {
       state: {
         lessonId: lesson.id,
         lessonName: lesson.title,
         chapterName,
         subjectName,
         gradeLevel: chapterGradeLevel,
+        isTrial, // ✅ truyền thêm để LessonDetail biết
       },
     });
   };
+
+  // ✅ Breadcrumb cũng đúng theo route
+  const coursesBasePath = isTrial ? "/courses" : "/courses";
+  const subjectPath = isTrial
+    ? `/courses/${subjectSlug}` // trial không có route subject riêng → về /courses
+    : `/courses/${subjectSlug}`;
 
   return (
     <div className="min-h-screen bg-white">
       <div className="max-w-[1440px] mx-auto px-4 py-8 lg:py-10">
         <div className="flex flex-col lg:flex-row gap-8 lg:gap-16 items-start justify-center">
           <div className="w-full lg:w-auto flex-shrink-0">
-            <CourseCard title={titleOnCard} subtitle={subjectName} lessonCount={lessonsWithStatus.length} />
+            <CourseCard
+              title={titleOnCard}
+              subtitle={subjectName}
+              lessonCount={lessonsWithStatus.length}
+              isTrial={isTrial}
+            />
             <div className="mt-3 text-sm text-slate-500">
               {loading ? "Đang tải..." : err ? `Lỗi: ${err}` : `Lessons: ${lessonsWithStatus.length}`}
               {chapterGradeLevel != null ? ` • Grade: ${chapterGradeLevel}` : ""}
@@ -174,19 +185,34 @@ export default function CourseDetail() {
           </div>
 
           <div className="w-full lg:w-auto flex-shrink-0">
-            <LessonsList chapterName={chapterName} lessons={lessonsWithStatus} onOpenLesson={openLesson} />
+            <LessonsList
+              chapterName={chapterName}
+              lessons={lessonsWithStatus}
+              onOpenLesson={openLesson}
+            />
           </div>
         </div>
 
+        {/* Breadcrumb */}
         <div className="mt-8 text-sm text-slate-500">
           <Link to="/courses" className="text-sky-600 hover:underline">
             Khóa học
           </Link>
           {" / "}
-          <Link to={`/courses/${subjectSlug}`} className="text-sky-600 hover:underline">
-            {subjectName || "Môn học"}
-          </Link>
-          {" / "}
+          {!isTrial && (
+            <>
+              <Link to={subjectPath} className="text-sky-600 hover:underline">
+                {subjectName || "Môn học"}
+              </Link>
+              {" / "}
+            </>
+          )}
+          {isTrial && (
+            <>
+              <span className="text-green-600 font-medium">Học thử miễn phí</span>
+              {" / "}
+            </>
+          )}
           <span className="font-medium text-slate-700">{titleOnCard}</span>
         </div>
       </div>
@@ -194,11 +220,13 @@ export default function CourseDetail() {
   );
 }
 
-/* CourseCard/LessonsList/LessonItem giữ UI như bạn, chỉ lưu ý LessonItem KHÔNG lock */
-function CourseCard({ title = "Chapter", subtitle = "", lessonCount = 0 }) {
+function CourseCard({ title = "Chapter", subtitle = "", lessonCount = 0, isTrial = false }) {
   return (
     <div className="w-full max-w-[487px] min-w-[350px]">
-      <div className="bg-white rounded-[20px] p-8 pb-10" style={{ boxShadow: "0 0 0 2px rgba(0, 0, 0, 0.10) inset" }}>
+      <div
+        className="bg-white rounded-[20px] p-8 pb-10"
+        style={{ boxShadow: "0 0 0 2px rgba(0, 0, 0, 0.10) inset" }}
+      >
         <div className="flex flex-col items-center gap-1.5 mb-6">
           <img
             src="https://api.builder.io/api/v1/image/assets/TEMP/3b9a7abc60182324ab01178c5effdf72fbfe474e?width=178"
@@ -207,9 +235,19 @@ function CourseCard({ title = "Chapter", subtitle = "", lessonCount = 0 }) {
           />
           <h1 className="text-[24px] font-bold text-black leading-[28.8px]">{title}</h1>
           {subtitle ? <div className="text-sm text-slate-500">{subtitle}</div> : null}
+
+          {/* ✅ Badge miễn phí nếu là trial */}
+          {isTrial && (
+            <div className="mt-1 inline-flex items-center gap-1.5 bg-green-50 border border-green-200 text-green-700 text-xs font-semibold px-3 py-1 rounded-full">
+              <i className="fa-solid fa-gift text-[10px]" />
+              Chương học thử miễn phí
+            </div>
+          )}
         </div>
 
-        <p className="text-[16px] text-[#666] leading-[24px] mb-4">Danh sách bài học thuộc chapter này.</p>
+        <p className="text-[16px] text-[#666] leading-[24px] mb-4">
+          Danh sách bài học thuộc chapter này.
+        </p>
 
         <div className="flex flex-wrap items-center gap-x-1.5 gap-y-2">
           <div className="flex items-center gap-2">
@@ -230,7 +268,6 @@ function LessonsList({ onOpenLesson, lessons, chapterName }) {
   return (
     <div className="w-full max-w-[488px]">
       <div className="flex flex-col">
-        {/* header chapter giữ nguyên */}
         <div className="relative mb-8">
           <div
             className="absolute top-0 left-0 right-0 h-16 pointer-events-none z-10"
@@ -255,15 +292,24 @@ function LessonsList({ onOpenLesson, lessons, chapterName }) {
           {lessons.map((lesson, index) => {
             const isRight = index % 2 === 1;
             return (
-              <div key={lesson.id} className={`w-full flex ${isRight ? "justify-end" : "justify-start"}`}>
+              <div
+                key={lesson.id}
+                className={`w-full flex ${isRight ? "justify-end" : "justify-start"}`}
+              >
                 <div className={isRight ? "pr-0 sm:pr-20" : "pl-0 sm:pl-20"}>
-                  <LessonItem lesson={lesson} index={index} onClick={() => onOpenLesson?.(lesson)} />
+                  <LessonItem
+                    lesson={lesson}
+                    index={index}
+                    onClick={() => onOpenLesson?.(lesson)}
+                  />
                 </div>
               </div>
             );
           })}
 
-          {!lessons.length && <div className="text-sm text-slate-500">Chưa có bài học trong chapter này.</div>}
+          {!lessons.length && (
+            <div className="text-sm text-slate-500">Chưa có bài học trong chapter này.</div>
+          )}
         </div>
       </div>
     </div>
@@ -285,13 +331,28 @@ function LessonItem({ lesson, index, onClick }) {
     >
       <div className="flex-shrink-0 relative" style={{ width: "128px", height: "134px" }}>
         {isComplete && (
-          <img src={ASSETS.completeShadow} alt="" className="absolute" style={{ left: "18px", bottom: "20px", width: "92px", height: "55px" }} />
+          <img
+            src={ASSETS.completeShadow}
+            alt=""
+            className="absolute"
+            style={{ left: "18px", bottom: "20px", width: "92px", height: "55px" }}
+          />
         )}
 
         {isDoing && (
           <div className="relative w-full h-full">
-            <img src={ASSETS.doingShadow} alt="" className="absolute" style={{ left: "10px", bottom: "8px", width: "102px", height: "62px" }} />
-            <img src={ASSETS.doingMascot} alt="" className="absolute animate-bounce" style={{ left: "18px", top: "8px", width: "88px", height: "88px" }} />
+            <img
+              src={ASSETS.doingShadow}
+              alt=""
+              className="absolute"
+              style={{ left: "10px", bottom: "8px", width: "102px", height: "62px" }}
+            />
+            <img
+              src={ASSETS.doingMascot}
+              alt=""
+              className="absolute animate-bounce"
+              style={{ left: "18px", top: "8px", width: "88px", height: "88px" }}
+            />
           </div>
         )}
 
@@ -309,9 +370,6 @@ function LessonItem({ lesson, index, onClick }) {
   );
 }
 
-// EyeIcon, SparkleIcon, ShapeIcon: giữ nguyên như bạn
-
-/* ===== Icons giữ nguyên (mình giữ phần bạn đang có) ===== */
 function EyeIcon() {
   return (
     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -358,19 +416,26 @@ function SparkleIcon() {
 
 function ShapeIcon({ variant }) {
   return (
-    <svg width="128" height="134" viewBox="0 0 128 134" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full max-w-[128px] flex-shrink-0">
+    <svg
+      width="128"
+      height="134"
+      viewBox="0 0 128 134"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className="w-full max-w-[128px] flex-shrink-0"
+    >
       <path d="M90.1302 102.556C75.6589 111.249 52.1961 111.248 37.7248 102.556C23.2532 93.863 23.2532 79.7696 37.7248 71.0775C52.1961 62.385 75.6589 62.3849 90.1302 71.0775C104.602 79.7703 104.602 93.863 90.1302 102.556ZM96.5038 112.203C78.5128 122.871 49.3425 122.871 31.351 112.203C13.3596 101.535 13.3596 84.239 31.351 73.5713C49.3425 62.903 78.5128 62.903 96.5038 73.5713C114.496 84.239 114.496 101.535 96.5038 112.203Z" fill="black" />
       <path d="M96.5038 112.203C78.5128 122.871 49.3425 122.871 31.351 112.203C13.3596 101.536 13.3596 84.2393 31.351 73.5716C49.3425 62.9032 78.5128 62.9032 96.5038 73.5716C114.496 84.2393 114.496 101.536 96.5038 112.203Z" fill="#999999" />
       <path d="M37.7242 102.556C52.1956 111.249 75.6585 111.249 90.1298 102.556C104.601 93.8641 104.601 79.7708 90.1298 71.0786C75.6585 62.3858 52.1956 62.386 37.7242 71.0786C23.2527 79.7708 23.2527 93.8641 37.7242 102.556Z" fill="#999999" />
       <path d="M37.7242 102.556C52.1956 111.249 75.6585 111.249 90.1298 102.556C104.601 93.8641 104.601 79.7708 90.1298 71.0786C75.6585 62.3858 52.1956 62.386 37.7242 71.0786C23.2527 79.7708 23.2527 93.8641 37.7242 102.556Z" fill="white" fillOpacity="0.74902" />
       <path d="M96.5038 112.203C78.5128 122.871 49.3425 122.871 31.351 112.203C13.3596 101.536 13.3596 84.2393 31.351 73.5716C49.3425 62.9032 78.5128 62.9032 96.5038 73.5716C114.496 84.2393 114.496 101.536 96.5038 112.203Z" fill="#999999" />
-      <mask id="mask0_unlocked" style={{ maskType: 'luminance' }} maskUnits="userSpaceOnUse" x="17" y="65" width="93" height="56">
+      <mask id="mask0_unlocked" style={{ maskType: "luminance" }} maskUnits="userSpaceOnUse" x="17" y="65" width="93" height="56">
         <path d="M96.5037 112.204C78.512 122.871 49.3424 122.871 31.351 112.204C13.3596 101.535 13.3596 84.2398 31.351 73.5713C49.3424 62.9033 78.512 62.9033 96.5037 73.5713C114.495 84.2398 114.495 101.535 96.5037 112.204Z" fill="white" />
       </mask>
       <g mask="url(#mask0_unlocked)">
         <path d="M63.9271 60.5112L112 125.263H15.854L63.9271 60.5112Z" fill="white" fillOpacity="0.2" />
       </g>
-      <mask id="mask1_unlocked" style={{ maskType: 'luminance' }} maskUnits="userSpaceOnUse" x="26" y="64" width="75" height="46">
+      <mask id="mask1_unlocked" style={{ maskType: "luminance" }} maskUnits="userSpaceOnUse" x="26" y="64" width="75" height="46">
         <path d="M90.1301 102.556C75.6588 111.249 52.196 111.249 37.7247 102.556C23.2532 93.8632 23.2532 79.7705 37.7247 71.0777C52.196 62.3856 75.6588 62.3856 90.1301 71.0777C104.601 79.7705 104.601 93.8632 90.1301 102.556Z" fill="white" />
       </mask>
       <g mask="url(#mask1_unlocked)">
@@ -378,7 +443,7 @@ function ShapeIcon({ variant }) {
         <path d="M17.6729 64.2773H109.939V109.293H17.6729V64.2773Z" fill="white" fillOpacity="0.74902" />
       </g>
       <path d="M42.6815 74.655C54.415 67.9386 73.4389 67.9386 85.1725 74.655C96.9061 81.3715 96.9061 92.262 85.1725 98.9791C73.4389 105.696 54.415 105.696 42.6815 98.9791C30.948 92.262 30.948 81.3715 42.6815 74.655Z" fill="white" />
-      <mask id="mask2_unlocked" style={{ maskType: 'luminance' }} maskUnits="userSpaceOnUse" x="33" y="69" width="61" height="36">
+      <mask id="mask2_unlocked" style={{ maskType: "luminance" }} maskUnits="userSpaceOnUse" x="33" y="69" width="61" height="36">
         <path d="M42.682 74.6551C54.4155 67.9379 73.4393 67.9379 85.1729 74.6551C96.9065 81.3716 96.9065 92.262 85.1729 98.9785C73.4393 105.696 54.4155 105.696 42.682 98.9785C30.9485 92.262 30.9485 81.3716 42.682 74.6551Z" fill="white" />
       </mask>
       <g mask="url(#mask2_unlocked)">
@@ -388,7 +453,7 @@ function ShapeIcon({ variant }) {
         <path d="M61.7074 69.4536H94.2577V104.179H61.7074V69.4536ZM80.1973 96.1368C71.1444 101.273 56.4674 101.273 47.4149 96.1368C38.3624 91.0008 38.3624 82.6729 47.4149 77.5362C56.4674 72.4002 71.1444 72.4002 80.1973 77.5362C89.2495 82.6729 89.2495 91.0008 80.1973 96.1368Z" fill="white" fillOpacity="0.74902" />
         <path d="M61.7074 69.4536H94.2577V104.179H61.7074V69.4536ZM80.1973 96.1368C71.1444 101.273 56.4674 101.273 47.4149 96.1368C38.3624 91.0008 38.3624 82.6729 47.4149 77.5362C56.4674 72.4002 71.1444 72.4002 80.1973 77.5362C89.2495 82.6729 89.2495 91.0008 80.1973 96.1368Z" fill="#E5E5E5" />
       </g>
-      <mask id="mask3_unlocked" style={{ maskType: 'luminance' }} maskUnits="userSpaceOnUse" x="33" y="69" width="61" height="36">
+      <mask id="mask3_unlocked" style={{ maskType: "luminance" }} maskUnits="userSpaceOnUse" x="33" y="69" width="61" height="36">
         <path d="M66.0053 104.021C71.4976 104.021 83.8022 101.79 90.1951 95.3322C95.2053 90.2705 95.2582 83.5189 90.1951 78.4049C84.5774 72.7295 73.3351 69.6929 65.9956 69.6929V73.7335C69.2952 73.7328 76.0955 75.1463 80.2805 77.5363C89.1808 82.6826 89.1808 91.0099 80.2805 96.1362C76.2928 98.4135 68.9509 99.9391 65.9956 99.9391L66.0053 104.021ZM61.8321 104.022C56.3399 104.022 44.0348 101.791 37.642 95.3329C32.632 90.2712 32.5794 83.5203 37.642 78.4063C43.2597 72.7309 54.5021 69.6942 61.8416 69.6942V73.7342C59.0849 73.7342 51.7418 75.1477 47.5567 77.537C38.5609 82.6737 38.5609 91.0009 47.5567 96.1376C51.5445 98.4149 58.6223 99.9405 61.8416 99.9405L61.8321 104.022Z" fill="white" />
       </mask>
       <g mask="url(#mask3_unlocked)">

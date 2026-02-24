@@ -39,24 +39,34 @@ export const router = createBrowserRouter([
       { path: "/payment/success", element: <PaymentSuccess /> },
       { path: "/payment/cancel", element: <PaymentCancel /> },
       { path: "/google-callback", element: <GoogleCallback /> },
-      // ✅ Public: lesson trial (không cần login)
+
+      // ✅ PUBLIC: /courses — chỉ xem danh sách môn học, không cần login
+      { path: "/courses", element: <Courses /> },
+
+      // ✅ TRIAL: chapter + lesson miễn phí — KHÔNG cần login, KHÔNG cần paid
+      // Bất kỳ ai (chưa login, đã login, chưa paid) đều vào được
+      {
+        path: "/trial/courses/:subjectSlug/chapter/:chapterSlug",
+        element: <CourseDetail />,
+      },
       {
         path: "/trial/courses/:subjectSlug/chapter/:chapterSlug/lesson/:lessonSlug",
         element: <LessonDetail />,
       },
 
-      // ✅ Public: chỉ xem subject
-      { path: "/courses", element: <Courses /> },
+      // ✅ PROTECTED: xem chapter list của 1 môn — cần login + paid
       {
         path: "/courses/:subjectSlug",
         element: (
-          <RequireAuth>
-            <RequirePaid>
+          // <RequireAuth>
+          //   <RequirePaid>
               <Courses />
-            </RequirePaid>
-          </RequireAuth>
+          //   </RequirePaid>
+          // </RequireAuth>
         ),
       },
+
+      // ✅ PROTECTED: xem lesson list của 1 chapter — cần login + paid
       {
         path: "/courses/:subjectSlug/chapter/:chapterSlug",
         element: (
@@ -67,6 +77,8 @@ export const router = createBrowserRouter([
           </RequireAuth>
         ),
       },
+
+      // ✅ PROTECTED: học lesson — cần login + paid
       {
         path: "/courses/:subjectSlug/chapter/:chapterSlug/lesson/:lessonSlug",
         element: (
