@@ -1,5 +1,7 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import Button from "../common/Button";
+import useAuth from "../../contexts/AuthContext";
+import { useAuthModalStore } from "../../stores/authModalStore";
 
 export default function PaymentRequiredNotice({
   title = "Cần nâng cấp Premium để tiếp tục",
@@ -7,6 +9,16 @@ export default function PaymentRequiredNotice({
 }) {
   const navigate = useNavigate();
   const location = useLocation();
+  const { logout } = useAuth();
+  const openLogin = useAuthModalStore((s) => s.openLogin);
+
+  const handleUpgradeClick = async () => {
+    // 1) Logout tài khoản student hiện tại
+    await logout();
+
+    // 2) Mở modal login với role parent (giống HeroSection)
+    openLogin(null, "parent");
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4">
@@ -23,13 +35,14 @@ export default function PaymentRequiredNotice({
             <div className="mt-6 flex justify-center">
               <div className="w-full max-w-md sm:max-w-lg">
                 <div className="flex flex-col sm:flex-row gap-3">
-                  {/* Nút nâng cấp */}
+                  {/* ✅ Nút nâng cấp: logout student → mở login parent */}
                   <Button
                     size="sm"
                     className="w-full px-5 h-10 sm:flex-1 hover:bg-indigo-500 text-white"
-                    onClick={() => navigate("/subscription", { state: { from: location } })}
+                    onClick={handleUpgradeClick}
                   >
-                    Nâng cấp Premium
+                    <i className="fa-solid fa-crown mr-2 text-yellow-300" />
+                    Đăng nhập phụ huynh để nâng cấp
                   </Button>
 
                   {/* Quay về */}
@@ -44,7 +57,7 @@ export default function PaymentRequiredNotice({
                 </div>
 
                 <p className="text-center text-sm text-gray-500 mt-3">
-                  Nếu bạn là phụ huynh, hãy đăng nhập và nâng cấp gói để mở khóa nội dung.
+                  Phụ huynh đăng nhập và nâng cấp gói Premium để mở khóa toàn bộ nội dung cho con.
                 </p>
               </div>
             </div>
