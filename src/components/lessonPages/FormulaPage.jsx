@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import AudioPlayer from '../common/AudioPlayer';
 
 /**
  * FormulaPage Component - Hiển thị công thức toán học
  * Với animation từng bước
  */
-export default function FormulaPage({ formulaLatex, textContent, orderIndex }) {
+export default function FormulaPage({ formulaLatex, textContent, mediaUrl, orderIndex }) {
     const [showSteps, setShowSteps] = useState(false);
 
     useEffect(() => {
@@ -44,6 +45,9 @@ export default function FormulaPage({ formulaLatex, textContent, orderIndex }) {
                             Công thức
                         </h2>
                     </div>
+
+                    {/* Audio Player if available */}
+                    {mediaUrl && <AudioPlayer src={mediaUrl} />}
 
                     {/* Formula display */}
                     <motion.div

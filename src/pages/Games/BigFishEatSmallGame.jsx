@@ -203,8 +203,6 @@ export default function BigFishEatSmallGame({
     config,
     onExit,
     onFinish,
-    submitting,
-    submitMsg,
 }) {
     // -------- Config --------
     const tickRef = useRef(null);
@@ -809,7 +807,7 @@ export default function BigFishEatSmallGame({
             {/* Footer */}
             {!fullscreen && (
                 <div className="mt-4 text-sm text-slate-600 text-center">
-                    {submitting ? "Đang lưu kết quả…" : submitMsg || `🐠 Spawned: ${spawnedIndexRef.current}/${totalQuestions} • Đang bơi: ${actors.filter((x) => x.type === "enemy").length}`}
+                    {`🐠 Spawned: ${spawnedIndexRef.current}/${totalQuestions} • Đang bơi: ${actors.filter((x) => x.type === "enemy").length}`}
                 </div>
             )}
         </div>
