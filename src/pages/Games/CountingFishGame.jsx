@@ -94,8 +94,6 @@ export default function CountingFishGame({
   config,
   onExit,
   onFinish,
-  submitting,
-  submitMsg,
   fishImageSrc = fishPng,
 }) {
   const questions = Array.isArray(config?.questions) ? config.questions : [];
@@ -198,14 +196,14 @@ export default function CountingFishGame({
                       fishImageSrc ||
                       // fallback nếu bạn quên truyền src (hiện 1 icon đơn giản)
                       "data:image/svg+xml;utf8," +
-                        encodeURIComponent(
-                          `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
+                      encodeURIComponent(
+                        `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
                             <path d="M3 12c3.5-4.5 8.5-6.5 13-6 2 .2 3.7 1 5 2.2-.8 1-1.6 2-2.4 2.8.8.8 1.6 1.8 2.4 2.8-1.3 1.2-3 2-5 2.2-4.5.5-9.5-1.5-13-6z" stroke="%230ea5e9" stroke-width="1.8" stroke-linejoin="round"/>
                             <circle cx="15.5" cy="10" r="1" fill="%230ea5e9"/>
                           </svg>`
-                        )
+                      )
                     }
-                   className="h-14 w-14 sm:h-16 sm:w-16 md:h-[76px] md:w-[76px] lg:h-[88px] lg:w-[88px] rounded-2xl"
+                    className="h-14 w-14 sm:h-16 sm:w-16 md:h-[76px] md:w-[76px] lg:h-[88px] lg:w-[88px] rounded-2xl"
                   />
                 </div>
               ))}
@@ -258,11 +256,7 @@ export default function CountingFishGame({
               ✅ Đúng: <span className="text-emerald-700">{correct}</span>
             </div>
 
-            {submitting ? (
-              <div className="text-sm font-semibold text-slate-600">Đang lưu kết quả…</div>
-            ) : submitMsg ? (
-              <div className="text-sm font-semibold text-slate-700">{submitMsg}</div>
-            ) : null}
+
           </div>
         </>
       )}

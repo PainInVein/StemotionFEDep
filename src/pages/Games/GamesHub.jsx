@@ -1,7 +1,6 @@
 import React from "react";
 import {
     getGamesByLessonIdService,
-    submitGameResultService,
 } from "../../services/games/games.service";
 
 import CountingFishGame from "../Games/CountingFishGame";
@@ -23,19 +22,12 @@ function safeJsonParse(str, fallback = null) {
     }
 }
 
-function calcScore(correct, total) {
-    if (!total) return 0;
-    return Math.round((correct / total) * 100);
-}
-
 export default function GamesHub({ lessonId, onClose }) {
     const [loading, setLoading] = React.useState(true);
     const [error, setError] = React.useState("");
     const [games, setGames] = React.useState([]);
 
     const [activeGame, setActiveGame] = React.useState(null);
-    const [submitting, setSubmitting] = React.useState(false);
-    const [submitMsg, setSubmitMsg] = React.useState("");
 
     React.useEffect(() => {
         let alive = true;
@@ -79,43 +71,10 @@ export default function GamesHub({ lessonId, onClose }) {
             config: cfg,
             onExit: () => {
                 setActiveGame(null);
-                setSubmitMsg("");
             },
-            onFinish: async ({ correctAnswers, totalQuestions, playDurations }) => {
-                const score = calcScore(correctAnswers, totalQuestions);
-                const userStr = localStorage.getItem("user");
-                const user = userStr ? JSON.parse(userStr) : null;
-                const studentId = user?.studentId;
-
-                if (!studentId) {
-                    setSubmitMsg("❌ Không tìm thấy thông tin học sinh. Vui lòng đăng nhập lại.");
-                    return;
-                }
-
-                try {
-                    setSubmitting(true);
-                    setSubmitMsg("");
-
-                    const payload = {
-                        studentId,
-                        gameId: activeGame.gameId,
-                        score,
-                        correctAnswers,
-                        totalQuestions,
-                        playDurations,
-                    };
-
-                    await submitGameResultService(payload);
-                    setSubmitMsg("✅ Đã lưu kết quả chơi game!");
-                } catch (e) {
-                    console.error("❌ Error submitting game result:", e);
-                    setSubmitMsg(e?.message || "❌ Lưu kết quả thất bại");
-                } finally {
-                    setSubmitting(false);
-                }
+            onFinish: () => {
+                // No-op: game result saving removed
             },
-            submitting,
-            submitMsg,
         };
 
         const code = (activeGame?.gameCode || "").toLowerCase();
@@ -209,7 +168,6 @@ export default function GamesHub({ lessonId, onClose }) {
                         <div
                             key={g.gameId}
                             onClick={() => {
-                                setSubmitMsg("");
                                 setActiveGame(g);
                             }}
                             className="group relative bg-white rounded-[2rem] shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden cursor-pointer hover:shadow-2xl hover:shadow-indigo-200/50 hover:-translate-y-2 transition-all duration-300"
