@@ -35,14 +35,13 @@ export default function Header() {
   const { isAuthenticated, logout, user } = useAuth();
   const homePath = user?.role === "parent" ? "/parent/dashboard" : "/";
 
-
   return (
     <>
       <header className="w-full border-b px-4 md:px-10 py-3 sticky top-0 z-50 shadow-sm border-border bg-white backdrop-blur">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           {/* Left: Logo */}
           {/* <Link to="/"> */}
-          <Link to={homePath} >
+          <Link to={homePath}>
             <div className="flex items-center flex-shrink-0">
               <img
                 src={logo}
@@ -72,20 +71,28 @@ export default function Header() {
 
             {user?.role !== "parent" && (
               <Link to="/courses" className={navItemClass}>
-                <i className="fa-solid fa-book-open text-xl" aria-hidden="true" />
+                <i
+                  className="fa-solid fa-book-open text-xl"
+                  aria-hidden="true"
+                />
                 <span>Khóa học</span>
               </Link>
             )}
 
-
             {user?.role === "parent" && (
               <Link to="/subscription" className={navItemClass}>
-                <i className="fa-solid fa-angles-up text-xl" aria-hidden="true" />
+                <i
+                  className="fa-solid fa-angles-up text-xl"
+                  aria-hidden="true"
+                />
                 <span>Nâng cấp premium</span>
               </Link>
             )}
             <Link to="/about-us" className={navItemClass}>
-              <i className="fa-solid fa-circle-info text-xl" aria-hidden="true" />
+              <i
+                className="fa-solid fa-circle-info text-xl"
+                aria-hidden="true"
+              />
               <span>Giới thiệu</span>
             </Link>
 
@@ -98,8 +105,7 @@ export default function Header() {
           {/* Right: Action Buttons */}
           <div className="flex items-center justify-end space-x-3 md:space-x-4">
             {/* Trial button */}
-            <Link to="/trial/courses/toan-hoc-485b6ae3-b9d9-4687-94b8-0a5d5f63abd8/chapter/chuong-1-lam-quen-voi-so-tu-0-den-10-ed682078-ff82-4e16-8f09-2a968ac3369f/lesson/bai-2-dem-so-tu-6-den-10-b7f70ed3-320b-4f01-b20f-9ae90835e52e"
-            >
+            <Link to="/trial/courses/toan-hoc-2ce6ac36-9f1a-4880-9a9d-e43163a0b72d/chapter/chuong-1-lam-quen-voi-so-tu-0-den-10-fa06337c-f205-4963-b0c8-02da546d727e/lesson/bai-2-dem-so-tu-6-den-10-2e5528ed-689d-4541-89f1-a15e8d30d449">
               <button className="relative p-[2px] md:p-[3px] inline-flex items-center justify-center rounded-full bg-gradient-to-r from-[#7E82E4] via-[#FE99BF] via-[#FBA889] to-[#F8BB44] group transition-all duration-300 active:scale-95 shadow-md hover:shadow-lg">
                 <span className="px-3 py-1.5 md:px-5 md:py-2 bg-white rounded-full text-[#7E82E4] text-xs md:text-sm font-bold transition-all duration-300 group-hover:bg-transparent group-hover:text-white">
                   Bắt đầu dùng thử
@@ -129,7 +135,10 @@ export default function Header() {
                   aria-label="Đăng xuất"
                   title="Đăng xuất"
                 >
-                  <i className="fa-solid fa-right-from-bracket text-[20px]" aria-hidden="true" />
+                  <i
+                    className="fa-solid fa-right-from-bracket text-[20px]"
+                    aria-hidden="true"
+                  />
                   <span className="text-sm font-medium">Đăng xuất</span>
                 </button>
               ) : (
@@ -140,7 +149,10 @@ export default function Header() {
                   aria-label="Đăng nhập"
                   title="Đăng nhập"
                 >
-                  <i className="fa-regular fa-circle-user text-[28px]" aria-hidden="true" />
+                  <i
+                    className="fa-regular fa-circle-user text-[28px]"
+                    aria-hidden="true"
+                  />
                   <span className="text-sm font-medium">Đăng nhập</span>
                 </button>
               )}
@@ -157,18 +169,31 @@ export default function Header() {
         >
           <nav className="flex flex-col p-6 bg-white">
             {/* <Link to="/" onClick={() => setIsMenuOpen(false)} className={mobileItemClass}> */}
-            <Link to={homePath} onClick={() => setIsMenuOpen(false)} className={mobileItemClass}>
-              <i className="fa-solid fa-house text-2xl text-indigo-500" aria-hidden="true" />
+            <Link
+              to={homePath}
+              onClick={() => setIsMenuOpen(false)}
+              className={mobileItemClass}
+            >
+              <i
+                className="fa-solid fa-house text-2xl text-indigo-500"
+                aria-hidden="true"
+              />
               <span>Trang chủ</span>
             </Link>
 
             {user?.role !== "parent" && (
-              <Link to="/courses" onClick={() => setIsMenuOpen(false)} className={mobileItemClass}>
-                <i className="fa-solid fa-book-open text-2xl text-indigo-500" aria-hidden="true" />
+              <Link
+                to="/courses"
+                onClick={() => setIsMenuOpen(false)}
+                className={mobileItemClass}
+              >
+                <i
+                  className="fa-solid fa-book-open text-2xl text-indigo-500"
+                  aria-hidden="true"
+                />
                 <span>Khóa học</span>
               </Link>
             )}
-
 
             {user?.role === "parent" && (
               <Link
@@ -176,25 +201,49 @@ export default function Header() {
                 onClick={() => setIsMenuOpen(false)}
                 className={mobileItemClass}
               >
-                <i className="fa-solid fa-angles-up text-2xl text-indigo-500" aria-hidden="true" />
+                <i
+                  className="fa-solid fa-angles-up text-2xl text-indigo-500"
+                  aria-hidden="true"
+                />
                 <span>Nâng cấp premium</span>
               </Link>
             )}
 
-            <Link to="/about-us" onClick={() => setIsMenuOpen(false)} className={mobileItemClass}>
-              <i className="fa-solid fa-circle-info text-2xl text-indigo-500" aria-hidden="true" />
+            <Link
+              to="/about-us"
+              onClick={() => setIsMenuOpen(false)}
+              className={mobileItemClass}
+            >
+              <i
+                className="fa-solid fa-circle-info text-2xl text-indigo-500"
+                aria-hidden="true"
+              />
               <span>Giới thiệu</span>
             </Link>
 
-            <Link to="/contact" onClick={() => setIsMenuOpen(false)} className={mobileItemClass}>
-              <i className="fa-solid fa-phone text-2xl text-indigo-500" aria-hidden="true" />
+            <Link
+              to="/contact"
+              onClick={() => setIsMenuOpen(false)}
+              className={mobileItemClass}
+            >
+              <i
+                className="fa-solid fa-phone text-2xl text-indigo-500"
+                aria-hidden="true"
+              />
               <span>Liên hệ</span>
             </Link>
 
             {/* Login/Logout (mobile) */}
             {isAuthenticated ? (
-              <button type="button" onClick={handleLogout} className={mobileItemClass}>
-                <i className="fa-solid fa-right-from-bracket text-2xl text-red-500" aria-hidden="true" />
+              <button
+                type="button"
+                onClick={handleLogout}
+                className={mobileItemClass}
+              >
+                <i
+                  className="fa-solid fa-right-from-bracket text-2xl text-red-500"
+                  aria-hidden="true"
+                />
                 <span>Đăng xuất</span>
               </button>
             ) : (
@@ -206,7 +255,10 @@ export default function Header() {
                 }}
                 className={mobileItemClass}
               >
-                <i className="fa-solid fa-right-to-bracket text-2xl text-indigo-500" aria-hidden="true" />
+                <i
+                  className="fa-solid fa-right-to-bracket text-2xl text-indigo-500"
+                  aria-hidden="true"
+                />
                 <span>Đăng nhập</span>
               </button>
             )}
