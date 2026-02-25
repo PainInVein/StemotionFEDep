@@ -37,8 +37,6 @@ export default function AdditionTo10Game({
   config,
   onExit,
   onFinish,
-  submitting,
-  submitMsg,
 }) {
   const questions = Array.isArray(config?.questions) ? config.questions : [];
   const totalQuestions = questions.length;
@@ -161,15 +159,9 @@ export default function AdditionTo10Game({
           </div>
 
           <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
-            {submitting ? (
-              <div className="text-sm text-slate-600">Đang lưu kết quả…</div>
-            ) : submitMsg ? (
-              <div className="text-sm text-slate-700">{submitMsg}</div>
-            ) : (
-              <div className="text-sm text-slate-600">
-                Chọn đáp án để tiếp tục.
-              </div>
-            )}
+            <div className="text-sm text-slate-600">
+              Chọn đáp án để tiếp tục.
+            </div>
           </div>
         </>
       )}

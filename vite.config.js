@@ -5,6 +5,21 @@ import tailwindcss from '@tailwindcss/vite'
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   // base: process.env.VITE_BASE_PATH || '/',
+  server: {
+    proxy: {
+      // Proxy Google Translate TTS để tránh CORS
+      '/api/tts': {
+        target: 'https://translate.google.com',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/tts/, '/translate_tts'),
+        headers: {
+          'Referer': 'https://translate.google.com/',
+          'User-Agent': 'Mozilla/5.0',
+        },
+      },
+    },
+  },
+
   build: {
     // Code splitting for better caching
     rollupOptions: {

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import SpeakButton from '../common/SpeakButton';
 import { motion } from 'framer-motion';
 
 /**
@@ -21,6 +22,13 @@ export default function ImagePage({ mediaUrl, textContent, orderIndex }) {
                 <div
                     className="bg-white rounded-3xl p-6 sm:p-10 shadow-xl border-2 border-slate-100"
                 >
+                    {/* TTS button */}
+                    {caption && (
+                        <div className="flex items-center gap-3 mb-5">
+                            <SpeakButton text={caption} label="Nghe mô tả" rate={0.85} />
+                        </div>
+                    )}
+
                     {/* Image container */}
                     <div className="relative rounded-2xl overflow-hidden bg-slate-50">
                         {mediaUrl ? (
