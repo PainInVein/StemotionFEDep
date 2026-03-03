@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import AudioPlayer from '../common/AudioPlayer';
+import SpeakButton from '../common/SpeakButton';
 
 /**
  * ExamplePage Component - Hiển thị ví dụ minh họa với animation từng bước
  */
-export default function ExamplePage({ textContent, orderIndex }) {
+export default function ExamplePage({ textContent, mediaUrl, orderIndex }) {
     const [currentStep, setCurrentStep] = useState(0);
     const [showAnswer, setShowAnswer] = useState(false);
 
@@ -51,6 +53,16 @@ export default function ExamplePage({ textContent, orderIndex }) {
                             Ví dụ minh họa
                         </h2>
                     </div>
+
+                    {/* Audio Player if available */}
+                    {mediaUrl && <AudioPlayer src={mediaUrl} />}
+
+                    {/* TTS Speak button */}
+                    {content && (
+                        <div className="flex items-center gap-3 mb-6">
+                            <SpeakButton text={content} label="Nghe ví dụ" rate={0.85} />
+                        </div>
+                    )}
 
                     {/* Example content with step animation */}
                     <div className="bg-white rounded-2xl p-8 shadow-md">

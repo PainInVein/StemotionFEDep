@@ -7,7 +7,11 @@ import {
 import { toast } from "react-toastify";
 import useAuth from "../../../contexts/AuthContext"; // <-- chỉnh path đúng theo dự án bạn
 
+<<<<<<< HEAD
 const DEFAULT_SUBSCRIPTION_ID = "9c8248dd-b9a3-406a-a51b-6657603d3541";
+=======
+const DEFAULT_SUBSCRIPTION_ID = "b2fa5e4a-ac5a-4f23-9c92-8040748a6731";
+>>>>>>> 3fd9a032e03ee24e603bddbddc8e2765278c5d01
 
 export default function PaymentButton({
   subscriptionId = DEFAULT_SUBSCRIPTION_ID,
