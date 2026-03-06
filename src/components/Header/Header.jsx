@@ -98,14 +98,14 @@ export default function Header() {
           {/* Right: Action Buttons */}
           <div className="flex items-center justify-end space-x-3 md:space-x-4">
             {/* Trial button */}
-            <Link to="/trial/courses/toan-hoc-485b6ae3-b9d9-4687-94b8-0a5d5f63abd8/chapter/chuong-1-lam-quen-voi-so-tu-0-den-10-ed682078-ff82-4e16-8f09-2a968ac3369f/lesson/bai-2-dem-so-tu-6-den-10-b7f70ed3-320b-4f01-b20f-9ae90835e52e"
+            {/* <Link to="/trial/courses/toan-hoc-485b6ae3-b9d9-4687-94b8-0a5d5f63abd8/chapter/chuong-1-lam-quen-voi-so-tu-0-den-10-ed682078-ff82-4e16-8f09-2a968ac3369f/lesson/bai-2-dem-so-tu-6-den-10-b7f70ed3-320b-4f01-b20f-9ae90835e52e"
             >
               <button className="relative p-[2px] md:p-[3px] inline-flex items-center justify-center rounded-full bg-gradient-to-r from-[#7E82E4] via-[#FE99BF] via-[#FBA889] to-[#F8BB44] group transition-all duration-300 active:scale-95 shadow-md hover:shadow-lg">
                 <span className="px-3 py-1.5 md:px-5 md:py-2 bg-white rounded-full text-[#7E82E4] text-xs md:text-sm font-bold transition-all duration-300 group-hover:bg-transparent group-hover:text-white">
                   Bắt đầu dùng thử
                 </span>
               </button>
-            </Link>
+            </Link> */}
             {/* Mobile menu toggle */}
             <button
               onClick={() => setIsMenuOpen((v) => !v)}
@@ -122,16 +122,31 @@ export default function Header() {
             {/* Login/Logout (desktop) */}
             <div className="hidden md:flex items-center gap-2">
               {isAuthenticated ? (
-                <button
-                  type="button"
-                  onClick={handleLogout}
-                  className="flex items-center gap-2 px-3 py-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-full transition"
-                  aria-label="Đăng xuất"
-                  title="Đăng xuất"
-                >
-                  <i className="fa-solid fa-right-from-bracket text-[20px]" aria-hidden="true" />
-                  <span className="text-sm font-medium">Đăng xuất</span>
-                </button>
+                <>
+                  <button
+                    type="button"
+                    onClick={() => navigate("/profile")}
+                    className="flex items-center gap-2 px-3 py-2 text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-full transition"
+                    aria-label="Hồ sơ"
+                    title="Hồ sơ"
+                  >
+                    <i className="fa-regular fa-circle-user text-[22px]" aria-hidden="true" />
+                    <span className="text-sm font-medium">
+                      {user?.role === "parent" ? "Hồ sơ phụ huynh" : "Hồ sơ học sinh"}
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleLogout}
+                    className="flex items-center gap-2 px-3 py-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-full transition"
+                    aria-label="Đăng xuất"
+                    title="Đăng xuất"
+                  >
+                    <i className="fa-solid fa-right-from-bracket text-[20px]" aria-hidden="true" />
+                    <span className="text-sm font-medium">Đăng xuất</span>
+                  </button>
+                </>
               ) : (
                 <button
                   type="button"
@@ -193,10 +208,24 @@ export default function Header() {
 
             {/* Login/Logout (mobile) */}
             {isAuthenticated ? (
-              <button type="button" onClick={handleLogout} className={mobileItemClass}>
-                <i className="fa-solid fa-right-from-bracket text-2xl text-red-500" aria-hidden="true" />
-                <span>Đăng xuất</span>
-              </button>
+              <>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsMenuOpen(false);
+                    navigate("/profile");
+                  }}
+                  className={mobileItemClass}
+                >
+                  <i className="fa-regular fa-circle-user text-2xl text-indigo-500" aria-hidden="true" />
+                  <span>{user?.role === "parent" ? "Hồ sơ phụ huynh" : "Hồ sơ học sinh"}</span>
+                </button>
+
+                <button type="button" onClick={handleLogout} className={mobileItemClass}>
+                  <i className="fa-solid fa-right-from-bracket text-2xl text-red-500" aria-hidden="true" />
+                  <span>Đăng xuất</span>
+                </button>
+              </>
             ) : (
               <button
                 type="button"

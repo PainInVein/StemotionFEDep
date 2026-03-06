@@ -21,6 +21,7 @@ import SubscriptionPage from "../pages/Customer/SubscriptionPage/SubscriptionPag
 import PaymentSuccess from "../pages/Customer/PaymentPage/PaymentSuccess";
 import PaymentCancel from "../pages/Customer/PaymentPage/PaymentCancel";
 import GoogleCallback from "../pages/Customer/LoginPage/GoogleCallback";
+import ProfilePage from "../pages/Customer/ProfilePage/ProfilePage";
 
 export const router = createBrowserRouter([
   {
@@ -39,6 +40,14 @@ export const router = createBrowserRouter([
       { path: "/payment/success", element: <PaymentSuccess /> },
       { path: "/payment/cancel", element: <PaymentCancel /> },
       { path: "/google-callback", element: <GoogleCallback /> },
+      {
+        path: "/profile",
+        element: (
+          <RequireAuth>
+            <ProfilePage />
+          </RequireAuth>
+        ),
+      },
 
       // ✅ PUBLIC: /courses — chỉ xem danh sách môn học, không cần login
       { path: "/courses", element: <Courses /> },
@@ -60,7 +69,7 @@ export const router = createBrowserRouter([
         element: (
           // <RequireAuth>
           //   <RequirePaid>
-              <Courses />
+          <Courses />
           //   </RequirePaid>
           // </RequireAuth>
         ),
