@@ -10,25 +10,27 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   const refreshMe = async () => {
-    const me = await getMeService();
-    // const freshUser = me;
+    const response = await getMeService();
+    const me = response?.result;
+
     if (!me) {
-
-      console.error("getMeService trả về dữ liệu không hợp lệ:", me);
+      console.error("getMeService trả về dữ liệu không hợp lệ:", response);
       throw new Error("Không lấy được user từ /me");
-    };
+    }
 
-    // ✅ giữ role đã lưu trước đó (vì /me có thể không trả role)
     const savedRaw = localStorage.getItem("user");
     const savedUser = savedRaw ? JSON.parse(savedRaw) : null;
+    const googleLoginRole = sessionStorage.getItem("googleLoginRole");
 
     const mergedUser = {
+      ...savedUser,
       ...me,
-      role: me?.role || savedUser?.role, // giữ role cũ nếu thiếu
+      role: me?.role || savedUser?.role || googleLoginRole,
     };
 
     localStorage.setItem("user", JSON.stringify(mergedUser));
     console.log("refreshMe got user:", mergedUser);
+
     setUser(mergedUser);
     setIsAuthenticated(true);
     return mergedUser;

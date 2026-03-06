@@ -1,6 +1,5 @@
 import React from "react";
 
-/* ─── Lời động viên ngẫu nhiên ──────────────────────────── */
 const CHEERS_OK = [
   "Đúng rồi! Giỏi lắm!",
   "Tuyệt vời! Con thông minh quá!",
@@ -698,13 +697,23 @@ export default function NumberMatchingGame({ game, config, onExit, onFinish }) {
 
           {/* Header */}
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
-            <div style={{
-              display: "flex", alignItems: "center", gap: 8,
-              background: "rgba(255,255,255,.75)", borderRadius: 22,
-              padding: "8px 16px", fontWeight: 900, fontSize: 15, color: "#92400E",
-              boxShadow: "0 4px 14px rgba(0,0,0,.12)", backdropFilter: "blur(6px)"
-            }}>
-              🌾 {game?.name || "Ghép Số Với Hình"}
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+                background: "rgba(255,255,255,.75)",
+                borderRadius: 22,
+                padding: "8px 16px",
+                fontWeight: 900,
+                fontSize: 15,
+                color: "#92400E",
+                boxShadow: "0 4px 14px rgba(0,0,0,.12)",
+                backdropFilter: "blur(6px)",
+                fontFamily:
+                  '"Noto Sans", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif',
+              }}
+            >🌾 <span>{game?.name || "Ghép Số Với Hình"}</span>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
               {/* Progress dots */}

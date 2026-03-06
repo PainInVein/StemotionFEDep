@@ -13,6 +13,11 @@ const extractUuidFromSlug = (slug = "") => {
   return /^[0-9a-fA-F-]{36}$/.test(maybe) ? maybe : "";
 };
 
+const extractShortIdFromSlug = (slug = "") => {
+  const match = String(slug || "").match(/~([a-zA-Z0-9]{8})$/);
+  return match ? match[1] : "";
+};
+
 const getStudentIdFromLocalStorage = () => {
   try {
     const userStr = localStorage.getItem("user");
@@ -38,7 +43,7 @@ export default function LessonDetail() {
   const { subjectSlug, chapterSlug, lessonSlug = "" } = useParams();
 
   const state = location.state || {};
-  const lessonId = state.lessonId || extractUuidFromSlug(lessonSlug);
+  const lessonId = state.lessonId || extractUuidFromSlug(lessonSlug) || extractShortIdFromSlug(lessonSlug);
 
   // ✅ Kiểm tra đang ở route trial không
   const isTrial = location.pathname.startsWith("/trial/");
@@ -125,9 +130,15 @@ export default function LessonDetail() {
           : "Không thể cập nhật tiến độ lên hệ thống."
       );
     } finally {
-      // 3) Redirect về chapter
       if (subjectSlug && chapterSlug) {
-        navigate(`/courses/${subjectSlug}/chapter/${chapterSlug}`);
+        navigate(`/courses/${subjectSlug}/chapter/${chapterSlug}`, {
+          state: {
+            chapterName: state.chapterName,
+            subjectName: state.subjectName,
+            gradeLevel: state.gradeLevel,
+            isTrial,
+          },
+        });
       } else {
         navigate(-1);
       }

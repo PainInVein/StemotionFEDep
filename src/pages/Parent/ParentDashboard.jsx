@@ -1,33 +1,30 @@
-import React, { useEffect, useState } from "react";
 import {
-  Layout,
-  Select,
-  Typography,
-  Spin,
-  Row,
   Col,
-  Empty,
-  message,
-  Button,
-  Modal,
   Form,
   Input,
   InputNumber,
+  Layout,
+  message,
+  Modal,
+  Row,
+  Select,
+  Spin,
+  Typography
 } from "antd";
+import { useEffect, useState } from "react";
+import OverviewCards from "../../components/Parent/StudentProgress/OverviewCards";
+import PerformanceChart from "../../components/Parent/StudentProgress/PerformanceChart";
+import RecentActivityList from "../../components/Parent/StudentProgress/RecentActivityList";
+import StudyTimeChart from "../../components/Parent/StudentProgress/StudyTimeChart";
+import useAuth from "../../contexts/AuthContext";
 import {
   getParentStudentsApi,
-  getStudentOverviewApi,
-  getRecentActivitiesApi,
   getPerformanceInsightsApi,
+  getRecentActivitiesApi,
+  getStudentOverviewApi,
   getStudyTimeStatisticsApi,
 } from "../../services/api/studentProgress.service";
 import { createStudentService } from "../../services/auth/auth.service";
-import useAuth from "../../contexts/AuthContext";
-import OverviewCards from "../../components/Parent/StudentProgress/OverviewCards";
-import RecentActivityList from "../../components/Parent/StudentProgress/RecentActivityList";
-import PerformanceChart from "../../components/Parent/StudentProgress/PerformanceChart";
-import StudyTimeChart from "../../components/Parent/StudentProgress/StudyTimeChart";
-import WeeklyStreak from "../../components/Parent/StudentProgress/WeeklyStreak";
 
 const { Content } = Layout;
 const { Title } = Typography;

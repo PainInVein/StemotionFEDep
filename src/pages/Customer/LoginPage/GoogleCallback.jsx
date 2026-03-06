@@ -16,16 +16,26 @@ export default function GoogleCallback() {
 
     (async () => {
       try {
-        await refreshMe();         // ✅ lấy user từ cookie
+        const currentUser = await refreshMe();
         closeLogin?.();
 
         toast.success("Đăng nhập Google thành công!", { toastId: "google-ok" });
 
         const preLoginUrl = sessionStorage.getItem("preLoginUrl") || "/";
         sessionStorage.removeItem("preLoginUrl");
+        sessionStorage.removeItem("googleLoginRole");
+
+        if (currentUser?.role === "parent") {
+          navigate("/parent/dashboard", { replace: true });
+          return;
+        }
+
         navigate(preLoginUrl, { replace: true });
       } catch (e) {
-        toast.error("Đăng nhập Google thất bại. Vui lòng thử lại.", { toastId: "google-fail" });
+        sessionStorage.removeItem("googleLoginRole");
+        toast.error("Đăng nhập Google thất bại. Vui lòng thử lại.", {
+          toastId: "google-fail",
+        });
         navigate("/", { replace: true });
       }
     })();
