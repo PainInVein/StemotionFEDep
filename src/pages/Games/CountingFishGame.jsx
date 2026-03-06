@@ -145,7 +145,7 @@ export default function CountingFishGame({
           <div className="text-xs font-semibold uppercase tracking-wider text-slate-500">
             🐠 {game?.name || "Counting Fish"}
           </div>
-          <div className="mt-1 text-xl font-extrabold text-slate-900">
+          <div className="mt-1 text-xl font-extrabold text-slate-900 font-sans leading-tight">
             Đếm số cá và chọn đáp án
           </div>
           <div className="mt-1 text-sm font-semibold text-slate-600">
@@ -177,9 +177,9 @@ export default function CountingFishGame({
           {/* Question box */}
           <div className="mt-6 rounded-3xl border border-slate-200 bg-white/70 p-5 shadow-[0_12px_30px_rgba(2,6,23,0.06)]">
             <div className="flex flex-wrap items-center justify-between gap-3">
-              <div className="text-sm font-extrabold text-slate-900">Có bao nhiêu con cá?</div>
-              <div className="rounded-full bg-slate-900/90 px-3 py-1 text-xs font-extrabold text-white">
-                🧮 Đếm nhé!
+              <div className="text-xl font-extrabold text-slate-900">Có bao nhiêu con cá?</div>
+              <div className="rounded-full bg-gray-200 px-3 py-1 text-xl font-extrabold text-black font-sans flex items-center gap-1">
+                🧮 <span>Đếm nhé!</span>
               </div>
             </div>
 
