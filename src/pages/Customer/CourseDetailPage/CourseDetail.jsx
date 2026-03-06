@@ -99,14 +99,14 @@ export default function CourseDetail() {
 
         const filtered = resolvedChapterName
           ? lessonItems.filter((l) => {
-              const sameChapterName = l.chapterName === resolvedChapterName;
-              const active = l.status !== "Inactive";
-              const sameGrade =
-                resolvedGradeLevel == null
-                  ? true
-                  : Number(l.gradeLevel) === Number(resolvedGradeLevel);
-              return sameChapterName && sameGrade && active;
-            })
+            const sameChapterName = l.chapterName === resolvedChapterName;
+            const active = l.status !== "Inactive";
+            const sameGrade =
+              resolvedGradeLevel == null
+                ? true
+                : Number(l.gradeLevel) === Number(resolvedGradeLevel);
+            return sameChapterName && sameGrade && active;
+          })
           : [];
 
         setLessons(
