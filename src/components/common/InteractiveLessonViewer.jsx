@@ -79,7 +79,7 @@ function ProgressSparkle({ progress }) {
             animate={{ scale: [1, 1.5, 1], opacity: [0.8, 1, 0.8] }}
             transition={{ duration: 1, repeat: Infinity }}
         >
-            <span className="drop-shadow-lg" style={{ fontSize: 16 }}>✨</span>
+            {/* <span className="drop-shadow-lg" style={{ fontSize: 16 }}>✨</span> */}
         </motion.div>
     );
 }
@@ -277,61 +277,63 @@ export default function InteractiveLessonViewer({ lessonId, lessonName, onComple
                     boxShadow: '0 2px 15px rgba(0,0,0,0.05)',
                 }}>
                 <div className="max-w-5xl mx-auto px-4 py-2.5">
-                    <div className="flex items-center gap-3">
-                        {/* Exit */}
-                        <motion.button type="button" onClick={handleExit} aria-label="Thoát"
-                            whileHover={{ scale: 1.1, rotate: 90 }} whileTap={{ scale: 0.9 }}
-                            className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg shrink-0"
-                            style={{
-                                background: 'linear-gradient(135deg, #FEE2E2, #FECACA)',
-                                color: '#EF4444',
-                                boxShadow: '0 2px 8px rgba(239,68,68,0.2)',
-                            }}>✕</motion.button>
-
+                    <div className="flex flex-col items-center gap-3">
                         {/* Lesson name */}
-                        <div className="hidden sm:flex items-center gap-1.5 text-sm font-bold text-slate-600 truncate max-w-[180px]">
+                        <div className="hidden sm:flex items-center gap-1.5 text-sm font-bold text-slate-600 truncate">
                             <img src={owlMascot} alt="" className="w-6 h-6 object-contain" />
                             {lessonName}
                         </div>
+                        <div className="flex items-center gap-3 w-full justify-between">
+                            {/* Exit */}
+                            <motion.button type="button" onClick={handleExit} aria-label="Thoát"
+                                whileHover={{ scale: 1.1, rotate: 90 }} whileTap={{ scale: 0.9 }}
+                                className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg shrink-0"
+                                style={{
+                                    background: 'linear-gradient(135deg, #FEE2E2, #FECACA)',
+                                    color: '#EF4444',
+                                    boxShadow: '0 2px 8px rgba(239,68,68,0.2)',
+                                }}>✕</motion.button>
 
-                        {/* Progress bar — pastel rainbow shimmer */}
-                        <div className="flex-1">
-                            <div className="relative h-5 rounded-full overflow-visible"
-                                style={{ background: 'rgba(0,0,0,0.05)' }}>
-                                <motion.div
-                                    className="absolute top-0 left-0 h-full rounded-full overflow-hidden"
-                                    initial={{ width: 0 }}
-                                    animate={{ width: `${progress}%` }}
-                                    transition={{ duration: 0.6, ease: 'easeOut' }}
-                                    style={{
-                                        background: 'linear-gradient(90deg, #86EFAC, #67E8F9, #A78BFA, #F9A8D4, #FDE68A)',
-                                        backgroundSize: '200% 100%',
-                                        animation: 'rainbow-shimmer 3s ease infinite',
-                                        boxShadow: '0 2px 10px rgba(167, 139, 250, 0.3)',
-                                    }}>
-                                    <motion.div className="absolute inset-0"
+                            {/* Progress bar — pastel rainbow shimmer */}
+                            <div className="flex-1">
+                                <div className="relative h-5 rounded-full overflow-visible"
+                                    style={{ background: 'rgba(0,0,0,0.05)' }}>
+                                    <motion.div
+                                        className="absolute top-0 left-0 h-full rounded-full overflow-hidden"
+                                        initial={{ width: 0 }}
+                                        animate={{ width: `${progress}%` }}
+                                        transition={{ duration: 0.6, ease: 'easeOut' }}
                                         style={{
-                                            background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.4) 50%, transparent 100%)',
+                                            background: 'linear-gradient(90deg, #86EFAC, #67E8F9, #A78BFA, #F9A8D4, #FDE68A)',
                                             backgroundSize: '200% 100%',
-                                        }}
-                                        animate={{ backgroundPosition: ['200% 0%', '-200% 0%'] }}
-                                        transition={{ duration: 2, repeat: Infinity, ease: 'linear' }} />
-                                </motion.div>
-                                <ProgressSparkle progress={Math.min(progress, 95)} />
+                                            animation: 'rainbow-shimmer 3s ease infinite',
+                                            boxShadow: '0 2px 10px rgba(167, 139, 250, 0.3)',
+                                        }}>
+                                        <motion.div className="absolute inset-0"
+                                            style={{
+                                                background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.4) 50%, transparent 100%)',
+                                                backgroundSize: '200% 100%',
+                                            }}
+                                            animate={{ backgroundPosition: ['200% 0%', '-200% 0%'] }}
+                                            transition={{ duration: 2, repeat: Infinity, ease: 'linear' }} />
+                                    </motion.div>
+                                    <ProgressSparkle progress={Math.min(progress, 95)} />
+                                </div>
                             </div>
+
+                            {/* Page counter */}
+                            <motion.div key={currentPage}
+                                initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
+                                className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-extrabold shadow-sm"
+                                style={{
+                                    background: 'linear-gradient(135deg, #DBEAFE, #EDE9FE)',
+                                    color: '#6366F1',
+                                }}>
+                                <span>{pageType.emoji}</span>
+                                <span>{currentPage + 1}/{totalPages}</span>
+                            </motion.div>
                         </div>
 
-                        {/* Page counter */}
-                        <motion.div key={currentPage}
-                            initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
-                            className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-extrabold shadow-sm"
-                            style={{
-                                background: 'linear-gradient(135deg, #DBEAFE, #EDE9FE)',
-                                color: '#6366F1',
-                            }}>
-                            <span>{pageType.emoji}</span>
-                            <span>{currentPage + 1}/{totalPages}</span>
-                        </motion.div>
                     </div>
                 </div>
             </div>

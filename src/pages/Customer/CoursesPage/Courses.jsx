@@ -8,6 +8,7 @@ import {
 import useAuth from "../../../contexts/AuthContext";
 import { useAuthModalStore } from "../../../stores/authModalStore";
 import { TRIAL_CHAPTER_ID } from "../../../constants/trialChapter";
+import Button from "../../../components/common/Button";
 
 const slugify = (text = "") =>
   text
@@ -66,6 +67,16 @@ export default function Courses() {
   const [chapters, setChapters] = useState([]);
   const [selectedGradeLevel, setSelectedGradeLevel] = useState(null);
 
+  const [isGradeDropdownOpen, setIsGradeDropdownOpen] = useState(false);
+  const gradeDropdownRef = useRef(null);
+
+  const getShortId = (id = "", len = 8) => String(id).slice(0, len);
+
+  const extractShortIdFromEnd = (s = "") => {
+    const parts = s.split("~");
+    return parts[parts.length - 1] || "";
+  };
+
   const { logout } = useAuth();
 
   useEffect(() => {
@@ -102,19 +113,21 @@ export default function Courses() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+
   const selectedSubject = useMemo(() => {
     if (!subjectSlug) return null;
 
-    const id = extractUuidFromEnd(subjectSlug);
-    if (id) {
-      const found = subjects.find((s) => s.subjectId === id);
+    const shortId = extractShortIdFromEnd(subjectSlug);
+    if (shortId) {
+      const found = subjects.find((s) =>
+        String(s.subjectId).startsWith(shortId)
+      );
       if (found) return found;
     }
 
-    const foundByName = subjects.find(
-      (s) => slugify(s.subjectName) === subjectSlug
+    return (
+      subjects.find((s) => slugify(s.subjectName) === subjectSlug) || null
     );
-    return foundByName || null;
   }, [subjectSlug, subjects]);
 
   useEffect(() => {
@@ -250,56 +263,168 @@ export default function Courses() {
     openLogin(null, "parent");
   };
 
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        gradeDropdownRef.current &&
+        !gradeDropdownRef.current.contains(event.target)
+      ) {
+        setIsGradeDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
   return (
     <div className="min-h-screen bg-white">
       <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 lg:py-[63px]">
         {/* Header */}
         <div className="mb-10 sm:mb-12 lg:mb-10">
-          <h1 className="text-2xl sm:text-3xl lg:text-[24px] font-bold leading-[1.2] text-brilliant-black mb-1">
-            Lộ trình học tập
-          </h1>
-          <p className="text-base lg:text-[16px] leading-[1.5] text-brilliant-gray-40">
-            Từng bước chinh phục Toán học
-          </p>
-          <div className="mt-3 text-sm text-slate-500">
-            {loading ? "Đang tải dữ liệu..." : err ? `Lỗi: ${err}` : null}
+          <div className="rounded-3xl bg-gradient-to-r from-indigo-50 via-white to-purple-50 border border-indigo-100 px-5 py-6 sm:px-7 sm:py-7 shadow-sm">
+            <div className="flex flex-col gap-3">
+              <div className="inline-flex w-fit items-center gap-2 px-3 py-1 rounded-full bg-indigo-100 text-indigo-700 text-xs sm:text-sm font-semibold">
+                <i className="fa-solid fa-book-open" />
+                Khám phá ngay
+              </div>
+
+              <h1 className="text-2xl sm:text-3xl lg:text-[32px] font-extrabold leading-[1.2] text-slate-900">
+                Lộ trình học tập
+              </h1>
+
+              <p className="text-base lg:text-[16px] leading-[1.6] text-slate-600">
+                Từng bước chinh phục Toán học
+              </p>
+
+              <div className="mt-1 text-sm">
+                {loading ? (
+                  <span className="inline-flex items-center gap-2 text-indigo-600 font-medium">
+                    <i className="fa-solid fa-spinner animate-spin" />
+                    Đang tải dữ liệu...
+                  </span>
+                ) : err ? (
+                  <span className="inline-flex items-center gap-2 text-red-500 font-medium">
+                    <i className="fa-solid fa-circle-exclamation" />
+                    Lỗi: {err}
+                  </span>
+                ) : null}
+              </div>
+            </div>
           </div>
         </div>
 
         {/* Grade Section */}
         <div className="mb-10 sm:mb-12 lg:mb-10">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6 sm:gap-8 lg:gap-10 p-6 sm:p-8 lg:p-6 rounded-xl">
-            <div className="flex-shrink-0">
-              <img
-                src="https://api.builder.io/api/v1/image/assets/TEMP/725362ab4d4998174967e88c4d07dcb94ef059e0?width=192"
-                alt="Foundation Math 1"
-                className="w-20 h-auto sm:w-24 lg:w-24"
-              />
+          <div className="flex flex-col lg:flex-row lg:items-center gap-6 rounded-[28px] bg-gradient-to-r from-violet-100 via-fuchsia-50 to-cyan-50 border border-violet-200/70 shadow-sm px-5 py-6 sm:px-7 sm:py-7 lg:px-8 lg:py-7">
+            {/* Illustration */}
+            <div className="flex-shrink-0 self-center lg:self-auto">
+              <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-3xl bg-white/80 shadow-md flex items-center justify-center border border-white">
+                <img
+                  src="https://api.builder.io/api/v1/image/assets/TEMP/725362ab4d4998174967e88c4d07dcb94ef059e0?width=192"
+                  alt="Foundation Math 1"
+                  className="w-16 sm:w-20 h-auto"
+                />
+              </div>
             </div>
 
-            <div className="flex flex-col sm:flex-row sm:items-end gap-4 sm:gap-6 lg:gap-8">
-              <h2 className="text-xl sm:text-2xl lg:text-[20px] font-bold leading-[1.25] text-brilliant-black">
-                {selectedGradeName}
-              </h2>
-              <p className="text-base lg:text-[16px] leading-[1.5] text-brilliant-gray-40 sm:pb-[1px]">
-                Nắm vững các kỹ năng giải quyết vấn đề và nền tảng tư duy Toán.
+            {/* Content */}
+            <div className="flex-1">
+              <div className="flex flex-wrap items-center gap-3 mb-3">
+                <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white text-violet-700 text-xs sm:text-sm font-semibold shadow-sm border border-violet-100">
+                  <i className="fa-solid fa-graduation-cap" />
+                  Khối học hiện tại
+                </span>
+
+                <div className="inline-flex items-center px-4 py-2 rounded-2xl bg-gradient-to-r from-violet-600 to-fuchsia-500 text-white shadow-lg">
+                  <span className="text-lg sm:text-xl lg:text-[22px] font-extrabold tracking-wide">
+                    {selectedGradeName}
+                  </span>
+                </div>
+              </div>
+
+              <p className="text-sm sm:text-base lg:text-[16px] leading-[1.6] text-slate-700 max-w-2xl">
+                Chọn lớp phù hợp để khám phá lộ trình học tập và các chuyên đề Toán thú vị cho bé.
               </p>
             </div>
 
+            {/* Select */}
             {!!grades.length && (
-              <div className="sm:ml-auto">
-                <select
-                  disabled={!!subjectSlug}
-                  value={selectedGradeLevel ?? ""}
-                  onChange={(e) => setSelectedGradeLevel(Number(e.target.value))}
-                  className={`border border-slate-200 rounded-lg px-3 py-2 text-sm ${subjectSlug ? "opacity-60 cursor-not-allowed" : ""}`}
-                >
-                  {grades.map((g) => (
-                    <option key={g.gradeId} value={g.gradeLevel}>
-                      {g.name}
-                    </option>
-                  ))}
-                </select>
+              <div className="w-full sm:w-auto lg:min-w-[240px]" ref={gradeDropdownRef}>
+                <label className="block text-sm font-semibold text-slate-700 mb-2">
+                  Chọn lớp học
+                </label>
+
+                <div className="relative">
+                  <button
+                    type="button"
+                    disabled={!!subjectSlug}
+                    onClick={() => {
+                      if (subjectSlug) return;
+                      setIsGradeDropdownOpen((prev) => !prev);
+                    }}
+                    className={`
+          w-full rounded-2xl border-2 bg-white
+          px-4 py-3 text-sm sm:text-base font-semibold
+          shadow-sm transition-all
+          flex items-center justify-between gap-3
+          focus:outline-none
+          ${subjectSlug
+                        ? "border-slate-200 bg-slate-100 text-slate-400 cursor-not-allowed"
+                        : "border-violet-200 text-slate-800 hover:border-violet-300"
+                      }
+        `}
+                  >
+                    <span>{selectedGradeName}</span>
+                    <i
+                      className={`fa-solid fa-chevron-down text-sm transition-transform ${isGradeDropdownOpen ? "rotate-180 text-violet-600" : "text-violet-500"
+                        }`}
+                    />
+                  </button>
+
+                  {!subjectSlug && isGradeDropdownOpen && (
+                    <div className="absolute left-0 right-0 top-[calc(100%+8px)] z-30 overflow-hidden rounded-2xl border border-violet-100 bg-white shadow-xl">
+                      <div className="max-h-72 overflow-y-auto py-2">
+                        {grades.map((g) => {
+                          const isActive =
+                            Number(selectedGradeLevel) === Number(g.gradeLevel);
+
+                          return (
+                            <button
+                              key={g.gradeId}
+                              type="button"
+                              onClick={() => {
+                                setSelectedGradeLevel(Number(g.gradeLevel));
+                                setIsGradeDropdownOpen(false);
+                              }}
+                              className={`
+                    w-full px-4 py-3 text-left text-sm sm:text-base transition-colors
+                    flex items-center justify-between
+                    ${isActive
+                                  ? "bg-violet-50 text-violet-700 font-bold"
+                                  : "text-slate-700 hover:bg-violet-50"
+                                }
+                  `}
+                            >
+                              <span>{g.name}</span>
+                              {isActive && (
+                                <i className="fa-solid fa-check text-violet-500 text-sm" />
+                              )}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {subjectSlug && (
+                  <p className="mt-2 text-xs text-slate-500">
+                    Đang xem theo môn học nên không thể đổi lớp.
+                  </p>
+                )}
               </div>
             )}
           </div>
@@ -307,16 +432,14 @@ export default function Courses() {
 
         {/* Back button khi đang xem chapter */}
         {subjectSlug && (
-          <div className="mb-4 flex items-center gap-3">
-            <button
-              type="button"
-              className="text-sm px-3 py-2 rounded-lg border border-slate-200 bg-white hover:bg-slate-50"
-              onClick={() => navigate("/courses")}
-            >
-              ← Quay về môn học
-            </button>
-            <div className="text-sm text-slate-600">
-              Môn đã chọn: <b>{selectedSubject?.subjectName || "—"}</b>
+          <div className="mb-4 flex items-center gap-3 h-auto justify-between">
+            <div className="h-auto w-full md:w-[50%] flex-1">
+              <Button onClick={() => navigate("/courses")} size="sm" className="h-auto md:h-10 px-10 py-auto">
+                ← Quay về lựa chọn môn học
+              </Button>
+            </div>
+            <div className="text-xl font-semibold text-slate-600 w-full text-center md:text-right flex-1">
+              Môn học đã chọn: <b className="text-fuchsia-400 text-xl md:text-2xl">{selectedSubject?.subjectName || "—"}</b>
             </div>
           </div>
         )}
@@ -340,7 +463,7 @@ export default function Courses() {
                   {learningCards.map((card) => {
                     // ======== SUBJECT CARDS (trang /courses) ========
                     if (!subjectSlug && card.kind === "subject") {
-                      const to = `/courses/${slugify(card.title)}-${card.subjectId}`;
+                      const to = `/courses/${slugify(card.title)}~${getShortId(card.subjectId)}`;
                       return (
                         <Link
                           key={card.id}
@@ -364,8 +487,8 @@ export default function Courses() {
 
                     // Route: trial dùng /trial/..., bình thường dùng /courses/...
                     const to = isTrial
-                      ? `/trial/courses/${subjectSlug}/chapter/${slugify(card.title)}-${card.chapterId}`
-                      : `/courses/${subjectSlug}/chapter/${slugify(card.title)}-${card.chapterId}`;
+                      ? `/trial/courses/${subjectSlug}/chapter/${slugify(card.title)}~${getShortId(card.chapterId)}`
+                      : `/courses/${subjectSlug}/chapter/${slugify(card.title)}~${getShortId(card.chapterId)}`;
 
                     const linkState = {
                       subjectName: selectedSubject?.subjectName,
@@ -521,10 +644,6 @@ export default function Courses() {
               {/* Buttons */}
               <div className="flex flex-col gap-2 w-full">
                 <button
-                  // onClick={() => {
-                  //   setLockedPopup(null);
-                  //   navigate("/subscription");
-                  // }}
                   onClick={handleUpgradeClick}
                   className="w-full py-3 rounded-2xl bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white font-semibold text-sm shadow-md hover:opacity-90 transition-opacity"
                 >

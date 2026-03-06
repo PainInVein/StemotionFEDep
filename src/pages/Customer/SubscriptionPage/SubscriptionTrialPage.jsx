@@ -49,9 +49,6 @@ export default function SubscriptionTrialPage() {
 
                         {/* right CTA on track */}
                         <div className="absolute inset-y-0 right-1 flex items-center">
-                            {/* <GradientButton className="h-10 px-6 py-0">
-                                Bắt đầu đăng ký
-                            </GradientButton> */}
                             <Button size="sm" className="h-10 px-10 py-0 bg-gradient-to-r from-indigo-400 via-fuchsia-400 to-amber-300">
                                 Bắt đầu đăng ký
                             </Button>

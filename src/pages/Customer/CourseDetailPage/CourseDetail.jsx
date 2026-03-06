@@ -1,7 +1,10 @@
 // src/pages/Customer/CourseDetailPage/CourseDetail.jsx
 import { useEffect, useMemo, useState } from "react";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
-import { getChaptersService, getLessonsService } from "../../../services/education/education.service";
+import {
+  getChaptersService,
+  getLessonsService,
+} from "../../../services/education/education.service";
 import { useLessonProgressStore } from "../../../stores/lessonProgressStore";
 import { getUserKey } from "../../../utils/getUserKey";
 
@@ -16,14 +19,22 @@ const slugify = (text) =>
     .replace(/^-+|-+$/g, "");
 
 const extractUuidFromSlug = (slug = "") => {
-  const maybe = slug.slice(-36);
+  const maybe = String(slug).slice(-36);
   return /^[0-9a-fA-F-]{36}$/.test(maybe) ? maybe : "";
 };
 
+const removeUuidFromSlug = (slug = "") =>
+  String(slug).replace(/-[0-9a-fA-F-]{36}$/, "");
+
+const getShortId = (id = "") => String(id).slice(0, 8);
+
 const ASSETS = {
-  completeShadow: "https://api.builder.io/api/v1/image/assets/TEMP/265bdad652a24ce9a83545e7aeab19fa14fc5dd2?width=184",
-  doingMascot: "https://api.builder.io/api/v1/image/assets/TEMP/65172b3050fa147bc742b9bbdc5ac846b7365557?width=177",
-  doingShadow: "https://api.builder.io/api/v1/image/assets/TEMP/a3423205b11fe005386c5b83b0e5ff12fa7c53c2?width=204",
+  completeShadow:
+    "https://api.builder.io/api/v1/image/assets/TEMP/265bdad652a24ce9a83545e7aeab19fa14fc5dd2?width=184",
+  doingMascot:
+    "https://api.builder.io/api/v1/image/assets/TEMP/65172b3050fa147bc742b9bbdc5ac846b7365557?width=177",
+  doingShadow:
+    "https://api.builder.io/api/v1/image/assets/TEMP/a3423205b11fe005386c5b83b0e5ff12fa7c53c2?width=204",
 };
 
 export default function CourseDetail() {
@@ -32,12 +43,19 @@ export default function CourseDetail() {
   const location = useLocation();
   const state = location.state || {};
 
-  // ✅ Kiểm tra đang ở route trial không
   const isTrial = location.pathname.startsWith("/trial/");
 
-  const chapterIdFromSlug = useMemo(() => extractUuidFromSlug(chapterSlug), [chapterSlug]);
-  const chapterKey = chapterIdFromSlug || chapterSlug;
+  const subjectIdFromSlug = useMemo(
+    () => extractUuidFromSlug(subjectSlug),
+    [subjectSlug]
+  );
 
+  const chapterIdFromSlug = useMemo(
+    () => extractUuidFromSlug(chapterSlug),
+    [chapterSlug]
+  );
+
+  const chapterKey = chapterIdFromSlug || chapterSlug;
   const userKey = useMemo(() => getUserKey(), []);
 
   const byUser = useLessonProgressStore((s) => s.byUser);
@@ -53,7 +71,9 @@ export default function CourseDetail() {
 
   const [chapterName, setChapterName] = useState(state.chapterName || "");
   const [subjectName, setSubjectName] = useState(state.subjectName || "");
-  const [chapterGradeLevel, setChapterGradeLevel] = useState(state.gradeLevel ?? null);
+  const [chapterGradeLevel, setChapterGradeLevel] = useState(
+    state.gradeLevel ?? null
+  );
 
   const [lessons, setLessons] = useState([]);
 
@@ -67,16 +87,33 @@ export default function CourseDetail() {
         let resolvedSubjectName = state.subjectName || "";
         let resolvedGradeLevel = state.gradeLevel ?? null;
 
-        if (!resolvedChapterName || resolvedGradeLevel == null) {
+        if (
+          !resolvedChapterName ||
+          !resolvedSubjectName ||
+          resolvedGradeLevel == null
+        ) {
           const chapRes = await getChaptersService(1, 5000);
           const chapItems = chapRes?.items ?? [];
 
           let found = null;
-          if (chapterIdFromSlug) found = chapItems.find((c) => c.chapterId === chapterIdFromSlug);
+
+          if (chapterIdFromSlug) {
+            found = chapItems.find((c) => c.chapterId === chapterIdFromSlug);
+          }
 
           if (!found) {
-            const slugNoId = chapterSlug.replace(/-[0-9a-fA-F-]{36}$/, "");
-            found = chapItems.find((c) => slugify(c.chapterName) === slugNoId);
+            const slugNoId = removeUuidFromSlug(chapterSlug);
+
+            found = chapItems.find((c) => {
+              const sameChapterSlug = slugify(c.chapterName) === slugNoId;
+              if (!sameChapterSlug) return false;
+
+              if (subjectIdFromSlug && c.subjectId) {
+                return c.subjectId === subjectIdFromSlug;
+              }
+
+              return true;
+            });
           }
 
           resolvedChapterName = found?.chapterName || resolvedChapterName || "";
@@ -85,9 +122,10 @@ export default function CourseDetail() {
         }
 
         if (!resolvedSubjectName && subjectSlug) {
-          resolvedSubjectName = subjectSlug
-            .replace(/-[0-9a-fA-F-]{36}$/, "")
-            .replace(/-/g, " ");
+          resolvedSubjectName = removeUuidFromSlug(subjectSlug).replace(
+            /-/g,
+            " "
+          );
         }
 
         setChapterName(resolvedChapterName);
@@ -97,17 +135,20 @@ export default function CourseDetail() {
         const lessonRes = await getLessonsService(1, 5000);
         const lessonItems = lessonRes?.items ?? [];
 
-        const filtered = resolvedChapterName
-          ? lessonItems.filter((l) => {
-            const sameChapterName = l.chapterName === resolvedChapterName;
-            const active = l.status !== "Inactive";
-            const sameGrade =
-              resolvedGradeLevel == null
-                ? true
-                : Number(l.gradeLevel) === Number(resolvedGradeLevel);
-            return sameChapterName && sameGrade && active;
-          })
-          : [];
+        const filtered = lessonItems.filter((l) => {
+          const active = l.status !== "Inactive";
+
+          const sameGrade =
+            resolvedGradeLevel == null
+              ? true
+              : Number(l.gradeLevel) === Number(resolvedGradeLevel);
+
+          const sameChapter = chapterIdFromSlug
+            ? l.chapterId === chapterIdFromSlug
+            : l.chapterName === resolvedChapterName;
+
+          return sameChapter && sameGrade && active;
+        });
 
         setLessons(
           filtered.map((l) => ({
@@ -124,8 +165,7 @@ export default function CourseDetail() {
     };
 
     run();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [subjectSlug, chapterSlug, chapterIdFromSlug]);
+  }, [state, subjectSlug, chapterSlug, subjectIdFromSlug, chapterIdFromSlug]);
 
   const lessonsWithStatus = useMemo(() => {
     const doingId = chapterProgress?.doingLessonId || null;
@@ -133,7 +173,12 @@ export default function CourseDetail() {
 
     return lessons.map((l) => ({
       ...l,
-      status: doingId === l.id ? "doing" : completedSet.has(l.id) ? "complete" : "notyet",
+      status:
+        doingId === l.id
+          ? "doing"
+          : completedSet.has(l.id)
+            ? "complete"
+            : "notyet",
     }));
   }, [lessons, chapterProgress]);
 
@@ -142,9 +187,8 @@ export default function CourseDetail() {
   const openLesson = (lesson) => {
     setDoingLesson(userKey, chapterKey, lesson.id);
 
-    const lessonSlug2 = `${slugify(lesson.title)}-${lesson.id}`;
+    const lessonSlug2 = `${slugify(lesson.title)}~${getShortId(lesson.id)}`;
 
-    // ✅ FIX: giữ nguyên prefix /trial/ nếu đang ở route trial
     const basePath = isTrial
       ? `/trial/courses/${subjectSlug}/chapter/${chapterSlug}/lesson/${lessonSlug2}`
       : `/courses/${subjectSlug}/chapter/${chapterSlug}/lesson/${lessonSlug2}`;
@@ -156,16 +200,12 @@ export default function CourseDetail() {
         chapterName,
         subjectName,
         gradeLevel: chapterGradeLevel,
-        isTrial, // ✅ truyền thêm để LessonDetail biết
+        isTrial,
       },
     });
   };
 
-  // ✅ Breadcrumb cũng đúng theo route
-  const coursesBasePath = isTrial ? "/courses" : "/courses";
-  const subjectPath = isTrial
-    ? `/courses/${subjectSlug}` // trial không có route subject riêng → về /courses
-    : `/courses/${subjectSlug}`;
+  const subjectPath = `/courses/${subjectSlug}`;
 
   return (
     <div className="min-h-screen bg-white">
@@ -179,8 +219,14 @@ export default function CourseDetail() {
               isTrial={isTrial}
             />
             <div className="mt-3 text-sm text-slate-500">
-              {loading ? "Đang tải..." : err ? `Lỗi: ${err}` : `Lessons: ${lessonsWithStatus.length}`}
-              {chapterGradeLevel != null ? ` • Grade: ${chapterGradeLevel}` : ""}
+              {loading
+                ? "Đang tải..."
+                : err
+                  ? `Lỗi: ${err}`
+                  : `Lessons: ${lessonsWithStatus.length}`}
+              {chapterGradeLevel != null
+                ? ` • Grade: ${chapterGradeLevel}`
+                : ""}
             </div>
           </div>
 
@@ -193,7 +239,6 @@ export default function CourseDetail() {
           </div>
         </div>
 
-        {/* Breadcrumb */}
         <div className="mt-8 text-sm text-slate-500">
           <Link to="/courses" className="text-sky-600 hover:underline">
             Khóa học
@@ -209,7 +254,9 @@ export default function CourseDetail() {
           )}
           {isTrial && (
             <>
-              <span className="text-green-600 font-medium">Học thử miễn phí</span>
+              <span className="text-green-600 font-medium">
+                Học thử miễn phí
+              </span>
               {" / "}
             </>
           )}
@@ -220,7 +267,12 @@ export default function CourseDetail() {
   );
 }
 
-function CourseCard({ title = "Chapter", subtitle = "", lessonCount = 0, isTrial = false }) {
+function CourseCard({
+  title = "Chapter",
+  subtitle = "",
+  lessonCount = 0,
+  isTrial = false,
+}) {
   return (
     <div className="w-full max-w-[487px] min-w-[350px]">
       <div
@@ -233,10 +285,13 @@ function CourseCard({ title = "Chapter", subtitle = "", lessonCount = 0, isTrial
             alt={title}
             className="w-[89px] h-[99px] object-contain"
           />
-          <h1 className="text-[24px] font-bold text-black leading-[28.8px]">{title}</h1>
-          {subtitle ? <div className="text-sm text-slate-500">{subtitle}</div> : null}
+          <h1 className="text-[24px] font-bold text-black leading-[28.8px]">
+            {title}
+          </h1>
+          {subtitle ? (
+            <div className="text-sm text-slate-500">{subtitle}</div>
+          ) : null}
 
-          {/* ✅ Badge miễn phí nếu là trial */}
           {isTrial && (
             <div className="mt-1 inline-flex items-center gap-1.5 bg-green-50 border border-green-200 text-green-700 text-xs font-semibold px-3 py-1 rounded-full">
               <i className="fa-solid fa-gift text-[10px]" />
@@ -252,11 +307,15 @@ function CourseCard({ title = "Chapter", subtitle = "", lessonCount = 0, isTrial
         <div className="flex flex-wrap items-center gap-x-1.5 gap-y-2">
           <div className="flex items-center gap-2">
             <EyeIcon />
-            <span className="text-[14px] text-black leading-[21px]">{lessonCount} Bài học</span>
+            <span className="text-[14px] text-black leading-[21px]">
+              {lessonCount} Bài học
+            </span>
           </div>
           <div className="flex items-center gap-2">
             <SparkleIcon />
-            <span className="text-[14px] text-black leading-[21px]">Bài tập</span>
+            <span className="text-[14px] text-black leading-[21px]">
+              Bài tập
+            </span>
           </div>
         </div>
       </div>
@@ -308,7 +367,9 @@ function LessonsList({ onOpenLesson, lessons, chapterName }) {
           })}
 
           {!lessons.length && (
-            <div className="text-sm text-slate-500">Chưa có bài học trong chapter này.</div>
+            <div className="text-sm text-slate-500">
+              Chưa có bài học trong chapter này.
+            </div>
           )}
         </div>
       </div>
@@ -329,7 +390,10 @@ function LessonItem({ lesson, index, onClick }) {
       tabIndex={0}
       onKeyDown={(e) => e.key === "Enter" && onClick?.()}
     >
-      <div className="flex-shrink-0 relative" style={{ width: "128px", height: "134px" }}>
+      <div
+        className="flex-shrink-0 relative"
+        style={{ width: "128px", height: "134px" }}
+      >
         {isComplete && (
           <img
             src={ASSETS.completeShadow}
@@ -372,7 +436,13 @@ function LessonItem({ lesson, index, onClick }) {
 
 function EyeIcon() {
   return (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 16 16"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
       <path
         fillRule="evenodd"
         clipRule="evenodd"
@@ -385,7 +455,13 @@ function EyeIcon() {
 
 function SparkleIcon() {
   return (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 16 16"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
       <path
         d="M5.78736 11.2034L11.6218 5.36895C12.0246 4.96617 12.0246 4.31313 11.6218 3.91035C11.219 3.50756 10.566 3.50756 10.1632 3.91035L4.32875 9.74476C3.92597 10.1475 3.92597 10.8006 4.32875 11.2034C4.73154 11.6061 5.38458 11.6061 5.78736 11.2034Z"
         fill="black"

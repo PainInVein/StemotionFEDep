@@ -7,7 +7,8 @@ import {
   createPaymentIntentService,
 } from "../services/subscription/subscription.service";
 
-const DEFAULT_SUBSCRIPTION_ID = "b2fa5e4a-ac5a-4f23-9c92-8040748a6731";
+// const DEFAULT_SUBSCRIPTION_ID = "b2fa5e4a-ac5a-4f23-9c92-8040748a6731";
+const DEFAULT_SUBSCRIPTION_ID = "7E259B3E-B40F-4BBF-B770-A221AD8670F0";
 
 export default function usePayOSPayment(subscriptionId = DEFAULT_SUBSCRIPTION_ID) {
   const { user, isAuthenticated, loading: authLoading } = useAuth();
