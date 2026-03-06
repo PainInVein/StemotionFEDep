@@ -159,7 +159,6 @@ export default function SpeakButton({
                 ...style,
             }}
         >
-            <span style={{ fontSize: 20 }}>{speaking ? '⏹' : '🔊'}</span>
             <span>{speaking ? 'Dừng' : label}</span>
 
             {speaking && (
