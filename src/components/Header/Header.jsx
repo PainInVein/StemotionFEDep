@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import logo from "../../assets/logo-02.webp";
 import { Link, useNavigate } from "react-router-dom";
 
@@ -11,6 +11,9 @@ export default function Header() {
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isLoginOpen, setIsLoginOpen] = useState(false);
+  const [isLoginDropdownOpen, setIsLoginDropdownOpen] = useState(false);
+  const [loginRole, setLoginRole] = useState("student");
+  const dropdownRef = useRef(null);
 
   const navItemClass =
     "flex items-center space-x-2 text-sm font-medium text-gray-500 hover:text-indigo-600 transition";
@@ -18,7 +21,11 @@ export default function Header() {
   const mobileItemClass =
     "flex items-center space-x-4 text-md font-medium text-gray-600 border-b border-gray-50 hover:text-indigo-500 hover:bg-indigo-50 py-3 pl-2 rounded-lg";
 
-  const openLogin = () => setIsLoginOpen(true);
+  const openLogin = (role = "student") => {
+    setLoginRole(role);
+    setIsLoginOpen(true);
+    setIsLoginDropdownOpen(false);
+  };
   const closeLogin = () => setIsLoginOpen(false);
 
   const handleLogout = () => {
@@ -34,6 +41,17 @@ export default function Header() {
 
   const { isAuthenticated, logout, user } = useAuth();
   const homePath = user?.role === "parent" ? "/parent/dashboard" : "/";
+
+  // Đóng dropdown khi click ra ngoài
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsLoginDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
 
   return (
@@ -148,16 +166,49 @@ export default function Header() {
                   </button>
                 </>
               ) : (
-                <button
-                  type="button"
-                  onClick={openLogin}
-                  className="flex items-center gap-2 px-3 py-2 text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-full transition"
-                  aria-label="Đăng nhập"
-                  title="Đăng nhập"
-                >
-                  <i className="fa-regular fa-circle-user text-[28px]" aria-hidden="true" />
-                  <span className="text-sm font-medium">Đăng nhập</span>
-                </button>
+                <div className="relative" ref={dropdownRef}>
+                  <button
+                    type="button"
+                    onClick={() => setIsLoginDropdownOpen(!isLoginDropdownOpen)}
+                    className="flex items-center gap-2 px-3 py-2 text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-full transition"
+                    aria-label="Đăng nhập"
+                    title="Đăng nhập"
+                  >
+                    <i className="fa-regular fa-circle-user text-[28px]" aria-hidden="true" />
+                    <span className="text-sm font-medium">Đăng nhập</span>
+                    <i className={`fa-solid fa-chevron-down text-xs ml-1 transition-transform duration-200 ${isLoginDropdownOpen ? "rotate-180" : ""}`} />
+                  </button>
+
+                  {isLoginDropdownOpen && (
+                    <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-gray-100 py-2 z-50 animate-in fade-in slide-in-from-top-2">
+                      <button
+                        onClick={() => openLogin("student")}
+                        className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 transition flex items-center gap-3"
+                      >
+                        <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-500">
+                          <i className="fa-solid fa-user-graduate" />
+                        </div>
+                        <div>
+                          <div className="font-semibold">Học sinh</div>
+                          <div className="text-xs text-gray-500 font-normal">Truy cập lộ trình học</div>
+                        </div>
+                      </button>
+
+                      <button
+                        onClick={() => openLogin("parent")}
+                        className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-600 transition flex items-center gap-3"
+                      >
+                        <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center text-orange-500">
+                          <i className="fa-solid fa-user-tie" />
+                        </div>
+                        <div>
+                          <div className="font-semibold">Phụ huynh</div>
+                          <div className="text-xs text-gray-500 font-normal">Quản lý nâng cấp tài khoản</div>
+                        </div>
+                      </button>
+                    </div>
+                  )}
+                </div>
               )}
             </div>
           </div>
@@ -227,17 +278,39 @@ export default function Header() {
                 </button>
               </>
             ) : (
-              <button
-                type="button"
-                onClick={() => {
-                  setIsMenuOpen(false);
-                  openLogin();
-                }}
-                className={mobileItemClass}
-              >
-                <i className="fa-solid fa-right-to-bracket text-2xl text-indigo-500" aria-hidden="true" />
-                <span>Đăng nhập</span>
-              </button>
+              <div className="flex flex-col border-t border-gray-100 mt-2 pt-2">
+                <div className="px-2 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                  Đăng nhập
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsMenuOpen(false);
+                    openLogin("student");
+                  }}
+                  className={mobileItemClass}
+                >
+                  <i className="fa-solid fa-user-graduate text-2xl text-indigo-500 w-8" aria-hidden="true" />
+                  <div className="flex flex-col items-start bg-transparent">
+                    <span>Học sinh</span>
+                    <span className="text-xs text-gray-400 font-normal">Truy cập lộ trình học</span>
+                  </div>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsMenuOpen(false);
+                    openLogin("parent");
+                  }}
+                  className={mobileItemClass}
+                >
+                  <i className="fa-solid fa-user-tie text-2xl text-orange-500 w-8" aria-hidden="true" />
+                  <div className="flex flex-col items-start bg-transparent">
+                    <span>Phụ huynh</span>
+                    <span className="text-xs text-gray-400 font-normal">Quản lý tài khoản con</span>
+                  </div>
+                </button>
+              </div>
             )}
 
             <div className="pt-4 text-gray-400 text-sm">
@@ -247,7 +320,7 @@ export default function Header() {
         </div>
       </header>
 
-      <LoginModal isOpen={isLoginOpen} onClose={handleCloseLogin} />
+      <LoginModal isOpen={isLoginOpen} onClose={handleCloseLogin} role={loginRole} />
     </>
   );
 }

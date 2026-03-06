@@ -26,6 +26,8 @@ const extractUuidFromSlug = (slug = "") => {
 const removeUuidFromSlug = (slug = "") =>
   String(slug).replace(/-[0-9a-fA-F-]{36}$/, "");
 
+const getShortId = (id = "") => String(id).slice(0, 8);
+
 const ASSETS = {
   completeShadow:
     "https://api.builder.io/api/v1/image/assets/TEMP/265bdad652a24ce9a83545e7aeab19fa14fc5dd2?width=184",
@@ -185,7 +187,7 @@ export default function CourseDetail() {
   const openLesson = (lesson) => {
     setDoingLesson(userKey, chapterKey, lesson.id);
 
-    const lessonSlug2 = `${slugify(lesson.title)}-${lesson.id}`;
+    const lessonSlug2 = `${slugify(lesson.title)}~${getShortId(lesson.id)}`;
 
     const basePath = isTrial
       ? `/trial/courses/${subjectSlug}/chapter/${chapterSlug}/lesson/${lessonSlug2}`

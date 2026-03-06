@@ -1,10 +1,39 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Button from "../../../components/common/Button";
 import CupIcon from "../../../components/common/CupIcon";
 import LeaderboardModal from "../../../components/Customer/Leaderboard/LeaderboardModal";
+import { getStudentOverviewApi } from "../../../services/api/studentProgress.service";
+import { getUserKey } from "../../../utils/getUserKey";
+
 export default function HomePage() {
   const [showVideo, setShowVideo] = useState(false);
   const [showLeaderboard, setShowLeaderboard] = useState(false); // Add state
+  const [learningStreak, setLearningStreak] = useState(0);
+
+  useEffect(() => {
+    const fetchStreak = async () => {
+      try {
+        const studentId = getUserKey();
+        if (studentId && studentId !== "guest") {
+          const res = await getStudentOverviewApi(studentId);
+          if (res?.data?.isSuccess) {
+            setLearningStreak(res.data.result.learningStreak || 0);
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching learning streak:", error);
+      }
+    };
+    fetchStreak();
+  }, []);
+
+  const totalCircles = 6;
+  let startDay = 1;
+  if (learningStreak >= totalCircles) {
+    startDay = learningStreak - totalCircles + 2;
+  }
+  const displayDays = Array.from({ length: totalCircles }, (_, i) => startDay + i);
+
   return (
     <div className="min-h-screen bg-white relative overflow-hidden">
       <div
@@ -30,34 +59,29 @@ export default function HomePage() {
                     {/* Large day number */}
                     <div className="mb-6">
                       <h1 className="text-4xl md:text-5xl font-bold text-indigo-400 leading-none font-brilliant">
-                        Tuần 1
+                        Chuỗi Học Tập
                       </h1>
                     </div>
 
                     {/* Day circles */}
                     <div className="flex items-center gap-3 md:gap-4 mb-2">
-                      {/* Day 1 - filled */}
-                      <div className="flex flex-col items-center gap-2">
-                        <div className="w-10 h-10 md:w-[54px] md:h-[54px] rounded-full p-[2px] opacity-40 bg-gradient-to-r from-[#FF9FB2] via-[#B2A5FF] to-[#FFD09B]">
-                          <div className="w-full h-full rounded-full bg-indigo-500 flex items-center justify-center">
-                            <i className="fa-solid fa-bolt text-white text-base md:text-2xl" />
+                      {displayDays.map((dayNum) => {
+                        const isFilled = dayNum <= learningStreak;
+                        return (
+                          <div key={dayNum} className="flex flex-col items-center gap-2">
+                            <div className="w-10 h-10 md:w-[54px] md:h-[54px] rounded-full p-[2px] opacity-40 bg-gradient-to-r from-[#FF9FB2] via-[#B2A5FF] to-[#FFD09B]">
+                              <div className={`w-full h-full rounded-full ${isFilled ? "bg-indigo-500" : "bg-white"} flex items-center justify-center`}>
+                                {isFilled && (
+                                  <i className="fa-solid fa-bolt text-white text-base md:text-2xl" />
+                                )}
+                              </div>
+                            </div>
+                            <span className={`font-brilliant text-sm md:text-base ${isFilled ? "text-brand-light-blue font-bold" : "text-brand-light-blue font-medium"}`}>
+                              {dayNum}
+                            </span>
                           </div>
-                        </div>
-                        <span className="text-brand-light-blue font-bold text-base md:text-lg font-brilliant">
-                          T2
-                        </span>
-                      </div>
-
-                      {["T3", "T4", "T5", "T6", "T7"].map((day) => (
-                        <div key={day} className="flex flex-col items-center gap-2">
-                          <div className="w-10 h-10 md:w-[54px] md:h-[54px] rounded-full p-[2px] opacity-40 bg-gradient-to-r from-[#FF9FB2] via-[#B2A5FF] to-[#FFD09B]">
-                            <div className="w-full h-full rounded-full bg-white" />
-                          </div>
-                          <span className="text-brand-light-blue font-medium text-sm md:text-base font-brilliant">
-                            {day}
-                          </span>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   </div>
                 </div>

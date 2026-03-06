@@ -1,6 +1,5 @@
 import React from "react";
 
-/* ─── Lời động viên ngẫu nhiên ──────────────────────────── */
 const CHEERS_OK = [
   "Đúng rồi! Giỏi lắm!",
   "Tuyệt vời! Con thông minh quá!",
