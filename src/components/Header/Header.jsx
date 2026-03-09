@@ -209,57 +209,65 @@ export default function Header() {
                   </button>
                 </>
               ) : (
-                <div className="relative" ref={dropdownRef}>
-                  <button
-                    type="button"
-                    onClick={() => setIsLoginDropdownOpen(!isLoginDropdownOpen)}
-                    className="flex items-center gap-2 px-3 py-2 text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-full transition"
-                    aria-label="Đăng nhập"
-                    title="Đăng nhập"
+                <>
+                  <Link
+                    to="/register"
+                    className="px-4 py-2 text-sm font-semibold text-indigo-600 border border-indigo-200 rounded-full hover:bg-indigo-50 transition"
                   >
-                    <i className="fa-regular fa-circle-user text-[28px]" aria-hidden="true" />
-                    <span className="text-sm font-medium">Đăng nhập</span>
-                    <i
-                      className={`fa-solid fa-chevron-down text-xs ml-1 transition-transform duration-200 ${
-                        isLoginDropdownOpen ? "rotate-180" : ""
-                      }`}
-                    />
-                  </button>
+                    Đăng ký tài khoản
+                  </Link>
 
-                  {isLoginDropdownOpen && (
-                    <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-gray-100 py-2 z-50 animate-in fade-in slide-in-from-top-2">
-                      <button
-                        onClick={() => openLogin("student")}
-                        className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 transition flex items-center gap-3"
-                      >
-                        <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-500">
-                          <i className="fa-solid fa-user-graduate" />
-                        </div>
-                        <div>
-                          <div className="font-semibold">Học sinh</div>
-                          <div className="text-xs text-gray-500 font-normal">
-                            Truy cập lộ trình học
-                          </div>
-                        </div>
-                      </button>
+                  <div className="relative" ref={dropdownRef}>
+                    <button
+                      type="button"
+                      onClick={() => setIsLoginDropdownOpen(!isLoginDropdownOpen)}
+                      className="flex items-center gap-2 px-3 py-2 text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-full transition"
+                      aria-label="Đăng nhập"
+                      title="Đăng nhập"
+                    >
+                      <i className="fa-regular fa-circle-user text-[28px]" aria-hidden="true" />
+                      <span className="text-sm font-medium">Đăng nhập</span>
+                      <i
+                        className={`fa-solid fa-chevron-down text-xs ml-1 transition-transform duration-200 ${isLoginDropdownOpen ? "rotate-180" : ""
+                          }`}
+                      />
+                    </button>
 
-                      <button
-                        onClick={() => openLogin("parent")}
-                        className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-600 transition flex items-center gap-3"
-                      >
-                        <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center text-orange-500">
-                          <i className="fa-solid fa-user-tie" />
-                        </div>
-                        <div>
-                          <div className="font-semibold">Phụ huynh</div>
-                          <div className="text-xs text-gray-500 font-normal">
-                            Quản lý nâng cấp tài khoản
+                    {isLoginDropdownOpen && (
+                      <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-gray-100 py-2 z-50 animate-in fade-in slide-in-from-top-2">
+                        <button
+                          onClick={() => openLogin("student")}
+                          className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 transition flex items-center gap-3"
+                        >
+                          <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-500">
+                            <i className="fa-solid fa-user-graduate" />
                           </div>
-                        </div>
-                      </button>
-                    </div>
-                  )}
-                </div>
+                          <div>
+                            <div className="font-semibold">Học sinh</div>
+                            <div className="text-xs text-gray-500 font-normal">
+                              Truy cập lộ trình học
+                            </div>
+                          </div>
+                        </button>
+
+                        <button
+                          onClick={() => openLogin("parent")}
+                          className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-600 transition flex items-center gap-3"
+                        >
+                          <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center text-orange-500">
+                            <i className="fa-solid fa-user-tie" />
+                          </div>
+                          <div>
+                            <div className="font-semibold">Phụ huynh</div>
+                            <div className="text-xs text-gray-500 font-normal">
+                              Quản lý nâng cấp tài khoản
+                            </div>
+                          </div>
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </>
               )}
             </div>
           </div>
@@ -268,7 +276,7 @@ export default function Header() {
         <div
           className={`
             md:hidden absolute left-0 right-0 top-full bg-white border-b border-gray-100 shadow-xl overflow-hidden transition-all duration-300 ease-in-out
-            ${isMenuOpen ? "max-h-[460px] opacity-100" : "max-h-0 opacity-0 pointer-events-none"}
+            ${isMenuOpen ? "max-h-screen opacity-100" : "max-h-0 opacity-0 pointer-events-none"}
           `}
         >
           <nav className="flex flex-col p-6 bg-white">
@@ -340,6 +348,16 @@ export default function Header() {
               </>
             ) : (
               <div className="flex flex-col border-t border-gray-100 mt-2 pt-2">
+                <div className="px-2 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                  Đăng ký
+                </div>
+                <Link
+                  to="/register"
+                  onClick={() => setIsMenuOpen(false)}
+                  className="flex items-center justify-center w-full py-3 mb-3 rounded-2xl bg-indigo-500 text-white font-semibold text-sm shadow-sm hover:bg-indigo-600 transition"
+                >
+                  Đăng ký tài khoản
+                </Link>
                 <div className="px-2 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">
                   Đăng nhập
                 </div>
