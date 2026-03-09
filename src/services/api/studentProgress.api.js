@@ -22,6 +22,31 @@ export const getStudyTimeStatisticsApi = (studentId, startDate, endDate) => {
     });
 };
 
+export const getLessonProgressApi = (studentId, lessonId) => {
+  return axiosClient.get(
+    `/api/StudentProgress/lesson/${lessonId}/student/${studentId}`
+  );
+};
+
+
 export const updateLessonProgressApi = (studentId, lessonId, data) => {
     return axiosClient.put(`/api/StudentProgress/lesson/${lessonId}/student/${studentId}`, data);
+};
+
+export const startLessonProgressApi = (studentId, lessonId) => {
+  return axiosClient.post(
+    `/api/StudentProgress/lesson/${lessonId}/student/${studentId}/start`
+  );
+};
+
+export const getChapterProgressApi = (studentId, chapterId) => {
+  return axiosClient.get(
+    `/api/StudentProgress/chapter/${chapterId}/student/${studentId}`
+  );
+};
+
+export const getSubjectProgressApi = (studentId, subjectId) => {
+  return axiosClient.get(
+    `/api/StudentProgress/subject/${subjectId}/student/${studentId}`
+  );
 };
