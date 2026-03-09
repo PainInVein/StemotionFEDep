@@ -10,7 +10,9 @@ const rootEl = document.getElementById("root");
 createRoot(rootEl, { identifierPrefix: "stem" }).render(
   <React.StrictMode>
     <Provider store={store}>
-      <App />
+      <div className="font-sans">
+        <App />
+      </div>
     </Provider>
   </React.StrictMode>
 );

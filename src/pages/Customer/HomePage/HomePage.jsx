@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import Button from "../../../components/common/Button";
 import CupIcon from "../../../components/common/CupIcon";
 import LeaderboardModal from "../../../components/Customer/Leaderboard/LeaderboardModal";
-import { getStudentOverviewApi } from "../../../services/api/studentProgress.service";
+import { getStudentOverviewApi } from "../../../services/api/studentProgress.api";
 import { getUserKey } from "../../../utils/getUserKey";
 
 export default function HomePage() {
