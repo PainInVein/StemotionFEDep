@@ -23,7 +23,7 @@ import {
   getRecentActivitiesApi,
   getStudentOverviewApi,
   getStudyTimeStatisticsApi,
-} from "../../services/api/studentProgress.service";
+} from "../../services/api/studentProgress.api";
 import { createStudentService } from "../../services/auth/auth.service";
 
 const { Content } = Layout;

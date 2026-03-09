@@ -492,8 +492,10 @@ export default function Courses() {
 
                     const linkState = {
                       subjectName: selectedSubject?.subjectName,
+                      subjectId: selectedSubject?.subjectId,
                       chapterName: card.chapterName,
                       chapterId: card.chapterId,
+                      gradeLevel: selectedSubject?.gradeLevel,
                     };
 
                     return (

@@ -5,6 +5,10 @@ import {
   getChaptersService,
   getLessonsService,
 } from "../../../services/education/education.service";
+import {
+  getChapterProgressService,
+  getLessonProgressService,
+} from "../../../services/studentProgress/studentProgress.service";
 import { useLessonProgressStore } from "../../../stores/lessonProgressStore";
 import { getUserKey } from "../../../utils/getUserKey";
 
@@ -19,14 +23,29 @@ const slugify = (text) =>
     .replace(/^-+|-+$/g, "");
 
 const extractUuidFromSlug = (slug = "") => {
-  const maybe = String(slug).slice(-36);
+  const maybe = String(slug || "").slice(-36);
   return /^[0-9a-fA-F-]{36}$/.test(maybe) ? maybe : "";
 };
 
-const removeUuidFromSlug = (slug = "") =>
-  String(slug).replace(/-[0-9a-fA-F-]{36}$/, "");
+const extractShortIdFromSlug = (slug = "") => {
+  const match = String(slug || "").match(/~([a-zA-Z0-9]{8})$/);
+  return match ? match[1] : "";
+};
+
+const removeShortIdFromSlug = (slug = "") =>
+  String(slug || "").replace(/~[a-zA-Z0-9]{8}$/, "");
 
 const getShortId = (id = "") => String(id).slice(0, 8);
+
+const getStudentIdFromLocalStorage = () => {
+  try {
+    const userStr = localStorage.getItem("user");
+    const u = userStr ? JSON.parse(userStr) : null;
+    return u?.studentId || u?.id || null;
+  } catch {
+    return null;
+  }
+};
 
 const ASSETS = {
   completeShadow:
@@ -41,22 +60,43 @@ export default function CourseDetail() {
   const { subjectSlug = "", chapterSlug = "" } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
-  const state = location.state || {};
 
+  const state = location.state || {};
   const isTrial = location.pathname.startsWith("/trial/");
 
+  const stateLessonId = state.lessonId || "";
+  const stateChapterName = state.chapterName || "";
+  const stateSubjectName = state.subjectName || "";
+  const stateGradeLevel = state.gradeLevel ?? null;
+  const stateChapterId = state.chapterId || "";
+  const stateSubjectId = state.subjectId || "";
+
   const subjectIdFromSlug = useMemo(
-    () => extractUuidFromSlug(subjectSlug),
-    [subjectSlug]
+    () => stateSubjectId || extractUuidFromSlug(subjectSlug),
+    [stateSubjectId, subjectSlug]
   );
 
   const chapterIdFromSlug = useMemo(
-    () => extractUuidFromSlug(chapterSlug),
+    () => stateChapterId || extractUuidFromSlug(chapterSlug),
+    [stateChapterId, chapterSlug]
+  );
+
+  const subjectShortIdFromSlug = useMemo(
+    () => extractShortIdFromSlug(subjectSlug),
+    [subjectSlug]
+  );
+
+  const chapterShortIdFromSlug = useMemo(
+    () => extractShortIdFromSlug(chapterSlug),
     [chapterSlug]
   );
 
-  const chapterKey = chapterIdFromSlug || chapterSlug;
   const userKey = useMemo(() => getUserKey(), []);
+  const studentId = useMemo(() => getStudentIdFromLocalStorage(), []);
+  const chapterKey = useMemo(
+    () => stateChapterId || chapterIdFromSlug || chapterSlug || "unknown-chapter",
+    [stateChapterId, chapterIdFromSlug, chapterSlug]
+  );
 
   const byUser = useLessonProgressStore((s) => s.byUser);
   const setDoingLesson = useLessonProgressStore((s) => s.setDoingLesson);
@@ -69,68 +109,87 @@ export default function CourseDetail() {
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState("");
 
-  const [chapterName, setChapterName] = useState(state.chapterName || "");
-  const [subjectName, setSubjectName] = useState(state.subjectName || "");
-  const [chapterGradeLevel, setChapterGradeLevel] = useState(
-    state.gradeLevel ?? null
+  const [chapterName, setChapterName] = useState(stateChapterName);
+  const [subjectName, setSubjectName] = useState(stateSubjectName);
+  const [chapterGradeLevel, setChapterGradeLevel] = useState(stateGradeLevel);
+
+  const [resolvedChapterIdState, setResolvedChapterIdState] = useState(
+    stateChapterId || chapterIdFromSlug || ""
+  );
+  const [resolvedSubjectIdState, setResolvedSubjectIdState] = useState(
+    stateSubjectId || subjectIdFromSlug || ""
   );
 
   const [lessons, setLessons] = useState([]);
+  const [progressMap, setProgressMap] = useState({});
 
   useEffect(() => {
+    let cancelled = false;
+
     const run = async () => {
       try {
         setLoading(true);
         setErr("");
 
-        let resolvedChapterName = state.chapterName || "";
-        let resolvedSubjectName = state.subjectName || "";
-        let resolvedGradeLevel = state.gradeLevel ?? null;
+        let resolvedChapterName = stateChapterName;
+        let resolvedSubjectName = stateSubjectName;
+        let resolvedGradeLevel = stateGradeLevel;
+        let resolvedChapterId = isTrial ? "" : chapterIdFromSlug;
+        let resolvedSubjectId = subjectIdFromSlug;
 
-        if (
-          !resolvedChapterName ||
-          !resolvedSubjectName ||
-          resolvedGradeLevel == null
-        ) {
-          const chapRes = await getChaptersService(1, 5000);
-          const chapItems = chapRes?.items ?? [];
+        const chapRes = await getChaptersService(1, 5000);
+        const chapItems = chapRes?.items ?? [];
 
-          let found = null;
+        let found = null;
 
-          if (chapterIdFromSlug) {
-            found = chapItems.find((c) => c.chapterId === chapterIdFromSlug);
-          }
-
-          if (!found) {
-            const slugNoId = removeUuidFromSlug(chapterSlug);
-
-            found = chapItems.find((c) => {
-              const sameChapterSlug = slugify(c.chapterName) === slugNoId;
-              if (!sameChapterSlug) return false;
-
-              if (subjectIdFromSlug && c.subjectId) {
-                return c.subjectId === subjectIdFromSlug;
-              }
-
-              return true;
-            });
-          }
-
-          resolvedChapterName = found?.chapterName || resolvedChapterName || "";
-          resolvedSubjectName = found?.subjectName || resolvedSubjectName || "";
-          resolvedGradeLevel = found?.gradeLevel ?? resolvedGradeLevel;
+        if (!isTrial && resolvedChapterId) {
+          found = chapItems.find((c) => c.chapterId === resolvedChapterId);
         }
 
-        if (!resolvedSubjectName && subjectSlug) {
-          resolvedSubjectName = removeUuidFromSlug(subjectSlug).replace(
-            /-/g,
-            " "
+        if (!found && chapterShortIdFromSlug) {
+          found = chapItems.find((c) =>
+            String(c.chapterId || "").startsWith(chapterShortIdFromSlug)
           );
         }
 
-        setChapterName(resolvedChapterName);
-        setSubjectName(resolvedSubjectName);
-        setChapterGradeLevel(resolvedGradeLevel);
+        if (!found) {
+          const slugNoId = removeShortIdFromSlug(chapterSlug);
+
+          found = chapItems.find((c) => {
+            const sameChapterSlug = slugify(c.chapterName) === slugNoId;
+            if (!sameChapterSlug) return false;
+
+            if (resolvedSubjectId && c.subjectId) {
+              return c.subjectId === resolvedSubjectId;
+            }
+
+            if (subjectShortIdFromSlug && c.subjectId) {
+              return String(c.subjectId || "").startsWith(subjectShortIdFromSlug);
+            }
+
+            return true;
+          });
+        }
+
+        if (found) {
+          resolvedChapterId = found.chapterId || resolvedChapterId;
+          resolvedSubjectId = found.subjectId || resolvedSubjectId;
+          resolvedChapterName = found.chapterName || resolvedChapterName || "";
+          resolvedSubjectName = found.subjectName || resolvedSubjectName || "";
+          resolvedGradeLevel = found.gradeLevel ?? resolvedGradeLevel;
+        }
+
+        if (!resolvedSubjectName && subjectSlug) {
+          resolvedSubjectName = removeShortIdFromSlug(subjectSlug).replace(/-/g, " ");
+        }
+
+        if (!cancelled) {
+          setChapterName(resolvedChapterName);
+          setSubjectName(resolvedSubjectName);
+          setChapterGradeLevel(resolvedGradeLevel);
+          setResolvedChapterIdState(resolvedChapterId || "");
+          setResolvedSubjectIdState(resolvedSubjectId || "");
+        }
 
         const lessonRes = await getLessonsService(1, 5000);
         const lessonItems = lessonRes?.items ?? [];
@@ -139,48 +198,165 @@ export default function CourseDetail() {
           const active = l.status !== "Inactive";
 
           const sameGrade =
-            resolvedGradeLevel == null
-              ? true
-              : Number(l.gradeLevel) === Number(resolvedGradeLevel);
+            resolvedGradeLevel == null ||
+            Number(l.gradeLevel) === Number(resolvedGradeLevel);
 
-          const sameChapter = chapterIdFromSlug
-            ? l.chapterId === chapterIdFromSlug
-            : l.chapterName === resolvedChapterName;
+          const sameChapterById =
+            !!resolvedChapterId && String(l.chapterId) === String(resolvedChapterId);
 
-          return sameChapter && sameGrade && active;
+          const sameChapterByName =
+            slugify(l.chapterName) === slugify(resolvedChapterName);
+
+          const sameChapter = isTrial
+            ? sameChapterByName
+            : sameChapterById || sameChapterByName;
+
+          return active && sameGrade && sameChapter;
         });
 
-        setLessons(
-          filtered.map((l) => ({
-            id: l.lessonId,
-            title: l.lessonName,
-            raw: l,
-          }))
+        const normalizedLessons = filtered.map((l) => ({
+          id: l.lessonId,
+          title: l.lessonName,
+          raw: l,
+        }));
+
+        if (!cancelled) {
+          setLessons(normalizedLessons);
+        }
+
+        if (isTrial || !studentId) {
+          if (!cancelled) setProgressMap({});
+          return;
+        }
+
+        const nextMap = {};
+
+        if (resolvedChapterId) {
+          try {
+            const chapterProgressData = await getChapterProgressService(
+              studentId,
+              resolvedChapterId
+            );
+
+            const lessonProgressList = chapterProgressData?.lessonProgress ?? [];
+
+            for (const item of lessonProgressList) {
+              nextMap[item.lessonId] = {
+                lessonId: item.lessonId,
+                lessonName: item.lessonName,
+                isCompleted: Boolean(item.isCompleted),
+                completionPercentage: Number(item.completionPercentage || 0),
+                startedAt: item.startedAt,
+                completedAt: item.completedAt,
+                lastAccessedAt: item.lastAccessedAt,
+                estimatedTime: item.estimatedTime,
+              };
+            }
+          } catch (error) {
+            console.error("Get chapter progress failed:", error);
+          }
+        }
+
+        const lessonProgressResults = await Promise.allSettled(
+          normalizedLessons.map((lesson) =>
+            getLessonProgressService(studentId, lesson.id)
+          )
         );
+
+        for (let i = 0; i < lessonProgressResults.length; i++) {
+          const result = lessonProgressResults[i];
+          const lesson = normalizedLessons[i];
+
+          if (result.status !== "fulfilled") continue;
+
+          const item = result.value;
+          if (!item) continue;
+
+          nextMap[lesson.id] = {
+            lessonId: item.lessonId || lesson.id,
+            lessonName: item.lessonName || lesson.title,
+            isCompleted: Boolean(item.isCompleted),
+            completionPercentage: Number(item.completionPercentage || 0),
+            startedAt: item.startedAt,
+            completedAt: item.completedAt,
+            lastAccessedAt: item.lastAccessedAt,
+            estimatedTime: item.estimatedTime,
+          };
+        }
+
+        if (!cancelled) {
+          setProgressMap(nextMap);
+        }
       } catch (e) {
-        setErr(e?.message || "Load failed");
+        console.error("Load chapter detail failed:", e);
+        if (!cancelled) {
+          setErr(e?.message || "Load failed");
+        }
       } finally {
-        setLoading(false);
+        if (!cancelled) {
+          setLoading(false);
+        }
       }
     };
 
     run();
-  }, [state, subjectSlug, chapterSlug, subjectIdFromSlug, chapterIdFromSlug]);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    subjectSlug,
+    chapterSlug,
+    subjectIdFromSlug,
+    chapterIdFromSlug,
+    subjectShortIdFromSlug,
+    chapterShortIdFromSlug,
+    isTrial,
+    stateChapterName,
+    stateSubjectName,
+    stateGradeLevel,
+    studentId,
+  ]);
+
+  useEffect(() => {
+    if (!stateLessonId) return;
+    setDoingLesson(userKey, chapterKey, stateLessonId);
+  }, [stateLessonId, userKey, chapterKey, setDoingLesson]);
 
   const lessonsWithStatus = useMemo(() => {
-    const doingId = chapterProgress?.doingLessonId || null;
-    const completedSet = new Set(chapterProgress?.completed || []);
+    const doingId = chapterProgress?.doingLessonId || stateLessonId || null;
 
-    return lessons.map((l) => ({
-      ...l,
-      status:
-        doingId === l.id
-          ? "doing"
-          : completedSet.has(l.id)
+    if (isTrial || !studentId) {
+      const completedSet = new Set(chapterProgress?.completed || []);
+
+      return lessons.map((l) => ({
+        ...l,
+        status:
+          doingId === l.id
+            ? "doing"
+            : completedSet.has(l.id)
             ? "complete"
             : "notyet",
-    }));
-  }, [lessons, chapterProgress]);
+      }));
+    }
+
+    return lessons.map((l) => {
+      const p = progressMap?.[l.id];
+
+      let status = "notyet";
+
+      if (doingId && l.id === doingId) {
+        status = "doing";
+      } else if (p?.isCompleted === true) {
+        status = "complete";
+      }
+
+      return {
+        ...l,
+        status,
+      };
+    });
+  }, [lessons, progressMap, isTrial, studentId, chapterProgress, stateLessonId]);
 
   const titleOnCard = chapterName || "Chapter";
 
@@ -198,7 +374,9 @@ export default function CourseDetail() {
         lessonId: lesson.id,
         lessonName: lesson.title,
         chapterName,
+        chapterId: resolvedChapterIdState || stateChapterId || chapterIdFromSlug,
         subjectName,
+        subjectId: resolvedSubjectIdState || stateSubjectId || subjectIdFromSlug,
         gradeLevel: chapterGradeLevel,
         isTrial,
       },
@@ -222,11 +400,9 @@ export default function CourseDetail() {
               {loading
                 ? "Đang tải..."
                 : err
-                  ? `Lỗi: ${err}`
-                  : `Lessons: ${lessonsWithStatus.length}`}
-              {chapterGradeLevel != null
-                ? ` • Grade: ${chapterGradeLevel}`
-                : ""}
+                ? `Lỗi: ${err}`
+                : `Lessons: ${lessonsWithStatus.length}`}
+              {chapterGradeLevel != null ? ` • Grade: ${chapterGradeLevel}` : ""}
             </div>
           </div>
 
@@ -254,9 +430,7 @@ export default function CourseDetail() {
           )}
           {isTrial && (
             <>
-              <span className="text-green-600 font-medium">
-                Học thử miễn phí
-              </span>
+              <span className="text-green-600 font-medium">Học thử miễn phí</span>
               {" / "}
             </>
           )}
@@ -288,9 +462,7 @@ function CourseCard({
           <h1 className="text-[24px] font-bold text-black leading-[28.8px]">
             {title}
           </h1>
-          {subtitle ? (
-            <div className="text-sm text-slate-500">{subtitle}</div>
-          ) : null}
+          {subtitle ? <div className="text-sm text-slate-500">{subtitle}</div> : null}
 
           {isTrial && (
             <div className="mt-1 inline-flex items-center gap-1.5 bg-green-50 border border-green-200 text-green-700 text-xs font-semibold px-3 py-1 rounded-full">
