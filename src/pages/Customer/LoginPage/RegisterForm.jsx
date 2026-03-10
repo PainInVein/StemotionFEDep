@@ -408,7 +408,7 @@ export default function Register() {
   };
 
   const StepTitle =
-    currentStep === 1 ? "Thông tin tài khoản" : "Thiết lập mật khẩu";
+    currentStep === 1 ? "Thông tin tài khoản phụ huynh" : "Thiết lập mật khẩu";
 
   return (
   <FormProvider {...methods}>

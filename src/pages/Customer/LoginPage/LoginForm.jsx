@@ -80,38 +80,45 @@ export default function LoginModal({ isOpen = false, onClose = () => { }, role =
   }, [isOpen, role, reset, defaultValues]);
 
   const loginGoogle = () => {
-    sessionStorage.setItem("preLoginUrl", window.location.pathname + window.location.search);
+    sessionStorage.setItem(
+      "preLoginUrl",
+      window.location.pathname + window.location.search
+    );
+    sessionStorage.setItem("googleLoginRole", config.googleRole);
+
     const base = import.meta.env.VITE_API_BASE_URL;
-    window.location.href = `${base}/api/Auth/google-login?role=${encodeURIComponent(config.googleRole)}`;
+    window.location.href = `${base}/api/Auth/google-login?role=${encodeURIComponent(
+      config.googleRole
+    )}`;
   };
 
   const onSubmit = async (values) => {
-  try {
-    if (role === ROLE.PARENT) {
-      const user = await loginParent(values.email, values.password);
-      console.log("data user: ", user);
+    try {
+      if (role === ROLE.PARENT) {
+        const user = await loginParent(values.email, values.password);
+        console.log("data user: ", user);
 
-      toast.success("Đăng nhập thành công!");
-      onClose();
-      navigate("/parent/dashboard", { replace: true });
-      return;
-    } else {
-      const student = await loginStudent(values.username, values.password);
-      console.log("Student logged in: ", student);
+        toast.success("Đăng nhập thành công!");
+        onClose();
+        navigate("/parent/dashboard", { replace: true });
+        return;
+      } else {
+        const student = await loginStudent(values.username, values.password);
+        console.log("Student logged in: ", student);
 
-      toast.success("Đăng nhập thành công!");
-      onClose();
-      navigate("/", { replace: true });
-      return;
+        toast.success("Đăng nhập thành công!");
+        onClose();
+        navigate("/", { replace: true });
+        return;
+      }
+    } catch (err) {
+      const message =
+        err?.response?.data?.message ||
+        err?.message ||
+        "Thông tin đăng nhập không đúng";
+      toast.error(message);
     }
-  } catch (err) {
-    const message =
-      err?.response?.data?.message ||
-      err?.message ||
-      "Thông tin đăng nhập không đúng";
-    toast.error(message);
-  }
-};
+  };
 
 
   const disableSubmit = loading || isSubmitting;
@@ -228,38 +235,32 @@ export default function LoginModal({ isOpen = false, onClose = () => { }, role =
                 </button>
               </form>
 
-              <div className="flex justify-between w-full mt-4 gap-3 px-1">
-                <button
-                  className={`flex-1 p-[1px] rounded-full bg-gradient-to-br ${config.borderClass} hover:shadow-md transition-shadow`}
-                  aria-label="Đăng nhập bằng Facebook"
-                  type="button"
-                >
-                  <div className="bg-white rounded-full py-2 flex justify-center items-center">
-                    <i className="fa-brands fa-facebook-f text-lg text-blue-600" />
+              {role === ROLE.PARENT ? (
+                <div className="w-full">
+                  <div className="flex items-center w-full mt-6 gap-3">
+                    <div className="h-px flex-1 bg-gray-400" />
+                    <div className="text-gray-500 text-sm whitespace-nowrap">
+                      Hoặc đăng nhập bằng Google
+                    </div>
+                    <div className="h-px flex-1 bg-gray-400" />
                   </div>
-                </button>
 
-                <button
-                  className={`flex-1 p-[1px] rounded-full bg-gradient-to-br ${config.borderClass} hover:shadow-md transition-shadow`}
-                  aria-label="Đăng nhập bằng Apple"
-                  type="button"
-                >
-                  <div className="bg-white rounded-full py-2 flex justify-center items-center">
-                    <i className="fa-brands fa-apple text-lg text-black" />
+                  <div className="flex w-full mt-4">
+                    <button
+                      className={`w-full p-[1px] rounded-full bg-gradient-to-br ${config.borderClass} hover:shadow-md transition-shadow`}
+                      aria-label="Đăng nhập bằng Google"
+                      type="button"
+                      onClick={loginGoogle}
+                    >
+                      <div className="bg-white rounded-full py-2 flex justify-center items-center">
+                        <i className="fa-brands fa-google text-lg text-red-500" />
+                      </div>
+                    </button>
                   </div>
-                </button>
-
-                <button
-                  className={`flex-1 p-[1px] rounded-full bg-gradient-to-br ${config.borderClass} hover:shadow-md transition-shadow`}
-                  aria-label="Đăng nhập bằng Google"
-                  type="button"
-                  onClick={loginGoogle}
-                >
-                  <div className="bg-white rounded-full py-2 flex justify-center items-center">
-                    <i className="fa-brands fa-google text-lg text-red-500" />
-                  </div>
-                </button>
-              </div>
+                </div>
+              ) : (
+                null
+              )}
 
               <button type="button" onClick={onClose} className="mt-4 text-xs text-gray-500 hover:text-gray-700 underline">
                 Đóng

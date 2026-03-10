@@ -125,7 +125,7 @@ export default function GamesHub({ lessonId, onClose }) {
                             </span>
                         )}
                     </div>
-                    <h2 className="text-3xl md:text-4xl font-black text-slate-800 tracking-tight">
+                    <h2 className="font-sans text-2xl md:text-4xl font-black text-slate-800 leading-tight">
                         Chọn Game Để Bắt Đầu 🎮
                     </h2>
                     <p className="mt-2 text-slate-500">

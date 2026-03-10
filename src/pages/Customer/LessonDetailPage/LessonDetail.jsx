@@ -1,16 +1,22 @@
-import React, { useEffect, useMemo } from "react";
+import React, { useEffect } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { message } from "antd";
 
 import InteractiveLessonViewer from "../../../components/common/InteractiveLessonViewer";
-import { useLessonProgressStore } from "../../../stores/lessonProgressStore";
-import { updateLessonProgressApi } from "../../../services/api/studentProgress.service";
+import {
+  updateLessonProgressApi,
+  startLessonProgressApi,
+} from "../../../services/api/studentProgress.api";
 import { getPaymentService } from "../../../services/subscription/subscription.service";
-import { getUserKey } from "../../../utils/getUserKey";
 
 const extractUuidFromSlug = (slug = "") => {
   const maybe = String(slug || "").slice(-36);
   return /^[0-9a-fA-F-]{36}$/.test(maybe) ? maybe : "";
+};
+
+const extractShortIdFromSlug = (slug = "") => {
+  const match = String(slug || "").match(/~([a-zA-Z0-9]{8})$/);
+  return match ? match[1] : "";
 };
 
 const getStudentIdFromLocalStorage = () => {
@@ -38,32 +44,32 @@ export default function LessonDetail() {
   const { subjectSlug, chapterSlug, lessonSlug = "" } = useParams();
 
   const state = location.state || {};
-  const lessonId = state.lessonId || extractUuidFromSlug(lessonSlug);
+  const lessonId =
+    state.lessonId ||
+    extractUuidFromSlug(lessonSlug) ||
+    extractShortIdFromSlug(lessonSlug);
 
-  // ✅ Kiểm tra đang ở route trial không
   const isTrial = location.pathname.startsWith("/trial/");
 
-  const userKey = useMemo(() => getUserKey(), []);
-
-  const chapterIdFromSlug = useMemo(
-    () => extractUuidFromSlug(chapterSlug),
-    [chapterSlug]
-  );
-  const chapterKey = chapterIdFromSlug || chapterSlug || "unknown-chapter";
-
-  const setDoingLesson = useLessonProgressStore((s) => s.setDoingLesson);
-  const markLessonComplete = useLessonProgressStore((s) => s.markCompleted);
-
-  // ✅ Vào trang lesson → set lesson này = DOING
   useEffect(() => {
-    if (lessonId) setDoingLesson(userKey, chapterKey, lessonId);
-  }, [userKey, chapterKey, lessonId, setDoingLesson]);
+    const run = async () => {
+      if (isTrial) return;
+
+      const studentId = getStudentIdFromLocalStorage();
+      if (!studentId || !lessonId) return;
+
+      try {
+        await startLessonProgressApi(studentId, lessonId);
+      } catch (error) {
+        console.error("Start lesson progress error:", error);
+      }
+    };
+
+    run();
+  }, [lessonId, isTrial]);
 
   const handleLessonComplete = async () => {
-    // 1) Update local store trước để UI phản hồi nhanh
-    if (lessonId) markLessonComplete(userKey, chapterKey, lessonId);
-
-    // ✅ ============ TRIAL FLOW ============
+    // Trial flow
     if (isTrial) {
       try {
         const user = getUserFromLocalStorage();
@@ -73,30 +79,44 @@ export default function LessonDetail() {
           const hasPaid = await getPaymentService(parentId);
 
           if (hasPaid) {
-            // Đã paid → vào khu vực học chính thức
             message.success("Tài khoản Premium! Tiếp tục học thôi 🎉");
-            navigate("/courses", { replace: true });
+
+            if (subjectSlug && chapterSlug) {
+              navigate(`/trial/courses/${subjectSlug}/chapter/${chapterSlug}`, {
+                replace: true,
+                state: {
+                  chapterName: state.chapterName,
+                  subjectName: state.subjectName,
+                  gradeLevel: state.gradeLevel,
+                  chapterId: state.chapterId,
+                  subjectId: state.subjectId,
+                  isTrial,
+                },
+              });
+            } else {
+              navigate("/courses", { replace: true });
+            }
           } else {
-            // Chưa paid → mời nâng cấp
             message.info(
-              "Bạn đã hoàn thành bài học thử! Nâng cấp Premium để mở khóa toàn bộ nội dung."
+              "Hoàn thành bài học thử! Đăng nhập và nâng cấp để tiếp tục."
             );
             navigate("/subscription", { replace: true });
           }
         } else {
-          // Chưa đăng nhập hoặc không có parentId
-          message.info("Hoàn thành bài học thử! Đăng nhập và nâng cấp để tiếp tục.");
+          message.info(
+            "Hoàn thành bài học thử! Đăng nhập và nâng cấp để tiếp tục."
+          );
           navigate("/subscription", { replace: true });
         }
       } catch (err) {
         console.error("Check payment error:", err);
-        // Lỗi kiểm tra payment → vẫn dẫn về subscription
         navigate("/subscription", { replace: true });
       }
-      return; // ✅ Dừng ở đây, không chạy logic bên dưới
+
+      return;
     }
 
-    // ✅ ============ NORMAL LESSON FLOW ============
+    // Normal flow
     try {
       const studentId = getStudentIdFromLocalStorage();
 
@@ -105,6 +125,7 @@ export default function LessonDetail() {
           completionPercentage: 100,
           isCompleted: true,
         });
+
         message.success("Chúc mừng! Bạn đã hoàn thành bài học.");
       }
     } catch (error) {
@@ -125,9 +146,18 @@ export default function LessonDetail() {
           : "Không thể cập nhật tiến độ lên hệ thống."
       );
     } finally {
-      // 3) Redirect về chapter
       if (subjectSlug && chapterSlug) {
-        navigate(`/courses/${subjectSlug}/chapter/${chapterSlug}`);
+        navigate(`/courses/${subjectSlug}/chapter/${chapterSlug}`, {
+          replace: true,
+          state: {
+            chapterName: state.chapterName,
+            subjectName: state.subjectName,
+            gradeLevel: state.gradeLevel,
+            chapterId: state.chapterId,
+            subjectId: state.subjectId,
+            isTrial,
+          },
+        });
       } else {
         navigate(-1);
       }
